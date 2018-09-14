@@ -1,0 +1,59 @@
+package uk.ac.ox.it.calendarimporter.service;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.JobListener;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.impl.matchers.GroupMatcher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
+import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
+
+import javax.annotation.PostConstruct;
+import java.time.Instant;
+
+/**
+ * This watches for job start/stops and updates the basic job progress.
+ */
+@Component
+public class JobProgressListener implements JobListener {
+
+    @Autowired
+    private Scheduler scheduler;
+
+    @Autowired
+    private ProgressService progressService;
+
+    @PostConstruct
+    public void init() throws SchedulerException {
+        scheduler.getListenerManager().addJobListener(this, GroupMatcher.groupEquals("import"));
+    }
+
+    @Override
+    public String getName() {
+        return "UI Job Progress Listener";
+    }
+
+    @Override
+    public void jobToBeExecuted(JobExecutionContext context) {
+        String jobId = context.getTrigger().getKey().getName();
+        progressService.updateJobStarted(jobId);
+    }
+
+    @Override
+    public void jobExecutionVetoed(JobExecutionContext context) {
+
+    }
+
+    @Override
+    public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
+        String jobId = context.getTrigger().getKey().getName();
+        String error = null;
+        if (jobException != null) {
+            error = jobException.getMessage();
+        }
+        progressService.updateJobStopped(jobId, error);
+    }
+}
