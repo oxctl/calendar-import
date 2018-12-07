@@ -61,7 +61,7 @@ public class DateTimeParser {
         patterns.add(DateTimeFormatter.ofPattern("hh:mm:ss a"));
         patterns.add(DateTimeFormatter.ofPattern("HH:mm"));
         patterns.add(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        // Java 8 Requires AM/PM to be in upper case (Java 11 doesn't)
+        // Java 8 Requires AM/PM to be in upper case (Java 11 requires it to be lowercase)
         String upperString = string.toUpperCase();
         for (DateTimeFormatter pattern : patterns) {
             try {
