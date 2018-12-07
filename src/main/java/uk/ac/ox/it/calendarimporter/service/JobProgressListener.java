@@ -16,6 +16,7 @@ import java.time.Instant;
 
 /**
  * This watches for job start/stops and updates the basic job progress.
+ * This should actually be a TriggerListener as that's more what it's interested in.
  */
 @Component
 public class JobProgressListener implements JobListener {
@@ -38,8 +39,8 @@ public class JobProgressListener implements JobListener {
 
     @Override
     public void jobToBeExecuted(JobExecutionContext context) {
-        String jobId = context.getTrigger().getKey().getName();
-        progressService.updateJobStarted(jobId);
+        String triggerId = context.getTrigger().getKey().getName();
+        progressService.updateJobStarted(triggerId);
     }
 
     @Override

@@ -2,6 +2,9 @@ package uk.ac.ox.it.calendarimporter.beans;
 
 import java.time.Instant;
 
+/**
+ * Holds status of an import.
+ */
 public class ImportJob {
 
     private String progressUrl;

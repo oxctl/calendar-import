@@ -1,0 +1,37 @@
+<!doctype>
+
+<html>
+<head>
+    <title>Test Calendar Import</title>
+</head>
+<body>
+<h1>Hello {{name}}</h1>
+<ul>
+    {{#jobs}}
+        <li>{{id}} -- {{started}} -- {{status}}</li>
+    {{/jobs}}
+</ul>
+<div>
+    {{#message}}{{message}}{{/message}}
+    <form method="post">
+        <input type="text" name="url" />
+        <input type="text" name="context"/>
+        <input type="submit" value="Add"/>
+        <label>CSV<input type="radio" name="type" value="CSV" checked></label>
+        <label>iCal<input type="radio" name="type" value="ICAL"></label>
+        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+
+    </form>
+</div>
+<div>
+    <form method="post" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file"/>
+        <input type="text" name="context"/>
+        <input type="submit" value="Upload"/>
+        <label>CSV<input type="radio" name="type" value="CSV" checked></label>
+        <label>iCal<input type="radio" name="type" value="ICAL"></label>
+        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+    </form>
+</div>
+</body>
+</html>

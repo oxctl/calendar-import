@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.checkArgument;
 
 @Component
+@Slf4j
 public class ProgressService {
 
     @Autowired
@@ -51,6 +53,7 @@ public class ProgressService {
      */
     @Transactional
     public void updateJobStarted(String triggerId) {
+        log.debug("Trigger {} started", triggerId);
         JobProgress jobProgress = progressRepository.findById(triggerId).orElse(JobProgress.builder().id(triggerId).build());
         jobProgress.setStatus(JobProgress.Status.RUNNING);
         jobProgress.setStarted(Instant.now());
@@ -59,11 +62,12 @@ public class ProgressService {
 
     /**
      * Used by listener to mark a job as finished/failed.
-     * @param jobId The job ID.
+     * @param triggerId The job ID.
      */
     @Transactional
-    public void updateJobStopped(String jobId, String error) {
-        JobProgress jobProgress = progressRepository.findById(jobId).orElse(JobProgress.builder().id(jobId).build());
+    public void updateJobStopped(String triggerId, String error) {
+        log.debug("Trigger {} stopped", triggerId);
+        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(JobProgress.builder().id(triggerId).build());
         if (error != null) {
             jobProgress.setStatus(JobProgress.Status.FAILED);
             jobProgress.setLastMessage(error);
@@ -76,19 +80,20 @@ public class ProgressService {
 
     /**
      * Used by listener to mark a job as queued
-     * @param jobId The job ID.
+     * @param triggerId The job ID.
      */
     @Transactional
-    public void updateJobCreated(String jobId ) {
-        JobProgress jobProgress = progressRepository.findById(jobId).orElse(JobProgress.builder().id(jobId).build());
+    public void updateJobCreated(String triggerId ) {
+        log.debug("Trigger {} created", triggerId);
+        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(JobProgress.builder().id(triggerId).build());
         jobProgress.setStatus(JobProgress.Status.QUEUED);
         jobProgress.setCompleted(Instant.now());
         progressRepository.save(jobProgress);
     }
 
-    public Optional<JobProgress> findById(String jobId) {
+    public Optional<JobProgress> findById(String triggerId) {
         // TODO Check the user owning the job
-        return progressRepository.findById(jobId);
+        return progressRepository.findById(triggerId);
     }
 
 }

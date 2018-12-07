@@ -1,9 +1,7 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -19,6 +17,9 @@ public class JobProgress {
 
     @Id
     @NotNull
+    /**
+     * This is the trigger ID.
+     */
     private final String id;
 
     private Instant started;

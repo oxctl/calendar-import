@@ -18,13 +18,15 @@ public class Tenant {
     private long id;
 
     /**
-     * This is the pretty display name for the tenant
+     * This is the name for the tenant
      */
     @Column(nullable = false)
     private String name;
 
+    private String displayName;
+
     /**
-     * This is the endpoint for the canvas deployment.
+     * This is the endpoint for the canvas deployment, which we use for API calls back.
      */
     @Column(nullable = false)
     private String url;

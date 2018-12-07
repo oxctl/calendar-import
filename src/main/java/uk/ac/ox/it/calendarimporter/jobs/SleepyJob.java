@@ -21,7 +21,7 @@ public class SleepyJob implements Job {
         }
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(time);
         } catch (InterruptedException e) {
 
         }
