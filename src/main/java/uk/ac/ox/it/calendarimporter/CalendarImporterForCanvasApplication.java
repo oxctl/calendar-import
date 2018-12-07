@@ -12,6 +12,7 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
@@ -38,7 +39,8 @@ public class CalendarImporterForCanvasApplication {
         return new DefaultAuthenticationEventPublisher(applicationEventPublisher);
     }
 
-    @Bean
+    @Bean()
+    @Lazy
     public Mustache.Compiler mustacheCompiler( Mustache.TemplateLoader templateLoader, Environment environment) {
 
         MustacheEnvironmentCollector collector = new MustacheEnvironmentCollector();
