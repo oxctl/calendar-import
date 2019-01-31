@@ -9,12 +9,14 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Table(
-        uniqueConstraints = @UniqueConstraint(columnNames = {"tenant_name", "username"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"tenant_name", "username"}),
+        indexes = @Index(columnList = "token")
 )
 @Entity
 @Data
@@ -45,6 +47,11 @@ public class User {
      * We store the locale so that the background jobs can send errors in the correct locale.
      */
     private String locale;
+
+    /**
+     * The displayed name for the user.
+     */
+    private String name;
 
     public User() {
     }

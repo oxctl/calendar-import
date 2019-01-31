@@ -8,14 +8,15 @@
 <h1>Hello {{name}}</h1>
 <ul>
     {{#jobs}}
-        <li>{{id}} -- {{started}} -- {{status}}</li>
+        <li>{{id}} -- {{created}} -- {{calendarImport.load.status}}
+
+        </li>
     {{/jobs}}
 </ul>
 <div>
     {{#message}}{{message}}{{/message}}
     <form method="post">
         <input type="text" name="url" />
-        <input type="text" name="context"/>
         <input type="submit" value="Add"/>
         <label>CSV<input type="radio" name="type" value="CSV" checked></label>
         <label>iCal<input type="radio" name="type" value="ICAL"></label>
@@ -24,12 +25,20 @@
     </form>
 </div>
 <div>
-    <form method="post" action="/upload" enctype="multipart/form-data">
+    <form method="post" action="upload" enctype="multipart/form-data">
         <input type="file" name="file"/>
-        <input type="text" name="context"/>
         <input type="submit" value="Upload"/>
         <label>CSV<input type="radio" name="type" value="CSV" checked></label>
         <label>iCal<input type="radio" name="type" value="ICAL"></label>
+        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+    </form>
+</div>
+
+<div>
+    <form method="post" action="/api/v1/cleanup">
+        <label>Tenant <input type="text" name="tenant"/></label><br/>
+        <label>Context <input type="text" name="context"/></label><br/>
+        <input type="submit" value="Cleanout"/>
         <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
     </form>
 </div>

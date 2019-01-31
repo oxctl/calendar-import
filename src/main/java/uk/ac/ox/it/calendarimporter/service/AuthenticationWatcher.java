@@ -7,7 +7,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
+import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 
 import javax.annotation.PostConstruct;
@@ -21,6 +23,9 @@ public class AuthenticationWatcher implements ApplicationListener<Authentication
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TenantRepository tenantRepository;
 
     @PostConstruct
     public void init() {
@@ -36,11 +41,14 @@ public class AuthenticationWatcher implements ApplicationListener<Authentication
             String tenantName = oauthAuthentication.getClientRegistration().getRegistrationId();
             String username = oauthAuthentication.getPrincipal().getName();
             String token = oauthAuthentication.getAccessToken().getTokenValue();
+            // TODO: The email is here in the authorities, we should extract it and stash it on the user.
 
             User user = userRepository.findByTenantNameAndUsername(tenantName, username)
                     .orElse(new User(tenantName, username));
+
+            Optional<Tenant> tenantOpt = tenantRepository.findByName(tenantName);
+
             user.setToken(token);
-            new User();
             userRepository.save(user);
         }
     }

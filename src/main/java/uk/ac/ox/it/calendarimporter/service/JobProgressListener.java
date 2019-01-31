@@ -8,11 +8,8 @@ import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
-import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
 
 import javax.annotation.PostConstruct;
-import java.time.Instant;
 
 /**
  * This watches for job start/stops and updates the basic job progress.

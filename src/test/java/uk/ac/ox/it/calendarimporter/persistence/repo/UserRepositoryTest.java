@@ -69,4 +69,23 @@ public class UserRepositoryTest {
         entityManager.persist(new User("tenant", "username"));
         entityManager.flush();
     }
+
+
+    @Test
+    public void testUpdateUser() throws Exception {
+        entityManager.persist(new User("tenant", "username"));
+        entityManager.flush();
+        {
+            User user = this.repository.findByTenantNameAndUsername("tenant", "username").orElseThrow(AssertionFailedError::new);
+            assertNotNull(user.getId());
+            user.setEmail("email@example.com");
+            user.setName("Display Name");
+            this.repository.save(user);
+        }
+        {
+            User user = this.repository.findByTenantNameAndUsername("tenant", "username").orElseThrow(AssertionFailedError::new);
+            assertEquals("email@example.com", user.getEmail());
+            assertEquals("Display Name", user.getName());
+        }
+    }
 }

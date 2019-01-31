@@ -63,7 +63,7 @@ OkHttp doesn't appear to use NIO :-(
 
 Keeping OAuthe2Authentication in the session might not be the best in the long run as we may want long lived session or session from LTI, in which case the OAuth2 token may be in the database.
 
-There's no pagination in Quartz for finding triggers so we don't want to use any of the searching methods and hence we need our own database table to associate a trigger to a user.
+There's no pagination in Quartz for finding triggers so we don't want to use any of the searching methods and hence we need our own database table to associate a trigger to a user, we will also want to associate a context to a job.
 
 Want to veto some jobs if the user has allot of jobs outstanding.
 
@@ -71,3 +71,19 @@ use exceptions from the job to indicate if the job should be re-tried and use di
 
 Store upload somewhere and then pass in the URL to it. How to remove after processing? Trigger listener? 
 
+With the upgrade to Spring 5.1 this is the token that it failing to parse onto a OAuth2AccessTokenResponse
+
+    {
+    "access_token":"token-example",
+    "token_type":"Bearer",
+    "user":{
+       "id":73,
+       "name":"Superadmin 03",
+       "global_id":"115370000000000073",
+       "effective_locale":"en-GB"
+    },
+    "refresh_token":"token-example",
+    "expires_in":3600
+    }
+    
+    

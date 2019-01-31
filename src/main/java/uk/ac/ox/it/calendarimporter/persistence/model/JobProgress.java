@@ -1,26 +1,28 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.validation.constraints.NotNull;
 import java.time.Instant;
 
+/**
+ * Holds the progress of a job that means that we don't have to query quartz to find out what's happened.
+ * Job progress has an idea of how "complete" a job is.
+ */
 @Data
-@Builder
 @Entity
+@NoArgsConstructor
 public class JobProgress {
 
     public enum Status {QUEUED, RUNNING, COMPLETED, FAILED}
 
-    @Id
-    @NotNull
     /**
      * This is the trigger ID.
      */
-    private final String id;
+    @Id
+    private String id;
 
     private Instant started;
     private Instant completed;
@@ -28,7 +30,8 @@ public class JobProgress {
     private Status status;
     private int percentage;
 
-    public void update(int percentage) {
-        this.percentage = percentage;
+    public JobProgress(String id) {
+        this.id = id;
     }
+
 }

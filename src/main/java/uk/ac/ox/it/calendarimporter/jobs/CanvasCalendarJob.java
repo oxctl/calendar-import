@@ -8,19 +8,44 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.model.UserJob;
+import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.UserJobRepository;
+import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public abstract class CanvasCalendarJob implements InterruptableJob {
+
+    public static final String URL = "url";
+    public static final String CONTEXT = "context";
+    public static final String TOKEN = "token";
+    public static final String TENANT_NAME = "tenant_name";
+    public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
 
     protected String context;
     protected String url;
     protected CanvasApiFactory canvasApiFactory;
     protected NonRefreshableOauthToken nonRefreshableOauthToken;
 
+    protected Tenant tenant;
+    protected CalendarImport calendarImport;
+    protected String triggerId;
+
     private String canvasUrl;
     private String token;
     private boolean run = true;
+
+    @Autowired
+    private TenantRepository tenantRepository;
+
+    @Autowired
+    private CalendarImportRepository calendarImportRespository;
 
     public void setContext(String context) {
         this.context = context;
@@ -48,11 +73,19 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
+        triggerId = context.getTrigger().getKey().getName();
+
         JobDataMap config = context.getMergedJobDataMap();
-        setUrl(config.getString("url"));
-        setCanvasUrl(config.getString("canvas_url"));
-        setToken(config.getString("token"));
-        setContext(config.getString("context"));
+        setUrl(config.getString(URL));
+        setToken(config.getString(TOKEN));
+        setContext(config.getString(CONTEXT));
+
+        Optional<Tenant> tenant = tenantRepository.findByName(config.getString(TENANT_NAME));
+        this.tenant = tenant.orElseThrow(JobExecutionException::new);
+        setCanvasUrl(this.tenant.getUrl());
+
+        Optional<CalendarImport> calendarImport = calendarImportRespository.findById(config.getLongValue(CALENDAR_IMPORT_ID));
+        this.calendarImport = calendarImport.orElseThrow(JobExecutionException::new);
 
         canvasApiFactory = new CanvasApiFactory(canvasUrl);
         nonRefreshableOauthToken = new NonRefreshableOauthToken(token);

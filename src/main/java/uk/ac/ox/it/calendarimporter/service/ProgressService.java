@@ -26,12 +26,12 @@ public class ProgressService {
      * @param percentage
      */
     @Transactional
-    public void updateJob(String triggerId, String message, Integer percentage) {
+    public JobProgress updateJob(String triggerId, String message, Integer percentage) {
         checkArgument(triggerId != null, "You must supply a triggerId");
         checkArgument(message != null, "You must supply a message");
         checkArgument(percentage != null && 0 <= percentage && percentage <= 100, "Percentage must be from 0 to 100");
 
-        JobProgress progress = progressRepository.findById(triggerId).orElse(JobProgress.builder().id(triggerId).started(Instant.now()).build());
+        JobProgress progress = progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         if (progress.getCompleted() != null) {
             throw new IllegalStateException("Can't update a job that's complete: " + triggerId);
         }
@@ -44,7 +44,13 @@ public class ProgressService {
                 progress.setStatus(JobProgress.Status.COMPLETED);
             }
         }
-        progressRepository.save(progress);
+        return progressRepository.save(progress);
+    }
+
+    private JobProgress createJobProgress(String id) {
+        JobProgress jobProgress = new JobProgress(id);
+        jobProgress.setStarted(Instant.now());
+        return jobProgress;
     }
 
     /**
@@ -52,12 +58,12 @@ public class ProgressService {
      * @param triggerId The trigger ID.
      */
     @Transactional
-    public void updateJobStarted(String triggerId) {
+    public JobProgress updateJobStarted(String triggerId) {
         log.debug("Trigger {} started", triggerId);
-        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(JobProgress.builder().id(triggerId).build());
+        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         jobProgress.setStatus(JobProgress.Status.RUNNING);
         jobProgress.setStarted(Instant.now());
-        progressRepository.save(jobProgress);
+        return progressRepository.save(jobProgress);
     }
 
     /**
@@ -65,9 +71,9 @@ public class ProgressService {
      * @param triggerId The job ID.
      */
     @Transactional
-    public void updateJobStopped(String triggerId, String error) {
+    public JobProgress updateJobStopped(String triggerId, String error) {
         log.debug("Trigger {} stopped", triggerId);
-        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(JobProgress.builder().id(triggerId).build());
+        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         if (error != null) {
             jobProgress.setStatus(JobProgress.Status.FAILED);
             jobProgress.setLastMessage(error);
@@ -75,7 +81,7 @@ public class ProgressService {
             jobProgress.setStatus(JobProgress.Status.COMPLETED);
         }
         jobProgress.setCompleted(Instant.now());
-        progressRepository.save(jobProgress);
+        return progressRepository.save(jobProgress);
     }
 
     /**
@@ -83,12 +89,12 @@ public class ProgressService {
      * @param triggerId The job ID.
      */
     @Transactional
-    public void updateJobCreated(String triggerId ) {
+    public JobProgress updateJobCreated(String triggerId ) {
         log.debug("Trigger {} created", triggerId);
-        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(JobProgress.builder().id(triggerId).build());
+        JobProgress jobProgress = progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         jobProgress.setStatus(JobProgress.Status.QUEUED);
         jobProgress.setCompleted(Instant.now());
-        progressRepository.save(jobProgress);
+        return progressRepository.save(jobProgress);
     }
 
     public Optional<JobProgress> findById(String triggerId) {

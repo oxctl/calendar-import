@@ -15,11 +15,18 @@ import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.TriggerUtils;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
-import uk.ac.ox.it.calendarimporter.jobs.ical.IcalImportJob;
+import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
+import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserJob;
+import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserJobRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 
 import java.time.Instant;
 import java.util.Date;
@@ -37,12 +44,24 @@ public class ImportService {
     private ProgressService progressService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private UserJobRepository userJobRepository;
+
+    @Autowired
+    private CalendarImportRepository calendarImportRepository;
+
+    @Autowired
+    private ContextJobRepository contextJobRepository;
+
+    @Autowired
+    private TenantRepository tenantRepository;
 
     // TODO Handling of SchedulerException
     // Should we just pass in a User object?
     // Should url be an actual URL?
-    public ImportJob importNow(ImportType type, String url, String context, String token, String tenant, String username, Long userId) throws SchedulerException {
+    public ImportJob importNow(ImportType type, String url, String context, String token, String tenantName, Long userId) throws SchedulerException {
         // Job ID should come from config.
         JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(type.name(), "import"));
         if (detail == null) {
@@ -55,29 +74,52 @@ public class ImportService {
         // Non-guessable identity
         UUID uuid = UUID.randomUUID();
 
+        // TODO What exception?
+        User user = userRepository.findById(userId).orElseThrow();
+
+        Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow();
+
+
         // Allow lookups from user to jobs.
-        UserJob userJob = new UserJob();
-        userJob.setTriggerId(uuid.toString());
+        UserJob userJob = new UserJob(uuid.toString());
         userJob.setCreated(Instant.now());
         userJob.setUserId(userId);
         userJobRepository.save(userJob);
 
 
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setContext(context);
+        calendarImport.setCreated(Instant.now());
+        calendarImport.setUser(user);
+        calendarImport.setUrl(url);
+        calendarImport.setType(type);
+        calendarImport = calendarImportRepository.save(calendarImport);
+
         // For repeating jobs we want to lookup much more of this that way if the token/url gets updated
         // later on jobs that run will use the new URL/token
         Trigger trigger = TriggerBuilder.newTrigger()
                 .startNow()
-                .withIdentity(TriggerUtils.toTriggerKey(uuid.toString(), tenant, username))
-                .usingJobData("url", url)
-                .usingJobData("context", context)
-                .usingJobData("token", token)
-                // TODO This should come from user -> tenant
-                .usingJobData("canvas_url", "https://oxeval.instructure.com")
+                .withIdentity(TriggerUtils.toTriggerKey(uuid.toString(), tenantName, user.getUsername()))
+                .usingJobData(CanvasCalendarJob.URL, url)
+                .usingJobData(CanvasCalendarJob.CONTEXT, context)
+                .usingJobData(CanvasCalendarJob.TOKEN, token)
+                .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
+                // This is in the trigger key but it's better to be explicit about this.
+                .usingJobData(CanvasCalendarJob.TENANT_NAME, tenantName)
                 .forJob(detail)
                 .build();
-        Date date = scheduler.scheduleJob(trigger);
-        progressService.updateJobCreated(uuid.toString());
 
+        Date date = scheduler.scheduleJob(trigger);
+        JobProgress jobProgress = progressService.updateJobCreated(uuid.toString());
+        calendarImport.setLoad(jobProgress);
+        calendarImportRepository.save(calendarImport);
+
+        ContextJob contextJob = new ContextJob();
+        contextJob.setCalendarImport(calendarImport);
+        contextJob.setContext(context);
+        contextJob.setCreated(Instant.now());
+        contextJob.setTenant(tenant);
+        contextJobRepository.save(contextJob);
 
         ImportJob job = new ImportJob();
         job.setStarted(date.toInstant());
@@ -87,10 +129,15 @@ public class ImportService {
 
     public Page<JobProgress> getJobs(User user, Pageable pageable) {
         Page<UserJob> userJobs = userJobRepository.findByUserIdOrderByCreatedDesc(user.getId(), pageable);
+        //TODO This should change to a join or re-structure the objects
         return userJobs.map(job -> {
             Optional<JobProgress> byId = progressService.findById(job.getTriggerId());
             return byId.orElse(null);
         });
     }
 
+    public Page<ContextJob> getJobs(String context, Pageable pageable) {
+        Page<ContextJob> contextJobs = contextJobRepository.findByContextOrderByCreatedDesc(context, pageable);
+        return contextJobs;
+    }
 }
