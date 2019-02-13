@@ -15,7 +15,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import javax.annotation.PostConstruct;
 
 /**
- * This could allow us to update the database table when a user authenticates.
+ * This updates the users's record in the DB with a new refresh token when OAuth 2 autentication happens.
  */
 @Component()
 public class AuthenticationWatcher implements ApplicationListener<AuthenticationSuccessEvent>{
@@ -39,7 +39,7 @@ public class AuthenticationWatcher implements ApplicationListener<Authentication
             // This is our internal name for the remote server
             String tenantName = oauthAuthentication.getClientRegistration().getRegistrationId();
             String username = oauthAuthentication.getPrincipal().getName();
-            String token = oauthAuthentication.getAccessToken().getTokenValue();
+            String token = oauthAuthentication.getRefreshToken().getTokenValue();
             // TODO: The email is here in the authorities, we should extract it and stash it on the user.
             // TODO need to throw a better exception.
             Tenant tenant= tenantRepository.findByName(tenantName).orElseThrow(RuntimeException::new);
