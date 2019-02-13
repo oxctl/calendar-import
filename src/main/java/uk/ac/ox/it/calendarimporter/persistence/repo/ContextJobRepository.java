@@ -4,9 +4,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
-public interface ContextJobRepository extends CrudRepository<ContextJob, String> {
+public interface ContextJobRepository extends CrudRepository<ContextJob, Long> {
 
-    Page<ContextJob> findByContextOrderByCreatedDesc(String context, Pageable pageable);
+    Page<ContextJob> findByTenantAndContextOrderByCreatedDesc(Tenant tenant, String context, Pageable pageable);
 
 }

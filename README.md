@@ -41,7 +41,7 @@ For spring 5 it's Spring Security OAuth support that is recommended, there is sp
 There should be authentication events, but I don't see them happening.
 
 
-Canvas OAuth documentation doesn't mention that you can use replace_tokens to indicate you want older tokens removed. (https://canvas.instructure.com/doc/api/file.oauth.html)
+Canvas OAuth documentation doesn't mention that you can use replace_tokens to indicate you want older tokens removed. (https://canvas.instructure.com/doc/api/file.oauth.html). This is now implemented by having a custom 
 
 https://github.com/spring-projects/spring-security/issues/5494
 
@@ -87,3 +87,29 @@ With the upgrade to Spring 5.1 this is the token that it failing to parse onto a
     }
     
     
+Authorization, have authorized contexts consisting of tenant/context in session. This allows LTI launches from multiple location to work.
+    
+You can't have HTML in raw descriptions, but you can put it in another property, need to check what Canvas does: https://stackoverflow.com/questions/854036/html-in-ical-attachment    
+
+## SSL
+
+The simplest way to enable SSL for development is to install [mkcert](https://github.com/FiloSottile/mkcert) and the create a test SSL cert.
+
+    mkcert calendar.local
+    
+then merge the files into a keystore:
+
+    openssl pkcs12 -export -inkey calendar.local-key.pem -in calendar.local.pem -name tomcat -out keystore.p12
+    
+    
+On macOS you can add this additional hostname to the DNS:
+
+    dns-sd -P calendar _http._tcp local 8080 calendar.local 127.0.0.1
+
+
+
+    
+    
+    
+   
+

@@ -11,8 +11,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import java.time.Instant;
 
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.COMPLETED;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.FAILED;
+
 /**
- * This holds details of an import that has been made.
+ * This holds details of an import that has been made. From here you can find the jobs related to the initial import
+ * and possibly to the removal job.
  */
 @Entity
 @Data
@@ -55,5 +59,6 @@ public class CalendarImport {
      */
     @OneToOne
     private JobProgress delete;
+
 
 }

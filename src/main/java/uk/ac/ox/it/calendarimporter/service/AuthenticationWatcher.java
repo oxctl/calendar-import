@@ -13,7 +13,6 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 
 import javax.annotation.PostConstruct;
-import java.util.Optional;
 
 /**
  * This could allow us to update the database table when a user authenticates.
@@ -42,11 +41,11 @@ public class AuthenticationWatcher implements ApplicationListener<Authentication
             String username = oauthAuthentication.getPrincipal().getName();
             String token = oauthAuthentication.getAccessToken().getTokenValue();
             // TODO: The email is here in the authorities, we should extract it and stash it on the user.
+            // TODO need to throw a better exception.
+            Tenant tenant= tenantRepository.findByName(tenantName).orElseThrow(RuntimeException::new);
 
-            User user = userRepository.findByTenantNameAndUsername(tenantName, username)
-                    .orElse(new User(tenantName, username));
-
-            Optional<Tenant> tenantOpt = tenantRepository.findByName(tenantName);
+            User user = userRepository.findByUsernameAndTenant_Name(username, tenantName)
+                    .orElse(new User(tenant, username));
 
             user.setToken(token);
             userRepository.save(user);

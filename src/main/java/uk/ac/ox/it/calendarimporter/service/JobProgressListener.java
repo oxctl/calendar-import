@@ -2,14 +2,19 @@ package uk.ac.ox.it.calendarimporter.service;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.JobKey;
 import org.quartz.JobListener;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.impl.matchers.AndMatcher;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.quartz.impl.matchers.OrMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
+import static org.quartz.impl.matchers.GroupMatcher.*;
 
 /**
  * This watches for job start/stops and updates the basic job progress.
@@ -26,7 +31,7 @@ public class JobProgressListener implements JobListener {
 
     @PostConstruct
     public void init() throws SchedulerException {
-        scheduler.getListenerManager().addJobListener(this, GroupMatcher.groupEquals("import"));
+        scheduler.getListenerManager().addJobListener(this, OrMatcher.<JobKey>or(groupEquals("import"), groupEquals("delete")));
     }
 
     @Override

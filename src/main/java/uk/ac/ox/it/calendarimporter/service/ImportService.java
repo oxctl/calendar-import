@@ -16,6 +16,7 @@ import uk.ac.ox.it.calendarimporter.TriggerUtils;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
+import uk.ac.ox.it.calendarimporter.jobs.DeleteJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
@@ -32,6 +33,9 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
+
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.QUEUED;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.RUNNING;
 
 @Component
 @Slf4j
@@ -61,7 +65,7 @@ public class ImportService {
     // TODO Handling of SchedulerException
     // Should we just pass in a User object?
     // Should url be an actual URL?
-    public ImportJob importNow(ImportType type, String url, String context, String token, String tenantName, Long userId) throws SchedulerException {
+    public ImportJob importNow(ImportType type, String url, String filename, String token, Long userId, String context) throws SchedulerException {
         // Job ID should come from config.
         JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(type.name(), "import"));
         if (detail == null) {
@@ -77,7 +81,7 @@ public class ImportService {
         // TODO What exception?
         User user = userRepository.findById(userId).orElseThrow();
 
-        Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow();
+        Tenant tenant = user.getTenant();
 
 
         // Allow lookups from user to jobs.
@@ -92,6 +96,7 @@ public class ImportService {
         calendarImport.setCreated(Instant.now());
         calendarImport.setUser(user);
         calendarImport.setUrl(url);
+        calendarImport.setFilename(filename);
         calendarImport.setType(type);
         calendarImport = calendarImportRepository.save(calendarImport);
 
@@ -99,13 +104,13 @@ public class ImportService {
         // later on jobs that run will use the new URL/token
         Trigger trigger = TriggerBuilder.newTrigger()
                 .startNow()
-                .withIdentity(TriggerUtils.toTriggerKey(uuid.toString(), tenantName, user.getUsername()))
+                .withIdentity(TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getUsername()))
                 .usingJobData(CanvasCalendarJob.URL, url)
                 .usingJobData(CanvasCalendarJob.CONTEXT, context)
                 .usingJobData(CanvasCalendarJob.TOKEN, token)
                 .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
                 // This is in the trigger key but it's better to be explicit about this.
-                .usingJobData(CanvasCalendarJob.TENANT_NAME, tenantName)
+                .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
                 .forJob(detail)
                 .build();
 
@@ -127,6 +132,40 @@ public class ImportService {
         return job;
     }
 
+    public void deleteImport(Long calendarImportId, String token, User user) throws SchedulerException {
+
+        CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
+        JobProgress load = calendarImport.getLoad();
+        if (QUEUED.equals(load.getStatus()) || RUNNING.equals(load.getStatus())) {
+            throw new IllegalStateException("Cannot delete an import that is running or queued.");
+        }
+
+        JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(DeleteJob.class.getName(), "delete"));
+        if (detail == null) {
+            detail = JobBuilder.newJob(DeleteJob.class)
+                    .withIdentity(DeleteJob.class.getName(), "delete")
+                    .storeDurably()
+                    .build();
+            scheduler.addJob(detail, true);
+        }
+
+        UUID uuid = UUID.randomUUID();
+
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .startNow()
+                .withIdentity(TriggerUtils.toTriggerKey(uuid.toString(), user.getTenant().getName(), user.getUsername()))
+                .usingJobData(CanvasCalendarJob.TENANT_NAME, user.getTenant().getName())
+                .usingJobData(CanvasCalendarJob.TOKEN, token)
+                .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImportId)
+                .forJob(detail)
+                .build();
+
+        Date date = scheduler.scheduleJob(trigger);
+        JobProgress jobProgress = progressService.updateJobCreated(uuid.toString());
+        calendarImport.setDelete(jobProgress);
+        calendarImportRepository.save(calendarImport);
+    }
+
     public Page<JobProgress> getJobs(User user, Pageable pageable) {
         Page<UserJob> userJobs = userJobRepository.findByUserIdOrderByCreatedDesc(user.getId(), pageable);
         //TODO This should change to a join or re-structure the objects
@@ -136,8 +175,8 @@ public class ImportService {
         });
     }
 
-    public Page<ContextJob> getJobs(String context, Pageable pageable) {
-        Page<ContextJob> contextJobs = contextJobRepository.findByContextOrderByCreatedDesc(context, pageable);
+    public Page<ContextJob> getJobs(Tenant tenant, String context, Pageable pageable) {
+        Page<ContextJob> contextJobs = contextJobRepository.findByTenantAndContextOrderByCreatedDesc(tenant, context, pageable);
         return contextJobs;
     }
 }

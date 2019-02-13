@@ -1,15 +1,24 @@
 package uk.ac.ox.it.calendarimporter;
 
 import com.samskivert.mustache.Mustache;
+import edu.ksu.lti.launch.oauth.LtiConsumerDetailsService;
+import edu.ksu.lti.launch.service.ConfigService;
+import edu.ksu.lti.launch.service.LtiLaunchKeyService;
+import edu.ksu.lti.launch.service.OauthTokenService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.mustache.MustacheEnvironmentCollector;
+import org.springframework.boot.context.TypeExcludeFilter;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -21,8 +30,8 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 
 @EnableJpaRepositories("uk.ac.ox.it.calendarimporter.persistence.repo")
 @EnableCaching
-@EntityScan("uk.ac.ox.it.calendarimporter.persistence.model")
-@SpringBootApplication
+@EntityScan({"uk.ac.ox.it.calendarimporter.persistence.model"})
+@SpringBootApplication(scanBasePackages = {"edu.ksu.lti.launch", "uk.ac.ox.it.calendarimporter"})
 public class CalendarImporterForCanvasApplication {
 
     @Autowired
@@ -63,4 +72,56 @@ public class CalendarImporterForCanvasApplication {
                 .withLoader(templateLoader)
                 .withCollector(collector);
     }
+
+    @Bean
+    public ConfigService configService() {
+        return new ConfigService() {
+            @Override
+            public String getConfigValue(String key) {
+                if ("canvas_url".equals(key)) {
+                    return "https://oxeval.instructure.com/";
+                } else if ("oauth_client_id".equals(key)) {
+                    return "canvas";
+                } else {
+                    return "canvas";
+                }
+            }
+        };
+    }
+
+    @Bean
+    public OauthTokenService oauthTokenService() {
+        return new OauthTokenService() {
+            @Override
+            public String getRefreshToken(String userId) {
+                return null;
+            }
+
+            @Override
+            public String storeToken(String userId, String refreshToken) {
+                return null;
+            }
+
+            @Override
+            public String updateToken(String userId, String refreshToken) {
+                return null;
+            }
+        };
+    }
+
+    @Bean
+    public LtiLaunchKeyService ltiLaunchKeyService() {
+        return new LtiLaunchKeyService() {
+            @Override
+            public String findSecretForKey(String key) {
+                return "canvas";
+            }
+        };
+    }
+
+    @Bean(name = "applicationName")
+    public String applicationName() {
+        return "Test";
+    }
+
 }

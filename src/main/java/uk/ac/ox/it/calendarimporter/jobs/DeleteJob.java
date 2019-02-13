@@ -1,0 +1,95 @@
+package uk.ac.ox.it.calendarimporter.jobs;
+
+import edu.ksu.canvas.CanvasApiFactory;
+import edu.ksu.canvas.exception.UnauthorizedException;
+import edu.ksu.canvas.interfaces.CalendarWriter;
+import edu.ksu.canvas.model.CalendarEvent;
+import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
+import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TENANT_NAME;
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TOKEN;
+import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.*;
+
+/**
+ * This will remove all events from a calendar. This is an admin job that isn't designed to be exposed to user.
+ * TODO This should support only removing events created by our importer.
+ */
+public class DeleteJob implements Job {
+
+    public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
+
+    private Logger log = LoggerFactory.getLogger(DeleteJob.class);
+
+    @Autowired
+    private TenantRepository tenantRepository;
+    @Autowired
+    private CalendarImportRepository calendarImportRepository;
+    @Autowired
+    private ImportedEventRepository importedEventRepository;
+
+
+    public void execute(JobExecutionContext jobContext) throws JobExecutionException {
+        JobDataMap config = jobContext.getMergedJobDataMap();
+        Tenant tenant = tenantRepository.findByName(config.getString(TENANT_NAME))
+                .orElseThrow(JobExecutionException::new);
+        String token = config.getString(TOKEN);
+        long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
+
+        CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
+
+        List<ImportedEvent> importedEvents = importedEventRepository.findByCalendarImport(calendarImport);
+
+        String context = calendarImport.getContext();
+
+        log.debug("Cleaning out events in {} of {}", context, tenant);
+        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
+        NonRefreshableOauthToken nonRefreshableOauthToken = new NonRefreshableOauthToken(token);
+
+        CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, nonRefreshableOauthToken);
+
+        try {
+            int deleted = 0;
+            int missing = 0;
+            for (ImportedEvent event : importedEvents) {
+                if (CREATED.equals(event.getStatus())) {
+                    log.debug("Attempting to remove event ID {} from calendar {} of {}", event.getId(), context, tenant);
+                    try {
+                        Optional<CalendarEvent> calendarEvent = calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getId()));
+                        if (calendarEvent.isPresent()) {
+                            event.setStatus(DELETED);
+                            deleted++;
+                        }
+                    } catch (UnauthorizedException ue) {
+                        event.setStatus(MISSING);
+                        missing++;
+                    }
+
+                    importedEventRepository.save(event);
+                } else {
+                    log.debug("Skipping event {} from calendar {} of {}", event.getId(), context, tenant);
+                }
+            }
+            log.info("Removed {} events, failed to find {} from calendar {} of {}", deleted, missing, context, tenant);
+        } catch (IOException e) {
+            log.warn("Problem removing events.", e);
+        }
+    }
+}

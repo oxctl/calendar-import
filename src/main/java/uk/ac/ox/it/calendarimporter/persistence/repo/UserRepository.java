@@ -8,10 +8,10 @@ import java.util.Optional;
 
 public interface UserRepository extends CrudRepository<User, Long> {
 
-    Optional<User> findByTenantNameAndUsername(String tenantName, String username);
+    Optional<User> findByUsernameAndTenant_Name(String username, String tenantName);
 
     default Optional<User> findByOAuth2AuthenticationToken(OAuth2AuthenticationToken token) {
-        return findByTenantNameAndUsername(token.getAuthorizedClientRegistrationId(), token.getName());
+        return findByUsernameAndTenant_Name(token.getName(), token.getAuthorizedClientRegistrationId());
 
     }
 }

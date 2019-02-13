@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationC
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -29,6 +30,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
 
 
     @Override
@@ -44,12 +48,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .anyRequest().authenticated()
-                .and().oauth2Login().tokenEndpoint().accessTokenResponseClient(accessTokenResposeClient());
+                .and().oauth2Login()
+//                .authorizationEndpoint().authorizationRequestResolver(new CanvasAuthorizationRequestResolver(clientRegistrationRepository)).and()
+                .tokenEndpoint().accessTokenResponseClient(accessTokenResposeClient());
+        // TODO Fix this.
+        http.headers().frameOptions().disable();
 
     }
 
     private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResposeClient() {
         DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
+        client.setRequestEntityConverter(new CanvasOAuth2AuthorizationCodeGrantRequestEntityConverter());
         RestTemplate restTemplate = new RestTemplate(Arrays.asList(
                 new FormHttpMessageConverter(), new OAuth2AccessTokenResponseHttpMessageConverter()));
         // Switch to Apache HTTP Components;
@@ -62,7 +71,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     @Override
-    protected  void configure(AuthenticationManagerBuilder authenticationManager) throws Exception {
+    protected void configure(AuthenticationManagerBuilder authenticationManager) throws Exception {
         // This is called before the configure(HttpSecurity)
         // This doesn't work because we don't have our own authentication manager and so it doesn't create it.
         // authenticationManager.authenticationProvider()
@@ -77,7 +86,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     // This doesn't work because the authentication manager isn't built by the configurer.
     @Bean
     public GlobalAuthenticationConfigurerAdapter globalAuthenticationConfigurerAdapter() {
-        return new GlobalAuthenticationConfigurerAdapter(){
+        return new GlobalAuthenticationConfigurerAdapter() {
 
             public void configure(AuthenticationManagerBuilder builder) {
                 builder.authenticationEventPublisher(new DefaultAuthenticationEventPublisher(applicationEventPublisher));

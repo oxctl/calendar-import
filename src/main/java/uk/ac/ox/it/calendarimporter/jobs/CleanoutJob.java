@@ -20,7 +20,6 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.*;
 
@@ -38,7 +37,7 @@ public class CleanoutJob implements Job {
     public void execute(JobExecutionContext jobContext) throws JobExecutionException {
         JobDataMap config = jobContext.getMergedJobDataMap();
         Tenant tenant = tenantRepository.findByName(config.getString(TENANT_NAME))
-                .orElseThrow(JobExecutionException::new);
+               .orElseThrow(JobExecutionException::new);
         String token = config.getString(TOKEN);
         String context = config.getString(CONTEXT);
         log.debug("Cleaning out all events in {} of {}", context, tenant);

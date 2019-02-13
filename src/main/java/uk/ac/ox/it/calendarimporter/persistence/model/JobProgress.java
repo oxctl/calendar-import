@@ -7,6 +7,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.time.Instant;
 
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.COMPLETED;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.FAILED;
+
 /**
  * Holds the progress of a job that means that we don't have to query quartz to find out what's happened.
  * Job progress has an idea of how "complete" a job is.

@@ -37,4 +37,10 @@ public class Tenant {
     @NotNull
     private String url;
 
+    /**
+     * A URL to the CSS for this tenant, most of the time we just use the one in the LTI session.
+     * But if the user doesn't have a LTI session then we can fallback to this.
+     */
+    private String cssUrl;
+
 }

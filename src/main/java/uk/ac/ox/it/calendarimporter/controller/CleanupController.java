@@ -29,7 +29,8 @@ public class CleanupController {
 
     @PostMapping
     public void cleanup(@RequestParam String tenant, @RequestParam String context, OAuth2AuthenticationToken authentication) throws SchedulerException {
-        User user = userRepository.findByOAuth2AuthenticationToken(authentication).orElseThrow(RuntimeException::new);
+        User user = userRepository.findByOAuth2AuthenticationToken(authentication)
+                .orElseThrow(RuntimeException::new);
 
         JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
         Trigger trigger = TriggerBuilder.newTrigger().startNow()

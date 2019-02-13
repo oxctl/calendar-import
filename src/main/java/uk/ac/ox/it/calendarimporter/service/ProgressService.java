@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.service;
 
+import com.google.common.base.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,10 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/**
+ * Tracks the progress of jobs running. At the moment all updates go through to the database which isn't ideal,
+ * we could use an in-memory store in the future.
+ */
 @Component
 @Slf4j
 public class ProgressService {
@@ -21,9 +26,12 @@ public class ProgressService {
 
     /**
      * This is designed to be used by a job reporting it's progress.
-     * @param triggerId
-     * @param message
-     * @param percentage
+     *
+     * @param triggerId  The trigger ID.
+     * @param message    The latest message.
+     * @param percentage The percentage complete the job is estimated to be.
+     * @throws IllegalArgumentException If the supplied arguments aren't correct.
+     * @throws IllegalStateException    If the job is already marked as being complete.
      */
     @Transactional
     public JobProgress updateJob(String triggerId, String message, Integer percentage) {
@@ -31,30 +39,36 @@ public class ProgressService {
         checkArgument(message != null, "You must supply a message");
         checkArgument(percentage != null && 0 <= percentage && percentage <= 100, "Percentage must be from 0 to 100");
 
-        JobProgress progress = progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
+        JobProgress progress = progressRepository.findById(triggerId)
+                .orElseGet((Supplier<JobProgress>) () -> createJobProgress(triggerId));
         if (progress.getCompleted() != null) {
             throw new IllegalStateException("Can't update a job that's complete: " + triggerId);
         }
         progress.setLastMessage(message);
-        if (percentage != null) {
-            progress.setStatus(JobProgress.Status.RUNNING);
-            progress.setPercentage(percentage);
-            if (percentage == 100) {
-                progress.setCompleted(Instant.now());
-                progress.setStatus(JobProgress.Status.COMPLETED);
-            }
+        progress.setStatus(JobProgress.Status.RUNNING);
+        progress.setPercentage(percentage);
+        if (percentage == 100) {
+            progress.setCompleted(Instant.now());
+            progress.setStatus(JobProgress.Status.COMPLETED);
         }
         return progressRepository.save(progress);
     }
 
-    private JobProgress createJobProgress(String id) {
-        JobProgress jobProgress = new JobProgress(id);
+    /**
+     * Create a new JobProgress initialised at a basic level.
+     *
+     * @param triggerId The trigger id.
+     * @return A new job progress that hasn't yet been persisted yet.
+     */
+    private static JobProgress createJobProgress(String triggerId) {
+        JobProgress jobProgress = new JobProgress(triggerId);
         jobProgress.setStarted(Instant.now());
         return jobProgress;
     }
 
     /**
      * Used by listener to mark a job as running.
+     *
      * @param triggerId The trigger ID.
      */
     @Transactional
@@ -68,6 +82,7 @@ public class ProgressService {
 
     /**
      * Used by listener to mark a job as finished/failed.
+     *
      * @param triggerId The job ID.
      */
     @Transactional
@@ -86,14 +101,14 @@ public class ProgressService {
 
     /**
      * Used by listener to mark a job as queued
+     *
      * @param triggerId The job ID.
      */
     @Transactional
-    public JobProgress updateJobCreated(String triggerId ) {
+    public JobProgress updateJobCreated(String triggerId) {
         log.debug("Trigger {} created", triggerId);
         JobProgress jobProgress = progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         jobProgress.setStatus(JobProgress.Status.QUEUED);
-        jobProgress.setCompleted(Instant.now());
         return progressRepository.save(jobProgress);
     }
 

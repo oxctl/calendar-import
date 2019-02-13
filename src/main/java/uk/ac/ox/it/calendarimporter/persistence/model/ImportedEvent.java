@@ -37,4 +37,8 @@ public class ImportedEvent {
      */
     private Status status;
 
+    public Integer getId() {
+        return identity.getId();
+    }
+
 }
