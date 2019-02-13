@@ -9,7 +9,6 @@
 <body>
 
 <div class="content-box">
-    <!--<div class="col-xs-12 col-md-8 off-md-2">-->
     <div class="header-bar">
         <h3 class="ic-Action-header__Heading">Import File</h3>
         <form class="ic-Form-group ic-Form-group--horizontal" method="post" action="upload"
@@ -46,122 +45,123 @@
                     Previous Imports
                 </h2>
             </div>
-        {{#imports}}
-            <div class="item-group-condensed">
-                <ul class="ig-list" id="group_1">
-                    <li>
-                        <div class="ig-row">
-                            <div class="ig-row__layout">
-                                <div class="ig-type-icon" aria-hidden="true">
-                                    <!-- TODO Type -->
-                                    <i class="icon-ms-excel" aria-hidden="true"></i>
-                                </div>
-                                <div class="ig-info">
+            {{#imports}}
+                <div class="item-group-condensed">
+                    <ul class="ig-list" id="group_1">
+                        <li>
+                            <div class="ig-row">
+                                <div class="ig-row__layout">
+                                    <div class="ig-type-icon" aria-hidden="true">
+                                        <!-- TODO Type -->
+                                        <i class="icon-ms-excel" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="ig-info">
                                     <span class="ig-title">
                                         {{user}} imported {{filename}}
                                     </span>
-                                    <div class="ig-details">
-                                        <div class="ig-details__item"><b>Started</b> {{when}}</div>
+                                        <div class="ig-details">
+                                            <div class="ig-details__item"><b>Started</b> {{when}}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </li>
+                        </li>
 
-                    {{#load}}
-                        <li>
-                            <div class="ig-row ig-indent1">
-                                <div class="ig-row__layout">
-                                    <div class="ig-type-icon" aria-hidden="true">
-                                        <i class="icon-import"></i>
-                                    </div>
-                                    <div class="ig-info">
+                        {{#load}}
+                            <li>
+                                <div class="ig-row ig-indent1">
+                                    <div class="ig-row__layout">
+                                        <div class="ig-type-icon" aria-hidden="true">
+                                            <i class="icon-import"></i>
+                                        </div>
+                                        <div class="ig-info">
                                         <span href="#" class="ig-title">
                                             Import: {{status}}
                                         </span>
-                                        <div class="ig-details">
-                                            {{#progress}}
-                                                <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
-                                            {{/progress}}
-                                            <div class="ig-details__item"><b>Last Message</b> {{message}}</div>
+                                            <div class="ig-details">
+                                                {{#progress}}
+                                                    <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
+                                                {{/progress}}
+                                                <div><b>Last Message</b> {{message}}</div>
+                                            </div>
+                                        </div>
+                                        <div class="ig-admin">
+                                            {{#canDelete}}
+                                                <form class="ic-Form-group" method="post" action="delete">
+                                                    <input type="hidden" name="calendarImportId" value="{{id}}"/>
+                                                    <input type="hidden" name="{{_csrf.parameterName}}"
+                                                           value="{{_csrf.token}}"/>
+                                                    <button class="Button Button--danger"><i class="icon-trash"></i>
+                                                    </button>
+                                                </form>
+                                            {{/canDelete}}
                                         </div>
                                     </div>
-                                    <div class="ig-admin">
-                                        {{#canDelete}}
-                                            <form class="ic-Form-group" method="post" action="delete">
-                                                <input type="hidden" name="calendarImportId" value="{{id}}"/>
-                                                <input type="hidden" name="{{_csrf.parameterName}}"
-                                                       value="{{_csrf.token}}"/>
-                                                <button class="Button Button--danger"><i class="icon-trash"></i>
-                                                </button>
-                                            </form>
-                                        {{/canDelete}}
-                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    {{/load}}
-                    {{#delete}}
-                        <li>
-                            <div class="ig-row ig-indent1">
-                                <div class="ig-row__layout">
-                                    <div class="ig-type-icon" aria-hidden="true">
-                                        <i class="icon-trash"></i>
-                                    </div>
-                                    <div class="ig-info">
+                            </li>
+                        {{/load}}
+                        {{#delete}}
+                            <li>
+                                <div class="ig-row ig-indent1">
+                                    <div class="ig-row__layout">
+                                        <div class="ig-type-icon" aria-hidden="true">
+                                            <i class="icon-trash"></i>
+                                        </div>
+                                        <div class="ig-info">
                                         <span class="ig-title">
                                             Delete: {{status}}
                                         </span>
-                                        <div class="ig-details">
-                                            {{#progress}}
-                                                <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
-                                            {{/progress}}
-                                            <div class="ig-details__item"><b>Last Message</b> {{message}}</div>
+                                            <div class="ig-details">
+                                                {{#progress}}
+                                                    <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
+                                                {{/progress}}
+                                                <div>Last Message</b> {{message}}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            </li>
+                        {{/delete}}
+                    </ul>
+                </div>
+            {{/imports}}
+            {{^imports}}
+                <div class="item-group-condensed">
+                    <ul class="ig-list">
+                        <li>
+                            <div class="ig-row ig-row-empty">
+                                <div class="ig-empty-msg">
+                                    No imports have been run yet.
+                                </div>
                             </div>
                         </li>
-                    {{/delete}}
-                </ul>
-            </div>
-        {{/imports}}
-        {{^imports}}
-        <div class="item-group-condensed">
-            <ul class="ig-list">
-                <li>
-                    <div class="ig-row ig-row-empty">
-                        <div class="ig-empty-msg">
-                            No imports have been run yet.
-                        </div>
-                    </div>
-                </li>
-            </ul>
+                    </ul>
+                </div>
+            {{/imports}}
         </div>
-        {{/imports}}
+
     </div>
 
-</div>
+    <div>
+        <form method="post" action="/api/v1/cleanup">
+            <label>Tenant <input type="text" name="tenant"/></label><br/>
+            <label>Context <input type="text" name="context"/></label><br/>
+            <input type="submit" value="Cleanout"/>
+            <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+        </form>
+    </div>
 
-<div>
-    <form method="post" action="/api/v1/cleanup">
-        <label>Tenant <input type="text" name="tenant"/></label><br/>
-        <label>Context <input type="text" name="context"/></label><br/>
-        <input type="submit" value="Cleanout"/>
-        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-    </form>
-</div>
+    <div>
+        {{#message}}{{message}}{{/message}}
+        <form method="post">
+            <input type="text" name="url"/>
+            <input type="submit" value="Add"/>
+            <label>CSV<input type="radio" name="type" value="CSV" checked></label>
+            <label>iCal<input type="radio" name="type" value="ICAL"></label>
+            <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
 
-<div>
-    {{#message}}{{message}}{{/message}}
-    <form method="post">
-        <input type="text" name="url"/>
-        <input type="submit" value="Add"/>
-        <label>CSV<input type="radio" name="type" value="CSV" checked></label>
-        <label>iCal<input type="radio" name="type" value="ICAL"></label>
-        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-
-    </form>
+        </form>
+    </div>
 </div>
 </body>
 </html>
