@@ -9,7 +9,8 @@
 <body>
 
 <div class="content-box">
-    <div class="col-xs-12 col-md-8 off-md-2">
+    <!--<div class="col-xs-12 col-md-8 off-md-2">-->
+    <div class="header-bar">
         <h3 class="ic-Action-header__Heading">Import File</h3>
         <form class="ic-Form-group ic-Form-group--horizontal" method="post" action="upload"
               enctype="multipart/form-data">
@@ -38,48 +39,13 @@
             <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
         </form>
     </div>
-    <div class="col-xs-12 col-md-8 off-md-2">
-        <h3 class="ic-Action-header__Heading">Previous Imports</h3>
-        <ul>
-            {{#imports}}
-                <li>{{user}} imported {{filename}} {{when}}
-                    <ul>
-                        {{#load}}
-                            <li>
-                                Import: {{message}} {{status}}
-                                {{#progress}}
-                                    <br>
-                                    Progress: {{complete}}/100%
-                                {{/progress}}
-                                {{#canDelete}}
-                                    <br>
-                                    <form method="post" action="delete">
-                                        <input type="hidden" name="calendarImportId" value="{{id}}"/>
-                                        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-                                        <input type="submit" value="Remove"/>
-                                    </form>
-                                {{/canDelete}}
-                            </li>
-                        {{/load}}
-
-                        {{#delete}}
-                            <li>
-                                Delete: {{message}} {{status}}
-                                {{#progress}}
-                                    <br>
-                                    Progress: {{complete}}/100%
-                                {{/progress}}
-                            </li>
-                        {{/delete}}
-                    </ul>
-                </li>
-            {{/imports}}
-        </ul>
-
-    </div>
-
-
     <div class="item-group-container">
+        <div class="item-group-condensed">
+            <div class="ig-header">
+                <h2 class="ig-header-title">
+                    Previous Imports
+                </h2>
+            </div>
         {{#imports}}
             <div class="item-group-condensed">
                 <ul class="ig-list" id="group_1">
@@ -115,7 +81,7 @@
                                         </span>
                                         <div class="ig-details">
                                             {{#progress}}
-                                                <div class="ig-details__item"><b>Progrss</b> {{complete}}/100</div>
+                                                <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
                                             {{/progress}}
                                             <div class="ig-details__item"><b>Last Message</b> {{message}}</div>
                                         </div>
@@ -124,9 +90,11 @@
                                         {{#canDelete}}
                                             <form class="ic-Form-group" method="post" action="delete">
                                                 <input type="hidden" name="calendarImportId" value="{{id}}"/>
-                                                <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-                                                <button class="Button Button--danger"><i class="icon-trash"></i></button>
-                                                </form>
+                                                <input type="hidden" name="{{_csrf.parameterName}}"
+                                                       value="{{_csrf.token}}"/>
+                                                <button class="Button Button--danger"><i class="icon-trash"></i>
+                                                </button>
+                                            </form>
                                         {{/canDelete}}
                                     </div>
                                 </div>
@@ -146,7 +114,7 @@
                                         </span>
                                         <div class="ig-details">
                                             {{#progress}}
-                                                <div class="ig-details__item"><b>Progrss</b> {{complete}}/100</div>
+                                                <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
                                             {{/progress}}
                                             <div class="ig-details__item"><b>Last Message</b> {{message}}</div>
                                         </div>
@@ -157,6 +125,19 @@
                     {{/delete}}
                 </ul>
             </div>
+        {{/imports}}
+        {{^imports}}
+        <div class="item-group-condensed">
+            <ul class="ig-list">
+                <li>
+                    <div class="ig-row ig-row-empty">
+                        <div class="ig-empty-msg">
+                            No imports have been run yet.
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
         {{/imports}}
     </div>
 
