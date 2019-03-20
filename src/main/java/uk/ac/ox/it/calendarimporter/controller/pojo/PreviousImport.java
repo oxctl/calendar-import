@@ -7,6 +7,9 @@ import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 
 import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.*;
 
+/**
+ * This holds all the data needed to display a previous import in the UI.
+ */
 @Data
 public class PreviousImport {
 
@@ -31,14 +34,14 @@ public class PreviousImport {
         }
     }
 
-    boolean canDelete(CalendarImport calendarImport) {
+    private boolean canDelete(CalendarImport calendarImport) {
         JobProgress.Status status = calendarImport.getLoad().getStatus();
         return (calendarImport.getDelete() == null || FAILED.equals(calendarImport.getDelete().getStatus()))
                 && (COMPLETED.equals(status) || FAILED.equals(status));
     }
 
     @Data
-    class Job {
+    public class Job {
 
         String status;
         String message;
@@ -53,7 +56,7 @@ public class PreviousImport {
         }
 
         @Data
-        class Progress {
+        public class Progress {
             int complete;
 
             public Progress(int complete) {
@@ -62,7 +65,7 @@ public class PreviousImport {
         }
     }
 
-    public static String toStatusString(JobProgress.Status status) {
+    private static String toStatusString(JobProgress.Status status) {
         if (status != null) {
             String input = status.name();
             return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();

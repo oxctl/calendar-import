@@ -1,4 +1,4 @@
-package uk.ac.ox.it.calendarimporter;
+package uk.ac.ox.it.calendarimporter.security.oauth2.client.endpoint;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +17,9 @@ import java.net.URI;
 
 
 /**
- * This class is so that we can ask Canvas to replace the existing OAuth tokens.
+ * This class is so that we can ask Canvas to replace the existing OAuth tokens on a user's account. If we don't do
+ * this then a user will end up with multiple Approved Integrations on their settings page for the same application.
+ *
  * This needs to be in the spring package because the EntityUtils class isn't public the less Spring code we copy
  * the better.
  */

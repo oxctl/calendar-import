@@ -1,0 +1,6 @@
+input[type=file] {
+    /* Without this the input is stretched to 38px but the content appears at the top of the box on Chrome
+     * and then the input isn't aligned with it's label
+     */
+    height: auto;
+}

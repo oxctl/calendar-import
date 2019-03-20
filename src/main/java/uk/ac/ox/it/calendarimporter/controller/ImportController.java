@@ -42,7 +42,8 @@ public class ImportController {
     public ImportJob create(@RequestParam ImportType type, @RequestParam String url, @RequestParam String context, OAuth2AuthenticationToken authentication) throws SchedulerException {
         // Create job and return progress object.
         User user = userRepository.findByOAuth2AuthenticationToken(authentication).orElseThrow(RuntimeException::new);
-        return importService.importNow(type, url, url, user.getToken(), user.getId(), context);
+        String token = null; // TODO
+        return importService.importNow(type, url, url, token, user.getId(), context);
     }
 
 

@@ -16,8 +16,7 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Table(
-        uniqueConstraints = @UniqueConstraint(columnNames = {"tenant", "username"}),
-        indexes = @Index(columnList = "token")
+        uniqueConstraints = @UniqueConstraint(columnNames = {"tenant", "username"})
 )
 @Entity
 @Data
@@ -38,11 +37,6 @@ public class User {
     @ManyToOne(optional = false)
     @JoinColumn(name="tenant", nullable = false)
     private Tenant tenant;
-
-    /**
-     * This is the OAuth refresh token for the user.
-     */
-    private String token;
 
     private String email;
 

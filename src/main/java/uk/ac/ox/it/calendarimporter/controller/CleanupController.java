@@ -32,10 +32,11 @@ public class CleanupController {
         User user = userRepository.findByOAuth2AuthenticationToken(authentication)
                 .orElseThrow(RuntimeException::new);
 
+        String token = null; //TODO
         JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
         Trigger trigger = TriggerBuilder.newTrigger().startNow()
                 .usingJobData(CanvasCalendarJob.CONTEXT, context)
-                .usingJobData(CanvasCalendarJob.TOKEN, user.getToken())
+                .usingJobData(CanvasCalendarJob.TOKEN, token)
                 .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
                 .forJob(job)
                 .build();

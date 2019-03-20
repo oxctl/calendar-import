@@ -19,6 +19,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
+import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,6 +45,8 @@ public class DeleteJob implements Job {
     private CalendarImportRepository calendarImportRepository;
     @Autowired
     private ImportedEventRepository importedEventRepository;
+    @Autowired
+    private ProgressService progressService;
 
 
     public void execute(JobExecutionContext jobContext) throws JobExecutionException {
@@ -58,6 +61,7 @@ public class DeleteJob implements Job {
         List<ImportedEvent> importedEvents = importedEventRepository.findByCalendarImport(calendarImport);
 
         String context = calendarImport.getContext();
+        String triggerId = jobContext.getTrigger().getKey().getName();
 
         log.debug("Cleaning out events in {} of {}", context, tenant);
         CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
@@ -68,6 +72,8 @@ public class DeleteJob implements Job {
         try {
             int deleted = 0;
             int missing = 0;
+            int total = importedEvents.size();
+            progressService.updateJob(triggerId, "Delete started.", 0);
             for (ImportedEvent event : importedEvents) {
                 if (CREATED.equals(event.getStatus())) {
                     log.debug("Attempting to remove event ID {} from calendar {} of {}", event.getId(), context, tenant);
@@ -81,13 +87,14 @@ public class DeleteJob implements Job {
                         event.setStatus(MISSING);
                         missing++;
                     }
-
                     importedEventRepository.save(event);
                 } else {
                     log.debug("Skipping event {} from calendar {} of {}", event.getId(), context, tenant);
                 }
+                progressService.updateJob(triggerId, "Deleting events.", (deleted+missing)/total*100);
             }
             log.info("Removed {} events, failed to find {} from calendar {} of {}", deleted, missing, context, tenant);
+            progressService.updateJob(triggerId, String.format("Removed %d events of total of %d.", deleted, total), 100);
         } catch (IOException e) {
             log.warn("Problem removing events.", e);
         }

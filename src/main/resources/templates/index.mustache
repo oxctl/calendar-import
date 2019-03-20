@@ -2,21 +2,39 @@
 
 <html>
 <head>
-    <link type="text/css" href="{{{canvasCss}}}" rel="stylesheet"/>
-    <link type="text/css" href="brand.css" rel="stylesheet"/>
-    <title>Test Calendar Import</title>
+    <link type="text/css" href="{{{canvasCommonCss}}}" rel="stylesheet"/>
+    <link type="text/css" href="{{{canvasBrandCss}}}" rel="stylesheet"/>
+    <link type="text/css" href="/resources/style.css" rel="stylesheet"/>
+    <title>Calendar Import</title>
 </head>
 <body>
 
 <div class="content-box">
+    {{#alert}}
+    <p>
+    <div class="ic-flash-{{type.css}}">
+        <div class="ic-flash__icon" aria-hidden="true">
+            <i class="icon-{{type.icon}}"></i>
+        </div>
+        {{message}}
+    </div>
+    </p>
+    {{/alert}}
     <div class="header-bar">
         <h3 class="ic-Action-header__Heading">Import File</h3>
+        <p>
+            This tool allows you to import a set of events contained in the a CSV file into the
+            <a href="{{{courseCalendarUrl}}}" target="_top">course calendar</a>. The file has to be specifically formatted for the
+            importer. An <a href="/resources/example.csv">example file</a> can be downloaded, edited locally and then
+            uploaded again to import.
+        </p>
         <form class="ic-Form-group ic-Form-group--horizontal" method="post" action="upload"
               enctype="multipart/form-data">
             <div class="ic-Form-control">
                 <label class="ic-Label" for="file-upload-input">File:</label>
                 <input type="file" name="file"/>
             </div>
+            {{#beta}}
             <fieldset class="ic-Fieldset ic-Fieldset--radio-checkbox">
                 <legend class="ic-Legend">
                     Upload Type
@@ -32,18 +50,26 @@
                     </div>
                 </div>
             </fieldset>
+            {{/beta}}
             <div class="ic-Form-actions">
-                <input class="Button Button--primary" type="submit" value="Upload"/>
+                <input class="Button" type="reset" value="Cancel"/>
+                <input class="Button Button--primary" type="submit" value="Import"/>
             </div>
             <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
         </form>
     </div>
     <div class="item-group-container">
         <div class="item-group-condensed">
-            <div class="ig-header">
-                <h2 class="ig-header-title">
-                    Previous Imports
-                </h2>
+            <div class="ic-Action-header">
+                <div class="ic-Action-header__Primary">
+                    <h3 class="ic-Action-header__Heading">Previous Imports</h3>
+                </div>
+                <div class="ic-Action-header__Secondary">
+                    <a class="al-trigger btn" href="./" role="button" title="Refresh">
+                        <i class="icon-refresh"></i>
+                        <span class="screenreader-only">Refresh</span>
+                    </a>
+                </div>
             </div>
             {{#imports}}
                 <div class="item-group-condensed">
@@ -60,7 +86,7 @@
                                         {{user}} imported {{filename}}
                                     </span>
                                         <div class="ig-details">
-                                            <div class="ig-details__item"><b>Started</b> {{when}}</div>
+                                            <div class="ig-details__item"><b>Created</b> {{when}}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -80,7 +106,7 @@
                                         </span>
                                             <div class="ig-details">
                                                 {{#progress}}
-                                                    <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
+                                                    <div class="ig-details__item"><b>Progress</b> {{complete}}/100%</div>
                                                 {{/progress}}
                                                 <div><b>Last Message</b> {{message}}</div>
                                             </div>
@@ -91,7 +117,7 @@
                                                     <input type="hidden" name="calendarImportId" value="{{id}}"/>
                                                     <input type="hidden" name="{{_csrf.parameterName}}"
                                                            value="{{_csrf.token}}"/>
-                                                    <button class="Button Button--danger"><i class="icon-trash"></i>
+                                                    <button class="Button Button--danger" onclick="return confirm('This will remove all events in the calendar created by this import, continue?');"><i class="icon-trash"></i>
                                                     </button>
                                                 </form>
                                             {{/canDelete}}
@@ -115,7 +141,7 @@
                                                 {{#progress}}
                                                     <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
                                                 {{/progress}}
-                                                <div>Last Message</b> {{message}}</div>
+                                                <div><b>Last Message</b> {{message}}</div>
                                             </div>
                                         </div>
                                     </div>

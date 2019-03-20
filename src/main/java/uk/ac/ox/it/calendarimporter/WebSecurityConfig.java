@@ -1,10 +1,13 @@
 package uk.ac.ox.it.calendarimporter;
 
+import edu.ksu.lti.launch.service.LtiLoginService;
+import edu.ksu.lti.launch.service.SingleToolConsumerService;
+import edu.ksu.lti.launch.spring.config.LtiConfigurer;
+import edu.ksu.lti.launch.spring.config.LtiLaunchCsrfMatcher;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -14,48 +17,98 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.web.client.RestTemplate;
+import uk.ac.ox.it.calendarimporter.security.oauth2.client.endpoint.CanvasOAuth2AuthorizationCodeGrantRequestEntityConverter;
+import uk.ac.ox.it.calendarimporter.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 
 import java.util.Arrays;
 
 @Configuration
-//@EnableWebSecurity
+// The alternative way to debug is to do WebSecurity.debug(true)
+@EnableWebSecurity(debug = false)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    private ClientRegistrationRepository clientRegistrationRepository;
+    private OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
 
+    @Autowired
+    private LtiLoginService ltiLoginService;
 
     @Override
     public void configure(WebSecurity webSecurity) throws Exception {
         super.configure(webSecurity);
-
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void configure(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.authenticationEventPublisher(new DefaultAuthenticationEventPublisher(applicationEventPublisher));
-        http
-                .authorizeRequests()
-                .anyRequest().authenticated()
-                .and().oauth2Login()
-//                .authorizationEndpoint().authorizationRequestResolver(new CanvasAuthorizationRequestResolver(clientRegistrationRepository)).and()
-                .tokenEndpoint().accessTokenResponseClient(accessTokenResposeClient());
-        // TODO Fix this.
-        http.headers().frameOptions().disable();
 
+        // This is so that we can tell the exception handler that LtiAuthentication is considered to be not full
+        // authentication. The AuthenticationTrustResolver is used all over the place, but this is the only one we
+        // really care about fixing.
+//        http.getConfigurer(ExceptionHandlingConfigurer.class).withObjectPostProcessor(new ObjectPostProcessor<ExceptionTranslationFilter>() {
+//            @Override
+//            public <O extends ExceptionTranslationFilter> O postProcess(O elt) {
+//                AuthenticationTrustResolverImpl authenticationTrustResolver = new AuthenticationTrustResolverImpl();
+//                authenticationTrustResolver.setRememberMeClass(LtiAuthenticationToken.class);
+//                elt.setAuthenticationTrustResolver(authenticationTrustResolver);
+//                return elt;
+//            }
+//        });
+//        OAuth2LoginConfigurer oauth2 = new OAuth2LoginConfigurer();
+//
+//        // Have to do this with a post processor as we want to get the existing authentication entry point
+//        http.getConfigurer(ExceptionHandlingConfigurer.class).withObjectPostProcessor(new ObjectPostProcessor<ExceptionTranslationFilter>() {
+//            @Override
+//            public <O extends ExceptionTranslationFilter> O postProcess(O elt) {
+//                AuthenticationEntryPoint authenticationEntryPoint = elt.getAuthenticationEntryPoint();
+//                AccessDeniedHandler handler = new SecondChanceAccessDeniedHandler(authenticationEntryPoint, new AccessDeniedHandlerImpl());
+//                elt.setAccessDeniedHandler(handler);
+//                return elt;
+//            }
+//        });
+
+        http.setSharedObject(RequestCache.class, new HttpSessionRequestCache());
+        http.setSharedObject(LtiLoginService.class, ltiLoginService);
+        SingleToolConsumerService toolConsumer = new SingleToolConsumerService("canvas", "Oxford Evaluation", "https://oxeval.instructure.com/", "canvas");
+        LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumer, "/launch", true);
+        http.apply(ltiConfigurer);
+        http.csrf().requireCsrfProtectionMatcher(new LtiLaunchCsrfMatcher("/launch"));
+
+        http
+                .authorizeRequests().antMatchers("/resources/**").permitAll()
+                .and()
+                .authorizeRequests().antMatchers("/config.xml").permitAll()
+                .and()
+                .authorizeRequests()
+                    .anyRequest().authenticated()
+                .and()
+                // TODO Make better
+                .headers().frameOptions().disable()
+                .and()
+                .oauth2Client().authorizedClientRepository(oAuth2AuthorizedClientRepository)
+                    .authorizationCodeGrant().accessTokenResponseClient(accessTokenResposeClient())
+//                .apply(oauth2).tokenEndpoint().accessTokenResponseClient(accessTokenResposeClient()).and().authorizedClientRepository(oAuth2AuthorizedClientRepository);
+        ;
     }
 
+
+    // This is so we can remove old tokens.
     private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResposeClient() {
         DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
         client.setRequestEntityConverter(new CanvasOAuth2AuthorizationCodeGrantRequestEntityConverter());
@@ -83,8 +136,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManager();
     }
 
-    // This doesn't work because the authentication manager isn't built by the configurer.
-    @Bean
+
     public GlobalAuthenticationConfigurerAdapter globalAuthenticationConfigurerAdapter() {
         return new GlobalAuthenticationConfigurerAdapter() {
 
@@ -94,4 +146,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         };
     }
+
 }

@@ -30,8 +30,6 @@ public class ProgressService {
      * @param triggerId  The trigger ID.
      * @param message    The latest message.
      * @param percentage The percentage complete the job is estimated to be.
-     * @throws IllegalArgumentException If the supplied arguments aren't correct.
-     * @throws IllegalStateException    If the job is already marked as being complete.
      */
     @Transactional
     public JobProgress updateJob(String triggerId, String message, Integer percentage) {
@@ -47,10 +45,6 @@ public class ProgressService {
         progress.setLastMessage(message);
         progress.setStatus(JobProgress.Status.RUNNING);
         progress.setPercentage(percentage);
-        if (percentage == 100) {
-            progress.setCompleted(Instant.now());
-            progress.setStatus(JobProgress.Status.COMPLETED);
-        }
         return progressRepository.save(progress);
     }
 
@@ -109,6 +103,7 @@ public class ProgressService {
         log.debug("Trigger {} created", triggerId);
         JobProgress jobProgress = progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         jobProgress.setStatus(JobProgress.Status.QUEUED);
+        jobProgress.setLastMessage("Job queued");
         return progressRepository.save(jobProgress);
     }
 

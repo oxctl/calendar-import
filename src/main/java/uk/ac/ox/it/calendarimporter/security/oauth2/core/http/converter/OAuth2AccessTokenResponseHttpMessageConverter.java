@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ox.it.calendarimporter;
+package uk.ac.ox.it.calendarimporter.security.oauth2.core.http.converter;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.convert.converter.Converter;

@@ -10,6 +10,10 @@
 .springBeans
 .sts4-cache
 
+# Certificate files
+*.pem
+*.p12
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
@@ -23,3 +27,7 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

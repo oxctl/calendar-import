@@ -1,4 +1,4 @@
-package uk.ac.ox.it.calendarimporter;
+package uk.ac.ox.it.calendarimporter.utils;
 
 import org.quartz.TriggerKey;
 

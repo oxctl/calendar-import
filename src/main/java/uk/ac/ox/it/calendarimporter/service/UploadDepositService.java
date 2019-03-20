@@ -17,8 +17,9 @@ public class UploadDepositService {
     /**
      *
      * @param upload The file to upload.
-     * @throws IllegalArgumentException If we are unable to generate a URL for the uploaded file.
      * @return A URL to the deposited file.
+     * @throws IllegalArgumentException If we are unable to generate a URL for the uploaded file.
+     *
      */
     public URL deposit(File upload) {
         try {

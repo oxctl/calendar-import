@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import uk.ac.ox.it.calendarimporter.TriggerUtils;
+import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
@@ -132,6 +132,13 @@ public class ImportService {
         return job;
     }
 
+    /**
+     * @param calendarImportId
+     * @param token
+     * @param user
+     * @throws SchedulerException If we failed to schedule the job.
+     * @throws IllegalStateException If the import is in a state that it can't be deleted.
+     */
     public void deleteImport(Long calendarImportId, String token, User user) throws SchedulerException {
 
         CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
