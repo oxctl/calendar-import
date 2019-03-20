@@ -1,7 +1,11 @@
 
 # Java
 
-This currently works with Java 8 and fails to start with Java 11. It should be updated to run with Java 11 at some point.
+This currently runs with Java 11.
+
+## LTI Configuration
+
+When the server is up and running there is a public URL of `/config.xml` that hosts the XML needed to configure the tool. This pulls the launch URL from the current request and so can be used for any host.
 
 # Job Progress
 
