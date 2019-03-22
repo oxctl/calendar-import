@@ -21,26 +21,32 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 @RequestMapping("/api/v1/cleanup")
 public class CleanupController {
 
-    @Autowired
-    private UserRepository userRepository;
+  @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private Scheduler scheduler;
+  @Autowired private Scheduler scheduler;
 
-    @PostMapping
-    public void cleanup(@RequestParam String tenant, @RequestParam String context, OAuth2AuthenticationToken authentication) throws SchedulerException {
-        User user = userRepository.findByOAuth2AuthenticationToken(authentication)
-                .orElseThrow(RuntimeException::new);
+  @PostMapping
+  public void cleanup(
+      @RequestParam String tenant,
+      @RequestParam String context,
+      OAuth2AuthenticationToken authentication)
+      throws SchedulerException {
+    User user =
+        userRepository
+            .findByOAuth2AuthenticationToken(authentication)
+            .orElseThrow(RuntimeException::new);
 
-        String token = null; //TODO
-        JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
-        Trigger trigger = TriggerBuilder.newTrigger().startNow()
-                .usingJobData(CanvasCalendarJob.CONTEXT, context)
-                .usingJobData(CanvasCalendarJob.TOKEN, token)
-                .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
-                .forJob(job)
-                .build();
+    String token = null; // TODO
+    JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
+    Trigger trigger =
+        TriggerBuilder.newTrigger()
+            .startNow()
+            .usingJobData(CanvasCalendarJob.CONTEXT, context)
+            .usingJobData(CanvasCalendarJob.TOKEN, token)
+            .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
+            .forJob(job)
+            .build();
 
-        scheduler.scheduleJob(job, trigger);
-    }
+    scheduler.scheduleJob(job, trigger);
+  }
 }

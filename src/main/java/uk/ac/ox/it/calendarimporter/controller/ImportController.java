@@ -23,33 +23,35 @@ import uk.ac.ox.it.calendarimporter.service.ProgressService;
 @RequestMapping("/api/v1/import")
 public class ImportController {
 
+  @Autowired private Scheduler scheduler;
 
-    @Autowired
-    private Scheduler scheduler;
+  @Autowired private ImportService importService;
 
-    @Autowired
-    private ImportService importService;
+  @Autowired private ProgressService progressService;
 
-    @Autowired
-    private ProgressService progressService;
+  @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  // TODO Handling of SchedulerException
+  public ImportJob create(
+      @RequestParam ImportType type,
+      @RequestParam String url,
+      @RequestParam String context,
+      OAuth2AuthenticationToken authentication)
+      throws SchedulerException {
+    // Create job and return progress object.
+    User user =
+        userRepository
+            .findByOAuth2AuthenticationToken(authentication)
+            .orElseThrow(RuntimeException::new);
+    String token = null; // TODO
+    String into = null; // TODO
+    return importService.importNow(type, url, url, token, user.getId(), context, into);
+  }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    // TODO Handling of SchedulerException
-    public ImportJob create(@RequestParam ImportType type, @RequestParam String url, @RequestParam String context, OAuth2AuthenticationToken authentication) throws SchedulerException {
-        // Create job and return progress object.
-        User user = userRepository.findByOAuth2AuthenticationToken(authentication).orElseThrow(RuntimeException::new);
-        String token = null; // TODO
-        return importService.importNow(type, url, url, token, user.getId(), context);
-    }
-
-
-    @GetMapping("/progress/{id}")
-    public JobProgress status(@PathVariable("id") String id) throws SchedulerException {
-        return progressService.findById(id).orElseThrow(NotFoundException::new);
-    }
-
+  @GetMapping("/progress/{id}")
+  public JobProgress status(@PathVariable("id") String id) throws SchedulerException {
+    return progressService.findById(id).orElseThrow(NotFoundException::new);
+  }
 }

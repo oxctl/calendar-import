@@ -8,23 +8,23 @@ import java.util.Set;
  */
 interface CalendarIDLookup {
 
-    /**
-     * @param uuid The iCal UUID
-     * @return The set of canvas IDs that are found or <code>null</code> if there weren't any.
-     */
-    Set<Integer> getCanvasIDs(String uuid);
+  /**
+   * @param uuid The iCal UUID
+   * @return The set of canvas IDs that are found or <code>null</code> if there weren't any.
+   */
+  Set<Integer> getCanvasIDs(String uuid);
 
-    /**
-     * @param id The canvas calendar event ID.
-     * @return The iCal UUID or <code>null</code> if there isn't one.
-     */
-    String getICalUUID(Integer id);
+  /**
+   * @param id The canvas calendar event ID.
+   * @return The iCal UUID or <code>null</code> if there isn't one.
+   */
+  String getICalUUID(Integer id);
 
-    /**
-     * Adds or replaces ID mappings.
-     * @param uuid the iCal UUID
-     * @param ids The Canvas calendar event IDs.
-     */
-    void set(String uuid, Set<Integer> ids);
-
+  /**
+   * Adds or replaces ID mappings.
+   *
+   * @param uuid the iCal UUID
+   * @param ids The Canvas calendar event IDs.
+   */
+  void set(String uuid, Set<Integer> ids);
 }

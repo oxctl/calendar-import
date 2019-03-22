@@ -1,40 +1,37 @@
 package uk.ac.ox.it.calendarimporter.jobs.csv;
 
-/**
- * Holds the fields the importer supports.
- */
+/** Holds the fields the importer supports. */
 enum Field {
-    TITLE("Title", true), DATE("Date", true), TIME("Start", true), DURATION("Duration", true);
+  TITLE("Title", true),
+  DATE("Date", true),
+  TIME("Start", true),
+  DURATION("Duration", true);
 
-    private final String header;
+  private final String header;
 
-    private final boolean required;
+  private final boolean required;
 
-    Field(String header, boolean required ) {
-        this.header = header;
-        this.required = required;
-    }
+  Field(String header, boolean required) {
+    this.header = header;
+    this.required = required;
+  }
 
-    /**
-     * The header value in the CSV.
-     * @return A String that can be used in the header.
-     */
-    public String getHeader() {
-        return header;
-    }
+  /**
+   * The header value in the CSV.
+   *
+   * @return A String that can be used in the header.
+   */
+  public String getHeader() {
+    return header;
+  }
 
-    /**
-     * @return Is this field required.
-     */
-    public boolean isRequired() {
-        return required;
-    }
+  /** @return Is this field required. */
+  public boolean isRequired() {
+    return required;
+  }
 
-    /**
-     * @return The header value for the CSV Parser.
-     */
-    public String toString() {
-        return getHeader();
-    }
-
+  /** @return The header value for the CSV Parser. */
+  public String toString() {
+    return getHeader();
+  }
 }

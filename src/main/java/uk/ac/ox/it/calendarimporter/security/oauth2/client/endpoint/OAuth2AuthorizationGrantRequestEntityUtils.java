@@ -15,6 +15,9 @@
  */
 package uk.ac.ox.it.calendarimporter.security.oauth2.client.endpoint;
 
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
+
+import java.util.Collections;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,38 +28,36 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2ClientCredentia
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
-import java.util.Collections;
-
-import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
-
 /**
- * Utility methods used by the {@link Converter}'s that convert
- * from an implementation of an {@link AbstractOAuth2AuthorizationGrantRequest}
- * to a {@link RequestEntity} representation of an OAuth 2.0 Access Token Request
- * for the specific Authorization Grant.
+ * Utility methods used by the {@link Converter}'s that convert from an implementation of an {@link
+ * AbstractOAuth2AuthorizationGrantRequest} to a {@link RequestEntity} representation of an OAuth
+ * 2.0 Access Token Request for the specific Authorization Grant.
  *
  * @author Joe Grandja
- * @since 5.1
  * @see OAuth2AuthorizationCodeGrantRequestEntityConverter
  * @see OAuth2ClientCredentialsGrantRequestEntityConverter
+ * @since 5.1
  */
 final class OAuth2AuthorizationGrantRequestEntityUtils {
-	private static HttpHeaders DEFAULT_TOKEN_REQUEST_HEADERS = getDefaultTokenRequestHeaders();
 
-	static HttpHeaders getTokenRequestHeaders(ClientRegistration clientRegistration) {
-		HttpHeaders headers = new HttpHeaders();
-		headers.addAll(DEFAULT_TOKEN_REQUEST_HEADERS);
-		if (ClientAuthenticationMethod.BASIC.equals(clientRegistration.getClientAuthenticationMethod())) {
-			headers.setBasicAuth(clientRegistration.getClientId(), clientRegistration.getClientSecret());
-		}
-		return headers;
-	}
+  private static HttpHeaders DEFAULT_TOKEN_REQUEST_HEADERS = getDefaultTokenRequestHeaders();
 
-	private static HttpHeaders getDefaultTokenRequestHeaders() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-		final MediaType contentType = MediaType.valueOf(APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8");
-		headers.setContentType(contentType);
-		return headers;
-	}
+  static HttpHeaders getTokenRequestHeaders(ClientRegistration clientRegistration) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.addAll(DEFAULT_TOKEN_REQUEST_HEADERS);
+    if (ClientAuthenticationMethod.BASIC.equals(
+        clientRegistration.getClientAuthenticationMethod())) {
+      headers.setBasicAuth(clientRegistration.getClientId(), clientRegistration.getClientSecret());
+    }
+    return headers;
+  }
+
+  private static HttpHeaders getDefaultTokenRequestHeaders() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
+    final MediaType contentType =
+        MediaType.valueOf(APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8");
+    headers.setContentType(contentType);
+    return headers;
+  }
 }

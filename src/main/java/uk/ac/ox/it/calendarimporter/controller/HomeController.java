@@ -3,6 +3,13 @@ package uk.ac.ox.it.calendarimporter.controller;
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,133 +42,171 @@ import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.Registered
 import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Controller
 @RequestMapping("/{tenant}/{context}/")
 public class HomeController {
 
-    @Autowired
-    private UserRepository userRepository;
+  @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private ImportService importService;
+  @Autowired private ImportService importService;
 
-    @Autowired
-    private UploadDepositService uploadDepositService;
+  @Autowired private UploadDepositService uploadDepositService;
 
-    @Autowired
-    private TenantRepository tenantRepository;
+  @Autowired private TenantRepository tenantRepository;
 
-    @Autowired
-    private CalendarImportRepository calendarImportRepository;
+  @Autowired private CalendarImportRepository calendarImportRepository;
 
-    @Value("${calendar.common.css}")
-    private String defaultCommonCss;
+  @Value("${calendar.common.css}")
+  private String defaultCommonCss;
 
-    @Value("${calendar.brand.json}")
-    private String defaultBrandJson;
+  @Value("${calendar.brand.json}")
+  private String defaultBrandJson;
 
-    @Value("${calendar.beta:false}")
-    private boolean beta;
+  @Value("${calendar.beta:false}")
+  private boolean beta;
 
+  @GetMapping
+  public ModelAndView home(
+      @PathVariable("tenant") String tenantName,
+      @PathVariable("context") String context,
+      Model inModel,
+      CsrfToken token,
+      Pageable pageable,
+      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+      LtiSession ltiSession,
+      BindingAwareModelMap map) {
+    Map<String, Object> model = new HashMap<>();
+    model.put("message", inModel.asMap().get("alert"));
+    Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(RuntimeException::new);
+    Page<ContextJob> jobs = importService.getJobs(tenant, context, pageable);
+    List<PreviousImport> imports =
+        jobs.get()
+            .map(job -> new PreviousImport(job.getCalendarImport()))
+            .collect(Collectors.toList());
+    model.put("imports", imports);
+    model.put("course", ltiSession.getLtiLaunchData().getContextLabel());
+    model.put("beta", beta);
+    model.put("_csrf", token);
+    return new ModelAndView("index", model);
+  }
 
-    @GetMapping
-    public ModelAndView home(@PathVariable("tenant") String tenantName, @PathVariable("context") String context, Model inModel, CsrfToken token, Pageable pageable, @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client, BindingAwareModelMap map) {
-        Map<String, Object> model = new HashMap<>();
-        model.put("message", inModel.asMap().get("alert"));
-        Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(RuntimeException::new);
-        Page<ContextJob> jobs = importService.getJobs(tenant, context, pageable);
-        List<PreviousImport> imports = jobs.get().map(job -> new PreviousImport(job.getCalendarImport())).collect(Collectors.toList());
-        model.put("imports", imports);
-        model.put("beta", beta);
-        model.put("_csrf", token);
-        return new ModelAndView("index", model);
+  @ModelAttribute("courseCalendarUrl")
+  public String courseCalendarUrl(LtiSession ltiSession) {
+    // https://canvas.instructure.com/calendar?include_contexts=course_1234
+    String url = ltiSession.getLtiLaunchData().getCustom().get("canvas_api_domain");
+    String courseId = ltiSession.getLtiLaunchData().getCustom().get("canvas_course_id");
+    return String.format("https://%s/calendar?include_contexts=course_%s", url, courseId);
+  }
+
+  @ModelAttribute("canvasCommonCss")
+  public String canvasCommonCss(LtiSession ltiSession) {
+    String canvasCss = null;
+    if (ltiSession != null) {
+      canvasCss = ltiSession.getLtiLaunchData().getCustom().get("canvas_css_common");
     }
-
-    @ModelAttribute("courseCalendarUrl")
-    public String courseCalendarUrl (LtiSession ltiSession) {
-        // https://canvas.instructure.com/calendar?include_contexts=course_1234
-        String url = ltiSession.getLtiLaunchData().getCustom().get("canvas_api_domain");
-        String courseId = ltiSession.getLtiLaunchData().getCustom().get("canvas_course_id");
-        return String.format("https://%s/calendar?include_contexts=course_%s", url, courseId);
+    if (canvasCss == null) {
+      canvasCss = defaultCommonCss;
     }
+    return canvasCss;
+  }
 
-    @ModelAttribute("canvasCommonCss")
-    public String canvasCommonCss( LtiSession ltiSession) {
-        String canvasCss = null;
-        if (ltiSession != null) {
-            canvasCss = ltiSession.getLtiLaunchData().getCustom().get("canvas_css_common");
-        }
-        if (canvasCss == null) {
-            canvasCss = defaultCommonCss;
-        }
-        return canvasCss;
+  @ModelAttribute("canvasBrandCss")
+  public String canvasBrandCss(LtiSession ltiSession) {
+    String canvasJson = null;
+    String canvasCss = null;
+    if (ltiSession != null) {
+      canvasJson =
+          ltiSession.getLtiLaunchData().getCustom().get("com_instructure_brand_config_json_url");
     }
-
-    @ModelAttribute("canvasBrandCss")
-    public String canvasBrandCss(LtiSession ltiSession) {
-        String canvasJson = null;
-        String canvasCss = null;
-        if (ltiSession != null) {
-            canvasJson = ltiSession.getLtiLaunchData().getCustom().get("com_instructure_brand_config_json_url");
-        }
-        if (canvasJson == null) {
-            canvasJson = defaultBrandJson;
-        }
-        // This is a fudge as at the moment a CSS version exists alongside the JS version.
-        if (canvasJson != null) {
-            if (canvasJson.endsWith(".json")) {
-                canvasCss = canvasJson.substring(0, canvasJson.length() - ".json".length()) + ".css";
-            }
-        }
-        return canvasCss;
+    if (canvasJson == null) {
+      canvasJson = defaultBrandJson;
     }
-
-    @PostMapping
-    public ModelAndView runJob(@PathVariable("tenant") String tenantName, @PathVariable("context") String context, @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client, RedirectAttributes redirectAttributes, @RequestParam ImportType type, @RequestParam String url, LtiAuthenticationToken authentication) throws SchedulerException {
-        // TODO Exception
-        String token = client.getAccessToken().getTokenValue();
-        LtiPrincipal principal = authentication.getPrincipal();
-        User user = userRepository.findByUsernameAndTenant_Name(principal.getName(), principal.getTenant()).orElseThrow();
-
-        importService.importNow(type, url, url, token,user.getId(), context);
-        redirectAttributes.addFlashAttribute("alert", new Alert(Alert.Type.INFO, "Calendar import started"));
-        return new ModelAndView("redirect:/" + tenantName + "/" + context + "/");
+    // This is a fudge as at the moment a CSS version exists alongside the JS version.
+    if (canvasJson != null) {
+      if (canvasJson.endsWith(".json")) {
+        canvasCss = canvasJson.substring(0, canvasJson.length() - ".json".length()) + ".css";
+      }
     }
+    return canvasCss;
+  }
 
-    @PostMapping("upload")
-    public ModelAndView runJob(@PathVariable("tenant") String tenant, @PathVariable("context") String context, @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client, RedirectAttributes redirectAttributes, @RequestParam(defaultValue = "CSV") ImportType type, @RequestParam MultipartFile file, LtiAuthenticationToken authentication) throws SchedulerException {
-        LtiPrincipal principal = authentication.getPrincipal();
-        User user = userRepository.findByUsernameAndTenant_Name(principal.getName(), principal.getTenant()).orElseThrow();
-        try {
-            File tempFile = File.createTempFile("upload", null);
-            file.transferTo(tempFile);
-            URL deposit = uploadDepositService.deposit(tempFile);
-            redirectAttributes.addFlashAttribute("alert", new Alert(Alert.Type.INFO, "Calendar import started"));
-            String token = client.getAccessToken().getTokenValue();
-            importService.importNow(type, deposit.toString(), file.getOriginalFilename(), token, user.getId(), context);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
+  @PostMapping
+  public ModelAndView runJob(
+      @PathVariable("tenant") String tenantName,
+      @PathVariable("context") String context,
+      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+      RedirectAttributes redirectAttributes,
+      @RequestParam ImportType type,
+      @RequestParam(defaultValue = "course") String dest,
+      @RequestParam String url,
+      LtiAuthenticationToken authentication)
+      throws SchedulerException {
+    // TODO Exception
+    String token = client.getAccessToken().getTokenValue();
+    LtiPrincipal principal = authentication.getPrincipal();
+    User user =
+        userRepository
+            .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
+            .orElseThrow();
+
+    String into = null;
+    importService.importNow(type, url, url, token, user.getId(), context, into);
+    redirectAttributes.addFlashAttribute(
+        "alert", new Alert(Alert.Type.INFO, "Calendar import started"));
+    return new ModelAndView("redirect:/" + tenantName + "/" + context + "/");
+  }
+
+  @PostMapping("upload")
+  public ModelAndView runJob(
+      @PathVariable("tenant") String tenant,
+      @PathVariable("context") String context,
+      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+      RedirectAttributes redirectAttributes,
+      @RequestParam(defaultValue = "CSV") ImportType type,
+      @RequestParam(defaultValue = "") String dest,
+      @RequestParam MultipartFile file,
+      LtiAuthenticationToken authentication)
+      throws SchedulerException {
+    LtiPrincipal principal = authentication.getPrincipal();
+    User user =
+        userRepository
+            .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
+            .orElseThrow();
+    try {
+      File tempFile = File.createTempFile("upload", null);
+      file.transferTo(tempFile);
+      URL deposit = uploadDepositService.deposit(tempFile);
+      redirectAttributes.addFlashAttribute(
+          "alert", new Alert(Alert.Type.INFO, "Calendar import started"));
+      String token = client.getAccessToken().getTokenValue();
+      importService.importNow(
+          type, deposit.toString(), file.getOriginalFilename(), token, user.getId(), context, dest);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+    return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
+  }
 
-    @PostMapping("delete")
-    public ModelAndView delete(@PathVariable("tenant") String tenant, @PathVariable("context") String context, @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client, RedirectAttributes redirectAttributes, @RequestParam Long calendarImportId, LtiAuthenticationToken authentication) throws SchedulerException {
-        CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
-        LtiPrincipal principal = authentication.getPrincipal();
-        User user = userRepository.findByUsernameAndTenant_Name(principal.getName(), principal.getTenant()).orElseThrow();
-        String token = client.getAccessToken().getTokenValue();
-        importService.deleteImport(calendarImportId, token, user);
-        redirectAttributes.addFlashAttribute("alert", new Alert(Alert.Type.INFO, "Calendar delete started"));
-        return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
-    }
-
+  @PostMapping("delete")
+  public ModelAndView delete(
+      @PathVariable("tenant") String tenant,
+      @PathVariable("context") String context,
+      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+      RedirectAttributes redirectAttributes,
+      @RequestParam Long calendarImportId,
+      LtiAuthenticationToken authentication)
+      throws SchedulerException {
+    CalendarImport calendarImport =
+        calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
+    LtiPrincipal principal = authentication.getPrincipal();
+    User user =
+        userRepository
+            .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
+            .orElseThrow();
+    String token = client.getAccessToken().getTokenValue();
+    importService.deleteImport(calendarImportId, token, user);
+    redirectAttributes.addFlashAttribute(
+        "alert", new Alert(Alert.Type.INFO, "Calendar delete started"));
+    return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
+  }
 }

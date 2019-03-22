@@ -17,50 +17,47 @@ import org.springframework.security.authentication.DefaultAuthenticationEventPub
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 
-
 @EnableJpaRepositories("uk.ac.ox.it.calendarimporter.persistence.repo")
 @EntityScan({"uk.ac.ox.it.calendarimporter.persistence.model"})
 @SpringBootApplication(scanBasePackages = "uk.ac.ox.it.calendarimporter")
 public class CalendarImporterForCanvasApplication {
 
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
+  @Autowired private ApplicationEventPublisher applicationEventPublisher;
 
-    @Autowired
-    private TenantRepository tenantRepository;
+  @Autowired private TenantRepository tenantRepository;
 
-    public static void main(String[] args) {
-        SpringApplication.run(CalendarImporterForCanvasApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(CalendarImporterForCanvasApplication.class, args);
+  }
 
-    @Bean
-    public AuthenticationEventPublisher authenticationEventPublisher() {
-        return new DefaultAuthenticationEventPublisher(applicationEventPublisher);
-    }
+  @Bean
+  public AuthenticationEventPublisher authenticationEventPublisher() {
+    return new DefaultAuthenticationEventPublisher(applicationEventPublisher);
+  }
 
-    @Bean
-    InitializingBean sendDatabase() {
-        // TODO Pull from config and also load LTI details here.
-        return () -> {
-            Tenant tenant = new Tenant();
-            tenant.setName("canvas");
-            tenant.setUrl("https://oxeval.instructure.com/");
-            tenant.setDisplayName("Oxford Evaluation");
-            tenantRepository.save(tenant);
-        };
-    }
+  @Bean
+  InitializingBean sendDatabase() {
+    // TODO Pull from config and also load LTI details here.
+    return () -> {
+      Tenant tenant = new Tenant();
+      tenant.setName("canvas");
+      tenant.setUrl("https://oxeval.instructure.com/");
+      tenant.setDisplayName("Oxford Evaluation");
+      tenantRepository.save(tenant);
+    };
+  }
 
-    @Bean()
-    @Lazy
-    public Mustache.Compiler mustacheCompiler( Mustache.TemplateLoader templateLoader, Environment environment) {
+  @Bean()
+  @Lazy
+  public Mustache.Compiler mustacheCompiler(
+      Mustache.TemplateLoader templateLoader, Environment environment) {
 
-        MustacheEnvironmentCollector collector = new MustacheEnvironmentCollector();
-        collector.setEnvironment(environment);
+    MustacheEnvironmentCollector collector = new MustacheEnvironmentCollector();
+    collector.setEnvironment(environment);
 
-        return Mustache.compiler()
-                .defaultValue("Some Default Value")
-                .withLoader(templateLoader)
-                .withCollector(collector);
-    }
-
+    return Mustache.compiler()
+        .defaultValue("Some Default Value")
+        .withLoader(templateLoader)
+        .withCollector(collector);
+  }
 }

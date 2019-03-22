@@ -5,6 +5,8 @@
     <link type="text/css" href="{{{canvasCommonCss}}}" rel="stylesheet"/>
     <link type="text/css" href="{{{canvasBrandCss}}}" rel="stylesheet"/>
     <link type="text/css" href="/resources/style.css" rel="stylesheet"/>
+    <script src="/webjars/jquery/3.1.1/jquery.min.js"></script>
+    <script src="/resources/import.js"></script>
     <title>Calendar Import</title>
 </head>
 <body>
@@ -33,6 +35,12 @@
             <div class="ic-Form-control">
                 <label class="ic-Label" for="file-upload-input">File:</label>
                 <input type="file" name="file"/>
+            </div>
+            <div class="ic-Form-control">
+                <label class="ic-Label" for="dest-input">Into:</label>
+                <select class="ic-Input" id="dest-input" name="destination" size="1">
+                    <option value="course">Course: {{course}}</option>
+                </select>
             </div>
             {{#beta}}
             <fieldset class="ic-Fieldset ic-Fieldset--radio-checkbox">

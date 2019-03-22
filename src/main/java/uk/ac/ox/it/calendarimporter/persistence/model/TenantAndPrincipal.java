@@ -1,12 +1,11 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
+import java.io.Serializable;
+import javax.persistence.Embeddable;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.Embeddable;
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 
 @Embeddable
 @NoArgsConstructor
@@ -14,12 +13,7 @@ import java.io.Serializable;
 @Data
 public class TenantAndPrincipal implements Serializable {
 
-    @NotNull
-    private String tenant;
+  @NotNull private String tenant;
 
-    @NotNull
-    private String principal;
-
-
-
+  @NotNull private String principal;
 }

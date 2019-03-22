@@ -3,5 +3,4 @@ package uk.ac.ox.it.calendarimporter.persistence.repo;
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 
-public interface CalendarImportRepository extends CrudRepository<CalendarImport, Long> {
-}
+public interface CalendarImportRepository extends CrudRepository<CalendarImport, Long> {}
