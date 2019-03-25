@@ -58,7 +58,13 @@ public class ImportService {
   // Should we just pass in a User object?
   // Should url be an actual URL?
   public ImportJob importNow(
-          ImportType type, String url, String filename, String token, Long userId, String context, String into)
+      ImportType type,
+      String url,
+      String filename,
+      String token,
+      Long userId,
+      String context,
+      String into)
       throws SchedulerException {
     // Job ID should come from config.
     JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(type.name(), "import"));

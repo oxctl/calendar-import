@@ -13,8 +13,8 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 
 /**
- * This service is responsible for persisting user details when an LTI launch happens so we can show who
- * created an import later on.
+ * This service is responsible for persisting user details when an LTI launch happens so we can show
+ * who created an import later on.
  */
 @Service
 public class CalendarLtiLoginService extends SimpleLtiLoginService {

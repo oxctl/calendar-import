@@ -21,7 +21,7 @@ public class Tenant {
   private long id;
 
   /** This is the name for the tenant, this comes from the OAuth registration. */
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   @NotNull
   private String name;
 

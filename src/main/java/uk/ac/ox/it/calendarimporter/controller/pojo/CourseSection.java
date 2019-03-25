@@ -9,5 +9,4 @@ public class CourseSection {
 
   private String sectionId;
   private String name;
-
 }

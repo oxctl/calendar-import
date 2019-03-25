@@ -162,11 +162,17 @@
       <version>1.5</version>
     </dependency>
 
+    <!-- Using H2 in development/test -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>compile</scope>
-      <!--<scope>runtime</scope>-->
+    </dependency>
+    <!-- Using MySQL in production -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.15</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

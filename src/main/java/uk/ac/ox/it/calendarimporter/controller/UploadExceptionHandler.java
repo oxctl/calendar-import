@@ -23,7 +23,8 @@ public class UploadExceptionHandler {
       RedirectAttributesModelMap redirectAttributes,
       LtiSession ltiSession) {
     // TODO This currently means we will also wrongly handle API methods that are too large
-    // We should probably look at the accepts header to work out if we should be redirecting (html yes| json no)
+    // We should probably look at the accepts header to work out if we should be redirecting (html
+    // yes| json no)
     redirectAttributes.addFlashAttribute(
         "alert", new Alert(Alert.Type.ERROR, "Upload is too large."));
     RequestContextUtils.getOutputFlashMap(request)

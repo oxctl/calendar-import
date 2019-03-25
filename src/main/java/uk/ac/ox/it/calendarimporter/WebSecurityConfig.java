@@ -97,11 +97,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.apply(ltiConfigurer);
     http.csrf().requireCsrfProtectionMatcher(new LtiLaunchCsrfMatcher("/launch"));
 
-    http
-        .authorizeRequests().antMatchers("/resources/**").permitAll()
-        .and().authorizeRequests().antMatchers("/config.xml").permitAll()
-        .and().authorizeRequests().antMatchers("/favicon.ico").permitAll()
-        .and().authorizeRequests().antMatchers("/webjars/**").permitAll()
+    http.authorizeRequests()
+        .antMatchers("/resources/**")
+        .permitAll()
+        .and()
+        .authorizeRequests()
+        .antMatchers("/config.xml")
+        .permitAll()
+        .and()
+        .authorizeRequests()
+        .antMatchers("/favicon.ico")
+        .permitAll()
+        .and()
+        .authorizeRequests()
+        .antMatchers("/webjars/**")
+        .permitAll()
         .and()
         .authorizeRequests()
         .anyRequest()
