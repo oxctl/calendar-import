@@ -1,6 +1,7 @@
 package uk.ac.ox.it.calendarimporter;
 
 import com.samskivert.mustache.Mustache;
+import java.util.Optional;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -39,11 +40,16 @@ public class CalendarImporterForCanvasApplication {
   InitializingBean sendDatabase() {
     // TODO Pull from config and also load LTI details here.
     return () -> {
-      Tenant tenant = new Tenant();
-      tenant.setName("canvas");
-      tenant.setUrl("https://oxeval.instructure.com/");
-      tenant.setDisplayName("Oxford Evaluation");
-      tenantRepository.save(tenant);
+      tenantRepository
+          .findByName("canvas")
+          .or(
+              () -> {
+                Tenant tenant = new Tenant();
+                tenant.setName("canvas");
+                tenant.setUrl("https://oxeval.instructure.com/");
+                tenant.setDisplayName("Oxford Evaluation");
+                return Optional.of(tenantRepository.save(tenant));
+              });
     };
   }
 
