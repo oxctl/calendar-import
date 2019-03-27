@@ -46,6 +46,7 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    // We currently have jquery being used from a webjar.
     registry.addResourceHandler("/webjars/**").addResourceLocations("/webjars/");
   }
 }

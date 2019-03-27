@@ -38,6 +38,21 @@ We use [jib](https://github.com/GoogleContainerTools/jib) to build our docker im
   
 This will build the project and have the image available. Watch out though as jib tries to create repeatable builds which means the timestamp of the image is always UNIX epoch. We have a docker-compose file in the project which allows it to startup without 
 
+Published images are stored in an AWS ECR repository before going to production. To push images to this respository install the [Amazon ECR Docker Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper), this will use your credentials setup for AWS for pushing to the ECR repository. With the credential helper installed you can then push an image, if you need to you can also specify which AWS profile to use:
+
+    AWS_PROFILE=ouit mvn compile jib:build
+    
+# Deployment
+
+This project is deploying onto AWS using Elastic Beanstalk (EB). There is a small EC2 instance that hosts the docker container and provides HTTPS termination through nginx. SSL certificates are put into a S3 bucket and copied onto the host at deployment time using the ec2's role ([AWS Docs](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/https-storingprivatekeys.html)). 
+
+## SSL Rotation
+
+Currently this service requires manual SSL regeneration and setup. The certificates should be placed into the S3 bucket and then a replacement instance deployed which will copy out the new certificates and start using them. When building the certificates any additional certificates should be added so they can be served.
+
+    cat www.example.com.crt bundle.crt > www.example.com.chained.crt
+
+
 
 # Could maybe get away without LTI and just use OAuth
 

@@ -1,7 +1,7 @@
 package uk.ac.ox.it.calendarimporter;
 
 import edu.ksu.lti.launch.service.LtiLoginService;
-import edu.ksu.lti.launch.service.SingleToolConsumerService;
+import edu.ksu.lti.launch.service.ToolConsumerService;
 import edu.ksu.lti.launch.spring.config.LtiConfigurer;
 import edu.ksu.lti.launch.spring.config.LtiLaunchCsrfMatcher;
 import java.util.Arrays;
@@ -41,6 +41,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired private OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
 
   @Autowired private LtiLoginService ltiLoginService;
+
+  @Autowired private ToolConsumerService toolConsumerService;
 
   @Override
   public void configure(WebSecurity webSecurity) throws Exception {
@@ -90,10 +92,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     http.setSharedObject(RequestCache.class, new HttpSessionRequestCache());
     http.setSharedObject(LtiLoginService.class, ltiLoginService);
-    SingleToolConsumerService toolConsumer =
-        new SingleToolConsumerService(
-            "canvas", "Oxford Evaluation", "https://oxeval.instructure.com/", "canvas");
-    LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumer, "/launch", true);
+    LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, "/launch", true);
     http.apply(ltiConfigurer);
     http.csrf().requireCsrfProtectionMatcher(new LtiLaunchCsrfMatcher("/launch"));
 
@@ -111,6 +110,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .authorizeRequests()
         .antMatchers("/webjars/**")
+        .permitAll()
+        .and()
+        // TODO This should be authenticated with a different method
+        .authorizeRequests()
+        .antMatchers("/api/**")
         .permitAll()
         .and()
         .authorizeRequests()

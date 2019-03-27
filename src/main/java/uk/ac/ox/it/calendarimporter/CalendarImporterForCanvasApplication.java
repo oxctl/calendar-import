@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
+import uk.ac.ox.it.calendarimporter.utils.TenantProperties;
 
 @EnableJpaRepositories("uk.ac.ox.it.calendarimporter.persistence.repo")
 @EntityScan({"uk.ac.ox.it.calendarimporter.persistence.model"})
@@ -26,6 +27,8 @@ public class CalendarImporterForCanvasApplication {
   @Autowired private ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired private TenantRepository tenantRepository;
+
+  @Autowired private TenantProperties tenantProperties;
 
   public static void main(String[] args) {
     SpringApplication.run(CalendarImporterForCanvasApplication.class, args);
@@ -38,18 +41,12 @@ public class CalendarImporterForCanvasApplication {
 
   @Bean
   InitializingBean sendDatabase() {
-    // TODO Pull from config and also load LTI details here.
     return () -> {
-      tenantRepository
-          .findByName("canvas")
-          .or(
-              () -> {
-                Tenant tenant = new Tenant();
-                tenant.setName("canvas");
-                tenant.setUrl("https://oxeval.instructure.com/");
-                tenant.setDisplayName("Oxford Evaluation");
-                return Optional.of(tenantRepository.save(tenant));
-              });
+        tenantProperties.getTenants().forEach(tenant -> {
+          if (tenantRepository.findByName(tenant.getName()).isEmpty()) {
+            tenantRepository.save(tenant);
+          }
+        });
     };
   }
 

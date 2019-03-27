@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * This is a Canvas installation, the idea is that all objects are tied to a tenant (not always
@@ -32,9 +33,11 @@ public class Tenant {
   @NotNull
   private String url;
 
-  /**
-   * A URL to the CSS for this tenant, most of the time we just use the one in the LTI session. But
-   * if the user doesn't have a LTI session then we can fallback to this.
-   */
-  private String cssUrl;
+  @ToString.Exclude
+  private String ltiSecret;
+
+  private String oauth2Id;
+
+  @ToString.Exclude
+  private String oauth2Secret;
 }
