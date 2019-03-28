@@ -36,13 +36,13 @@
                 <label class="ic-Label" for="file-upload-input">File:</label>
                 <input type="file" name="file"/>
             </div>
+            {{#beta}}
             <div class="ic-Form-control">
                 <label class="ic-Label" for="dest-input">Into:</label>
                 <select class="ic-Input" id="dest-input" name="destination" size="1">
                     <option value="course">Course: {{course}}</option>
                 </select>
             </div>
-            {{#beta}}
             <fieldset class="ic-Fieldset ic-Fieldset--radio-checkbox">
                 <legend class="ic-Legend">
                     Upload Type
@@ -175,7 +175,7 @@
         </div>
 
     </div>
-
+    {{#beta}}
     <div>
         <form method="post" action="/api/v1/cleanup">
             <label>Tenant <input type="text" name="tenant"/></label><br/>
@@ -196,6 +196,7 @@
 
         </form>
     </div>
+    {{/beta}}
 </div>
 </body>
 </html>

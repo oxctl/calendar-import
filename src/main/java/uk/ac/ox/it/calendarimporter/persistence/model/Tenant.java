@@ -33,11 +33,9 @@ public class Tenant {
   @NotNull
   private String url;
 
-  @ToString.Exclude
-  private String ltiSecret;
+  @ToString.Exclude private String ltiSecret;
 
   private String oauth2Id;
 
-  @ToString.Exclude
-  private String oauth2Secret;
+  @ToString.Exclude private String oauth2Secret;
 }

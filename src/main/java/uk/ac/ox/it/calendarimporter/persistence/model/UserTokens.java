@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -73,6 +74,7 @@ public class UserTokens {
 
     @Column(name = "access_token_value")
     @NotNull
+    @ToString.Exclude
     private String tokenValue;
 
     @Column(name = "access_issued_at")
@@ -113,6 +115,7 @@ public class UserTokens {
 
     @Column(name = "refresh_token_value")
     @NotNull
+    @ToString.Exclude
     private String tokenValue;
 
     @Column(name = "refresh_issues_at")

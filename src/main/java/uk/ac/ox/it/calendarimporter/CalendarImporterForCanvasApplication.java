@@ -1,7 +1,6 @@
 package uk.ac.ox.it.calendarimporter;
 
 import com.samskivert.mustache.Mustache;
-import java.util.Optional;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -15,7 +14,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.utils.TenantProperties;
 
@@ -42,11 +40,14 @@ public class CalendarImporterForCanvasApplication {
   @Bean
   InitializingBean sendDatabase() {
     return () -> {
-        tenantProperties.getTenants().forEach(tenant -> {
-          if (tenantRepository.findByName(tenant.getName()).isEmpty()) {
-            tenantRepository.save(tenant);
-          }
-        });
+      tenantProperties
+          .getTenants()
+          .forEach(
+              tenant -> {
+                if (tenantRepository.findByName(tenant.getName()).isEmpty()) {
+                  tenantRepository.save(tenant);
+                }
+              });
     };
   }
 

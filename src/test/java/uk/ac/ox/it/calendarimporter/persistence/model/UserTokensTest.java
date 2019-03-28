@@ -1,6 +1,7 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType.BEARER;
 import static uk.ac.ox.it.calendarimporter.persistence.model.UserTokens.AccessToken;
 import static uk.ac.ox.it.calendarimporter.persistence.model.UserTokens.RefreshToken;
@@ -62,5 +63,25 @@ public class UserTokensTest {
     OAuth2AccessToken converted = accessToken.toOAuth2AccessToken();
     assertEquals(oauth2AccessToken, converted);
     assertEquals(0, converted.getScopes().size());
+  }
+
+  @Test
+  public void testRefreshTokenToString() {
+    // We don't ever want the token value logged.
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setIssuedAt(Instant.now());
+    refreshToken.setTokenValue("secret");
+    assertFalse(refreshToken.toString().contains("secret"));
+  }
+
+  @Test
+  public void testAccessTokenToString() {
+    // We don't ever want the token value logged.
+    AccessToken accessToken = new AccessToken();
+    accessToken.setIssuedAt(Instant.now());
+    accessToken.setExpiresAt(Instant.now());
+    accessToken.setScopes("scopes");
+    accessToken.setTokenValue("secret");
+    assertFalse(accessToken.toString().contains("secret"));
   }
 }
