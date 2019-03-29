@@ -84,10 +84,8 @@ public class IcalImportJob extends CanvasCalendarJob {
     URL url = new URL(this.url);
 
     CalendarReader reader =
-        canvasApiFactory.getReader(
-            CalendarReader.class, nonRefreshableOauthToken, PAGINATION_PAGE_SIZE);
-    CalendarWriter writer =
-        canvasApiFactory.getWriter(CalendarWriter.class, nonRefreshableOauthToken);
+        canvasApiFactory.getReader(CalendarReader.class, oauthToken, PAGINATION_PAGE_SIZE);
+    CalendarWriter writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
 
     ListCalendarEventsOptions listCalendarEventsOptions = new ListCalendarEventsOptions();
     listCalendarEventsOptions.contextCodes(Collections.singletonList(context));

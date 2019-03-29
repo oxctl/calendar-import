@@ -59,8 +59,7 @@ public class CSVImportJob extends CanvasCalendarJob {
     URL url = new URL(this.url);
     List<CalendarEvent> calendarEvents = parseCSV(url);
     progressService.updateJob(triggerId, "File read.", progress);
-    CalendarWriter calendarWriter =
-        canvasApiFactory.getWriter(CalendarWriter.class, nonRefreshableOauthToken);
+    CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
     int eventProgress = 0;
     int eventTotal = calendarEvents.size();
     int progressPerEvent = (100 - progress) / eventTotal;
@@ -92,7 +91,10 @@ public class CSVImportJob extends CanvasCalendarJob {
       connection.setReadTimeout(10000);
       try (InputStream in = new TerminatingInputStream(connection.getInputStream(), inputLimit)) {
         // Ignore blank lines
-        CSVFormat format = CSVFormat.EXCEL.withFirstRecordAsHeader().withIgnoreEmptyLines();
+        CSVFormat format = CSVFormat.EXCEL
+                .withFirstRecordAsHeader()
+                .withIgnoreEmptyLines()
+                .withIgnoreSurroundingSpaces();
         CSVParser parser = new CSVParser(new InputStreamReader(in, StandardCharsets.UTF_8), format);
         validateHeader(parser.getHeaderMap().keySet());
         List<CalendarEvent> events = new ArrayList<>();

@@ -61,7 +61,7 @@ public class ImportService {
       ImportType type,
       String url,
       String filename,
-      String token,
+      String accessToken,
       Long userId,
       String context,
       String into)
@@ -108,10 +108,11 @@ public class ImportService {
                 TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getUsername()))
             .usingJobData(CanvasCalendarJob.URL, url)
             .usingJobData(CanvasCalendarJob.CONTEXT, context)
-            .usingJobData(CanvasCalendarJob.TOKEN, token)
+            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, accessToken)
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
             // This is in the trigger key but it's better to be explicit about this.
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
+            .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
             .forJob(detail)
             .build();
 
@@ -137,9 +138,10 @@ public class ImportService {
    * @throws SchedulerException If we failed to schedule the job.
    * @throws IllegalStateException If the import is in a state that it can't be deleted.
    */
-  public void deleteImport(Long calendarImportId, String token, User user)
+  public void deleteImport(Long calendarImportId, String accessToken, User user)
       throws SchedulerException {
 
+    // TODO Permission check
     CalendarImport calendarImport =
         calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
     JobProgress load = calendarImport.getLoad();
@@ -166,7 +168,8 @@ public class ImportService {
                 TriggerUtils.toTriggerKey(
                     uuid.toString(), user.getTenant().getName(), user.getUsername()))
             .usingJobData(CanvasCalendarJob.TENANT_NAME, user.getTenant().getName())
-            .usingJobData(CanvasCalendarJob.TOKEN, token)
+            .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
+            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, accessToken)
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImportId)
             .forJob(detail)
             .build();

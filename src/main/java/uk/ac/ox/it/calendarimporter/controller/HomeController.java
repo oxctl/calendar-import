@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,16 +33,14 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.ac.ox.it.calendarimporter.controller.pojo.Alert;
 import uk.ac.ox.it.calendarimporter.controller.pojo.PreviousImport;
-import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
-import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
-import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
-import uk.ac.ox.it.calendarimporter.persistence.model.User;
+import uk.ac.ox.it.calendarimporter.persistence.model.*;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
+import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
 
 @Controller
 @RequestMapping("/{tenant}/{context}/")
@@ -55,6 +55,8 @@ public class HomeController {
   @Autowired private TenantRepository tenantRepository;
 
   @Autowired private CalendarImportRepository calendarImportRepository;
+
+  @Autowired private UserOAuth2AuthorizedClientRepository clientRepository;
 
   @Value("${calendar.common.css}")
   private String defaultCommonCss;
@@ -154,6 +156,20 @@ public class HomeController {
     redirectAttributes.addFlashAttribute(
         "alert", new Alert(Alert.Type.INFO, "Calendar import started"));
     return new ModelAndView("redirect:/" + tenantName + "/" + context + "/");
+  }
+
+  @PostMapping("relogin")
+  public ModelAndView relogin(
+      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+      LtiAuthenticationToken ltiAuthenticationToken,
+      HttpServletRequest httpServletRequest,
+      HttpServletResponse response) {
+    clientRepository.removeAuthorizedClient(
+        client.getClientRegistration().getRegistrationId(),
+        ltiAuthenticationToken,
+        httpServletRequest,
+        response);
+    return new ModelAndView("redirect:.");
   }
 
   @PostMapping("upload")

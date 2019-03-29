@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
-import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEventIdentity;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 
 /**
@@ -19,7 +18,8 @@ public class EventService {
 
   public void eventCreated(
       Long tenantId, CalendarImport calendarImport, CalendarEvent calendarEvent) {
-    ImportedEventIdentity identity = new ImportedEventIdentity(tenantId, calendarEvent.getId());
+    ImportedEvent.ImportedEventIdentity identity =
+        new ImportedEvent.ImportedEventIdentity(tenantId, calendarEvent.getId());
     ImportedEvent event = new ImportedEvent(identity, calendarImport, ImportedEvent.Status.CREATED);
     importedEventRepository.save(event);
   }

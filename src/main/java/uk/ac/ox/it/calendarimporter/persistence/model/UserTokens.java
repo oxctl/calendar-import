@@ -7,17 +7,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -34,17 +31,14 @@ import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 public class UserTokens {
 
   // The user to who the tokens belong
-  @EmbeddedId private TenantAndPrincipal tenantAndPrincipal;
+  @Id private String principal;
 
   @Embedded @Valid private AccessToken accessToken;
 
   @Embedded @Valid private RefreshToken refreshToken;
 
-  public UserTokens(OAuth2AuthorizedClient oauth2AuthorizedClient) {
-    this.tenantAndPrincipal =
-        new TenantAndPrincipal(
-            oauth2AuthorizedClient.getClientRegistration().getRegistrationId(),
-            oauth2AuthorizedClient.getPrincipalName());
+  public UserTokens(Authentication authentication, OAuth2AuthorizedClient oauth2AuthorizedClient) {
+    this.principal = authentication.getPrincipal().toString();
     this.accessToken = new AccessToken(oauth2AuthorizedClient.getAccessToken());
     if (oauth2AuthorizedClient.getRefreshToken() != null) {
       this.refreshToken = new RefreshToken(oauth2AuthorizedClient.getRefreshToken());

@@ -1,8 +1,8 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.ACCESS_TOKEN;
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.CONTEXT;
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TENANT_NAME;
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TOKEN;
 
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.CalendarReader;
@@ -40,7 +40,7 @@ public class CleanoutJob implements Job {
         tenantRepository
             .findByName(config.getString(TENANT_NAME))
             .orElseThrow(JobExecutionException::new);
-    String token = config.getString(TOKEN);
+    String token = config.getString(ACCESS_TOKEN);
     String context = config.getString(CONTEXT);
     log.debug("Cleaning out all events in {} of {}", context, tenant);
     CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());

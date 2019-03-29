@@ -1,6 +1,5 @@
 package uk.ac.ox.it.calendarimporter.service;
 
-import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.stereotype.Component;
-import uk.ac.ox.it.calendarimporter.persistence.model.TenantAndPrincipal;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 
@@ -32,15 +30,10 @@ public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedCli
     ClientRegistration clientRegistration =
         clientRegistrationRepository.findByRegistrationId(clientRegistrationId);
     if (clientRegistration != null) {
-      String principal;
-      if (authentication.getPrincipal() instanceof Principal) {
-        principal = ((Principal) authentication.getPrincipal()).getName();
-      } else {
-        principal = authentication.getPrincipal().toString();
-      }
+      String principal = authentication.getPrincipal().toString();
       oAuth2AuthorizedClient =
           userTokensRepository
-              .findById(new TenantAndPrincipal(clientRegistrationId, principal))
+              .findById(authentication.getPrincipal().toString())
               .map(userTokens -> userTokens.toOAuth2AuthorizedClient(clientRegistration, principal))
               .orElse(null);
     }
@@ -53,7 +46,7 @@ public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedCli
       Authentication authentication,
       HttpServletRequest request,
       HttpServletResponse response) {
-    UserTokens userTokens = new UserTokens(authorizedClient);
+    UserTokens userTokens = new UserTokens(authentication, authorizedClient);
     userTokensRepository.save(userTokens);
   }
 
@@ -63,7 +56,6 @@ public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedCli
       Authentication authentication,
       HttpServletRequest request,
       HttpServletResponse response) {
-    userTokensRepository.deleteById(
-        new TenantAndPrincipal(clientRegistrationId, authentication.getPrincipal().toString()));
+    userTokensRepository.deleteById(authentication.getPrincipal().toString());
   }
 }

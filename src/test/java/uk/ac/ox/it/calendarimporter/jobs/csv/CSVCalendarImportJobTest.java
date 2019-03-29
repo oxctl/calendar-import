@@ -82,4 +82,15 @@ public class CSVCalendarImportJobTest {
     assertEquals(0, event.getStartAt().getEpochSecond());
     assertEquals(0, event.getEndAt().getEpochSecond());
   }
+
+  @Test
+  public void testWhitespaceInHeader() throws IOException {
+    List<CalendarEvent> calendarEvents =
+            csvImportJob.parseCSV(getClass().getResource("/whitespace-in-header.csv"));
+    assertFalse(csvImportJob.getErrors().hasNext());
+    assertNotNull(calendarEvents);
+    assertEquals(1, calendarEvents.size());
+    CalendarEvent event = calendarEvents.get(0);
+    assertEquals("BulkImport", event.getTitle());
+  }
 }

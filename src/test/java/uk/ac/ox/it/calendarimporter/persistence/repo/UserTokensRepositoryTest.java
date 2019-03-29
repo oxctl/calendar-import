@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.ac.ox.it.calendarimporter.persistence.model.TenantAndPrincipal;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens.AccessToken;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens.RefreshToken;
@@ -20,8 +19,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens.RefreshToken;
 @DataJpaTest
 public class UserTokensRepositoryTest {
 
-  public static final TenantAndPrincipal TENANT_AND_PRINCIPAL =
-      new TenantAndPrincipal("tenant", "principal");
+  public static final String PRINCIPAL = "tenant:principal";
   @Autowired private EntityManager entityManager;
 
   @Autowired private UserTokensRepository repository;
@@ -30,14 +28,14 @@ public class UserTokensRepositoryTest {
   public void testSaveLoadEmpty() {
     {
       UserTokens userTokens = new UserTokens();
-      userTokens.setTenantAndPrincipal(TENANT_AND_PRINCIPAL);
+      userTokens.setPrincipal(PRINCIPAL);
       entityManager.persist(userTokens);
       entityManager.flush();
     }
     {
       UserTokens userTokens =
           repository
-              .findById(TENANT_AND_PRINCIPAL)
+              .findById(PRINCIPAL)
               .orElseThrow(() -> new AssertionError("Failed to find UserTokens"));
       assertNull(userTokens.getAccessToken());
       assertNull(userTokens.getRefreshToken());
@@ -50,7 +48,7 @@ public class UserTokensRepositoryTest {
     Instant expires = Instant.now().plus(1, ChronoUnit.HOURS);
     {
       UserTokens userTokens = new UserTokens();
-      userTokens.setTenantAndPrincipal(TENANT_AND_PRINCIPAL);
+      userTokens.setPrincipal(PRINCIPAL);
       AccessToken accessToken = new AccessToken("value", issued, expires, "scope1 scope2");
       userTokens.setAccessToken(accessToken);
       entityManager.persist(userTokens);
@@ -59,7 +57,7 @@ public class UserTokensRepositoryTest {
     {
       UserTokens userTokens =
           repository
-              .findById(TENANT_AND_PRINCIPAL)
+              .findById(PRINCIPAL)
               .orElseThrow(() -> new AssertionError("Failed to find UserTokens"));
       RefreshToken refreshToken = userTokens.getRefreshToken();
       AccessToken accessToken = userTokens.getAccessToken();
@@ -75,7 +73,7 @@ public class UserTokensRepositoryTest {
   @Test(expected = ConstraintViolationException.class)
   public void testSaveMissingFields() {
     UserTokens userTokens = new UserTokens();
-    userTokens.setTenantAndPrincipal(TENANT_AND_PRINCIPAL);
+    userTokens.setPrincipal(PRINCIPAL);
     AccessToken accessToken = new AccessToken();
     accessToken.setTokenValue("value");
     userTokens.setAccessToken(accessToken);
@@ -89,7 +87,7 @@ public class UserTokensRepositoryTest {
     Instant expires = Instant.now().plus(1, ChronoUnit.HOURS);
     {
       UserTokens userTokens = new UserTokens();
-      userTokens.setTenantAndPrincipal(TENANT_AND_PRINCIPAL);
+      userTokens.setPrincipal(PRINCIPAL);
       AccessToken accessToken = new AccessToken("value", issued, expires, "scope1 scope2");
       userTokens.setAccessToken(accessToken);
       entityManager.persist(userTokens);
@@ -98,7 +96,7 @@ public class UserTokensRepositoryTest {
     {
       UserTokens userTokens =
           repository
-              .findById(TENANT_AND_PRINCIPAL)
+              .findById(PRINCIPAL)
               .orElseThrow(() -> new AssertionError("Failed to find UserTokens"));
       assertNotNull(userTokens.getAccessToken());
       userTokens.setAccessToken(null);
@@ -108,7 +106,7 @@ public class UserTokensRepositoryTest {
     {
       UserTokens userTokens =
           repository
-              .findById(TENANT_AND_PRINCIPAL)
+              .findById(PRINCIPAL)
               .orElseThrow(() -> new AssertionError("Failed to find UserTokens"));
       assertNull(userTokens.getAccessToken());
     }
@@ -120,14 +118,14 @@ public class UserTokensRepositoryTest {
     Instant expires = Instant.now().plus(1, ChronoUnit.HOURS);
     {
       UserTokens userTokens = new UserTokens();
-      userTokens.setTenantAndPrincipal(TENANT_AND_PRINCIPAL);
+      userTokens.setPrincipal(PRINCIPAL);
       AccessToken accessToken = new AccessToken("value", issued, expires, "scope1 scope2");
       userTokens.setAccessToken(accessToken);
       repository.save(userTokens);
     }
     {
       UserTokens userTokens = new UserTokens();
-      userTokens.setTenantAndPrincipal(TENANT_AND_PRINCIPAL);
+      userTokens.setPrincipal(PRINCIPAL);
       AccessToken accessToken = new AccessToken("value", issued, expires, "scope1 scope2");
       userTokens.setAccessToken(accessToken);
       repository.save(userTokens);

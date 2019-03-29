@@ -42,7 +42,7 @@ public class CleanupController {
         TriggerBuilder.newTrigger()
             .startNow()
             .usingJobData(CanvasCalendarJob.CONTEXT, context)
-            .usingJobData(CanvasCalendarJob.TOKEN, token)
+            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, token)
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
             .forJob(job)
             .build();

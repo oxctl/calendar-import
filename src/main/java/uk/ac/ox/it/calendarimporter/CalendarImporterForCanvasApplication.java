@@ -26,7 +26,7 @@ public class CalendarImporterForCanvasApplication {
 
   @Autowired private TenantRepository tenantRepository;
 
-  @Autowired private TenantProperties tenantProperties;
+  @Autowired(required = false) private TenantProperties tenantProperties;
 
   public static void main(String[] args) {
     SpringApplication.run(CalendarImporterForCanvasApplication.class, args);
@@ -40,14 +40,16 @@ public class CalendarImporterForCanvasApplication {
   @Bean
   InitializingBean sendDatabase() {
     return () -> {
-      tenantProperties
-          .getTenants()
-          .forEach(
-              tenant -> {
-                if (tenantRepository.findByName(tenant.getName()).isEmpty()) {
-                  tenantRepository.save(tenant);
-                }
-              });
+      if (tenantProperties != null) {
+        tenantProperties
+                .getTenants()
+                .forEach(
+                        tenant -> {
+                          if (tenantRepository.findByName(tenant.getName()).isEmpty()) {
+                            tenantRepository.save(tenant);
+                          }
+                        });
+      }
     };
   }
 

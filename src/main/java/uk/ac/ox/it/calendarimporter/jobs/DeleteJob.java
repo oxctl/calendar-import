@@ -1,7 +1,7 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.ACCESS_TOKEN;
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TENANT_NAME;
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TOKEN;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.CREATED;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.DELETED;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.MISSING;
@@ -51,7 +51,7 @@ public class DeleteJob implements Job {
         tenantRepository
             .findByName(config.getString(TENANT_NAME))
             .orElseThrow(JobExecutionException::new);
-    String token = config.getString(TOKEN);
+    String token = config.getString(ACCESS_TOKEN);
     long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
 
     CalendarImport calendarImport =
