@@ -1,5 +1,7 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
+import java.io.Serializable;
+import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -35,5 +37,18 @@ public class ImportedEvent {
     CREATED,
     DELETED,
     MISSING
+  }
+
+  @Embeddable
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Data
+  public static class ImportedEventIdentity implements Serializable {
+
+    /** The tenant in which the event was created. We need this so that we can remove an event. */
+    @NotNull private Long tenant;
+
+    /** The ID of the Calendar event created in Canvas. This is just unique to a tenant. */
+    @NotNull private Integer id;
   }
 }
