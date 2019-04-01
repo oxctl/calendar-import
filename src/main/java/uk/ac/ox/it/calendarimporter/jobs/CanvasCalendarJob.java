@@ -17,6 +17,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.*;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
+import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 
 public abstract class CanvasCalendarJob implements InterruptableJob {
 
@@ -50,6 +51,8 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   @Autowired private CalendarImportRepository calendarImportRespository;
 
   @Autowired private UserTokensRepository userTokensRepository;
+
+  @Autowired private OauthTokenFactory oauthTokenFactory;
 
   public void setContext(String context) {
     this.context = context;
@@ -99,15 +102,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     this.calendarImport = calendarImport.orElseThrow(JobExecutionException::new);
 
     canvasApiFactory = new CanvasApiFactory(canvasUrl);
-    if (refreshToken != null) {
-      // TODO need to wrap this so we can update access token in DB when we get a new one.
-      OauthTokenRefresher refresher =
-          new OauthTokenRefresher(
-              this.tenant.getOauth2Id(), this.tenant.getOauth2Secret(), this.tenant.getUrl());
-      oauthToken = new RefreshableOauthToken(refresher, refreshToken, accessToken);
-    } else {
-      oauthToken = new NonRefreshableOauthToken(accessToken);
-    }
+    oauthToken = oauthTokenFactory.getToken(this.tenant, config.getString(TENANT_NAME)+ ":"+ config.getString(USERNAME), accessToken, refreshToken);
 
     try {
       run();

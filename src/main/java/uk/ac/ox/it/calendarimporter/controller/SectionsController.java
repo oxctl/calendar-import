@@ -9,14 +9,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+
+import edu.ksu.canvas.oauth.OauthToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ox.it.calendarimporter.controller.pojo.CourseSection;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 
 /**
  * This allows loading of sections that are in a course. This is developed as an API so that the
@@ -30,22 +34,24 @@ public class SectionsController {
 
   @Autowired private TenantRepository tenantRepository;
 
+  @Autowired private OauthTokenFactory oauthTokenFactory;
+
   // TODO This should be cached for 5 minutes so that when the page reloads the sections doesn't
   // load again.
   @GetMapping(
       path = "sections",
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public List<CourseSection> getSections(
-      @PathVariable("tenant") String tenantName,
-      @PathVariable("context") String context,
-      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client)
+          @PathVariable("tenant") String tenantName,
+          @PathVariable("context") String context,
+          @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client, Authentication authentication)
       throws IOException {
 
     // TODO exception
     Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow();
     CanvasApiFactory factory = new CanvasApiFactory(tenant.getUrl());
-    NonRefreshableOauthToken token =
-        new NonRefreshableOauthToken(client.getAccessToken().getTokenValue());
+
+    OauthToken token = oauthTokenFactory.getToken(authentication, client);
 
     SectionReader reader = factory.getReader(SectionReader.class, token);
     String courseId = getCourseId(context);

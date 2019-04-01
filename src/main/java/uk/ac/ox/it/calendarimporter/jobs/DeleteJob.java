@@ -1,7 +1,6 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.ACCESS_TOKEN;
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TENANT_NAME;
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.*;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.CREATED;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.DELETED;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.MISSING;
@@ -11,6 +10,9 @@ import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
+import edu.ksu.canvas.oauth.OauthToken;
+import edu.ksu.canvas.oauth.OauthTokenRefresher;
+import edu.ksu.canvas.oauth.RefreshableOauthToken;
 import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +30,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
+import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 /**
@@ -44,6 +47,7 @@ public class DeleteJob implements Job {
   @Autowired private CalendarImportRepository calendarImportRepository;
   @Autowired private ImportedEventRepository importedEventRepository;
   @Autowired private ProgressService progressService;
+  @Autowired private OauthTokenFactory oauthTokenFactory;
 
   public void execute(JobExecutionContext jobContext) throws JobExecutionException {
     JobDataMap config = jobContext.getMergedJobDataMap();
@@ -51,7 +55,6 @@ public class DeleteJob implements Job {
         tenantRepository
             .findByName(config.getString(TENANT_NAME))
             .orElseThrow(JobExecutionException::new);
-    String token = config.getString(ACCESS_TOKEN);
     long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
 
     CalendarImport calendarImport =
@@ -64,11 +67,16 @@ public class DeleteJob implements Job {
     String triggerId = jobContext.getTrigger().getKey().getName();
 
     log.debug("Cleaning out events in {} of {}", context, tenant);
+    // TODO This should come from the current LTI launch
     CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
-    NonRefreshableOauthToken nonRefreshableOauthToken = new NonRefreshableOauthToken(token);
+    String refreshToken = config.getString(CanvasCalendarJob.REFRESH_TOKEN);
+    String accessToken = config.getString(ACCESS_TOKEN);
+    OauthToken oauthToken = oauthTokenFactory.getToken(tenant,
+        config.getString(TENANT_NAME)+ ":"+ config.getString(USERNAME), accessToken, refreshToken
+    );
 
     CalendarWriter calendarWriter =
-        canvasApiFactory.getWriter(CalendarWriter.class, nonRefreshableOauthToken);
+        canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
 
     try {
       int deleted = 0;

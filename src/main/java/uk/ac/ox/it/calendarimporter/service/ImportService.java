@@ -18,6 +18,7 @@ import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
@@ -61,7 +62,7 @@ public class ImportService {
       ImportType type,
       String url,
       String filename,
-      String accessToken,
+      OAuth2AuthorizedClient client,
       Long userId,
       String context,
       String into)
@@ -108,7 +109,8 @@ public class ImportService {
                 TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getUsername()))
             .usingJobData(CanvasCalendarJob.URL, url)
             .usingJobData(CanvasCalendarJob.CONTEXT, context)
-            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, accessToken)
+            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, client.getAccessToken().getTokenValue())
+            .usingJobData(CanvasCalendarJob.REFRESH_TOKEN, client.getRefreshToken().getTokenValue())
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
             // This is in the trigger key but it's better to be explicit about this.
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
@@ -138,7 +140,7 @@ public class ImportService {
    * @throws SchedulerException If we failed to schedule the job.
    * @throws IllegalStateException If the import is in a state that it can't be deleted.
    */
-  public void deleteImport(Long calendarImportId, String accessToken, User user)
+  public void deleteImport(Long calendarImportId, OAuth2AuthorizedClient client, User user)
       throws SchedulerException {
 
     // TODO Permission check
@@ -169,7 +171,8 @@ public class ImportService {
                     uuid.toString(), user.getTenant().getName(), user.getUsername()))
             .usingJobData(CanvasCalendarJob.TENANT_NAME, user.getTenant().getName())
             .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
-            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, accessToken)
+            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, client.getAccessToken().getTokenValue())
+            .usingJobData(CanvasCalendarJob.REFRESH_TOKEN, client.getRefreshToken().getTokenValue())
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImportId)
             .forJob(detail)
             .build();

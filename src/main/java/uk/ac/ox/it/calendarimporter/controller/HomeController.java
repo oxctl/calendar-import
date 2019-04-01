@@ -144,7 +144,6 @@ public class HomeController {
       LtiAuthenticationToken authentication)
       throws SchedulerException {
     // TODO Exception
-    String token = client.getAccessToken().getTokenValue();
     LtiPrincipal principal = authentication.getPrincipal();
     User user =
         userRepository
@@ -152,7 +151,7 @@ public class HomeController {
             .orElseThrow();
 
     String into = null;
-    importService.importNow(type, url, url, token, user.getId(), context, into);
+    importService.importNow(type, url, url, client, user.getId(), context, into);
     redirectAttributes.addFlashAttribute(
         "alert", new Alert(Alert.Type.INFO, "Calendar import started"));
     return new ModelAndView("redirect:/" + tenantName + "/" + context + "/");
@@ -194,9 +193,8 @@ public class HomeController {
       URL deposit = uploadDepositService.deposit(tempFile);
       redirectAttributes.addFlashAttribute(
           "alert", new Alert(Alert.Type.INFO, "Calendar import started"));
-      String token = client.getAccessToken().getTokenValue();
       importService.importNow(
-          type, deposit.toString(), file.getOriginalFilename(), token, user.getId(), context, dest);
+          type, deposit.toString(), file.getOriginalFilename(), client, user.getId(), context, dest);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -220,7 +218,7 @@ public class HomeController {
             .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
             .orElseThrow();
     String token = client.getAccessToken().getTokenValue();
-    importService.deleteImport(calendarImportId, token, user);
+    importService.deleteImport(calendarImportId, client, user);
     redirectAttributes.addFlashAttribute(
         "alert", new Alert(Alert.Type.INFO, "Calendar delete started"));
     return new ModelAndView("redirect:/" + tenant + "/" + context + "/");

@@ -4,6 +4,7 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,9 +46,9 @@ public class ImportController {
         userRepository
             .findByOAuth2AuthenticationToken(authentication)
             .orElseThrow(RuntimeException::new);
-    String token = null; // TODO
+    OAuth2AuthorizedClient client = null; // TODO
     String into = null; // TODO
-    return importService.importNow(type, url, url, token, user.getId(), context, into);
+    return importService.importNow(type, url, url, client, user.getId(), context, into);
   }
 
   @GetMapping("/progress/{id}")
