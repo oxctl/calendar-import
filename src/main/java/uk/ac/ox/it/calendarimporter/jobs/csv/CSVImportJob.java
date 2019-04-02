@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.ical.TerminatingInputStream;
 import uk.ac.ox.it.calendarimporter.service.EventService;
-import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 /**
  * This job reads a CSV from a URL (probably local), parses it and then uploads the events into
@@ -46,42 +44,38 @@ public class CSVImportJob extends CanvasCalendarJob {
 
   private long inputLimit = 1048576 * 10;
 
-  private List<String> errors = new ArrayList<>();
+  private boolean hasErrors;
 
   @Autowired private EventService eventService;
-
-  @Autowired private ProgressService progressService;
 
   @Override
   public void run() throws IOException, JobExecutionException {
     int progress = 0;
-    progressService.updateJob(triggerId, "Import started.", progress);
+    log(progress, "Import started.");
     URL url = new URL(this.url);
     List<CalendarEvent> calendarEvents = parseCSV(url);
-    progressService.updateJob(triggerId, "File read.", progress);
+    log("Source file read.");
     CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
     int eventProgress = 0;
     int eventTotal = calendarEvents.size();
     int progressPerEvent = (100 - progress) / eventTotal;
+    int created = 0;
     for (CalendarEvent event : calendarEvents) {
       if (isInterrupted()) {
-        progressService.updateJob(
-            triggerId,
-            String.format("Interrupted after %d of %d events", ++eventProgress, eventTotal),
-            progress);
+        log("Interrupted after %d of %d events", ++eventProgress, eventTotal);
         throw new JobExecutionException("Job interrupted");
       }
       event.setContextCode(context);
-      Optional<CalendarEvent> calendarEvent = calendarWriter.createCalendarEvent(event);
-      calendarEvent.ifPresent(
-          calendarEvent1 ->
-              eventService.eventCreated(tenant.getId(), calendarImport, calendarEvent1));
+      Optional<CalendarEvent> calendarEventOpt = calendarWriter.createCalendarEvent(event);
+      if (calendarEventOpt.isPresent()) {
+        eventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
+        created++;
+      }
+
       progress += progressPerEvent;
-      progressService.updateJob(
-          triggerId,
-          String.format("Processed event %d of %d", ++eventProgress, eventTotal),
-          progress);
+      log(progress, "Processed event %d of %d", ++eventProgress, eventTotal);
     }
+    log("Completed import, found %d events, imported %d into calendar.", eventTotal, created);
   }
 
   public List<CalendarEvent> parseCSV(URL url) throws IOException {
@@ -104,24 +98,17 @@ public class CSVImportJob extends CanvasCalendarJob {
             CalendarEvent calendarEvent = parseRecord(record);
             events.add(calendarEvent);
           } catch (RowException e) {
-            log.debug("Error on row {}: {}", e.getRow(), e.getMessage());
-            saveError(e);
+            // Programmers are 0 based, users are 1 based
+            log("Error on row %d, message: %s", e.getRow()+1, e.getLocalizedMessage());
+            hasErrors = true;
           }
         }
-        log.trace("Parsed {} rows and {} errors", events.size(), errors.size());
+        log.trace("Parsed {} rows and has errors: {}", events.size(), hasErrors);
         return events;
       }
     } catch (IOException e) {
       throw e;
     }
-  }
-
-  public Iterator<String> getErrors() {
-    return errors.iterator();
-  }
-
-  private void saveError(RowException e) {
-    errors.add("Error on " + e.getRow() + " " + e.getLocalizedMessage());
   }
 
   private CalendarEvent parseRecord(CSVRecord record) {
@@ -167,5 +154,9 @@ public class CSVImportJob extends CanvasCalendarJob {
         throw new RuntimeException("Missing required header: " + field.getHeader());
       }
     }
+  }
+
+  public boolean hasErrors() {
+    return hasErrors;
   }
 }

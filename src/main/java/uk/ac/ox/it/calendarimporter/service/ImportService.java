@@ -107,7 +107,7 @@ public class ImportService {
             .startNow()
             .withIdentity(
                 TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getUsername()))
-            .usingJobData(CanvasCalendarJob.URL, url)
+            .usingJobData(CanvasCalendarJob.SOURCE_URL, url)
             .usingJobData(CanvasCalendarJob.CONTEXT, context)
             .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, client.getAccessToken().getTokenValue())
             .usingJobData(CanvasCalendarJob.REFRESH_TOKEN, client.getRefreshToken().getTokenValue())

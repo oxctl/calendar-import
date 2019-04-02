@@ -56,6 +56,8 @@ public class PreviousImport {
     String status;
     String message;
     Progress progress;
+    boolean hasLog;
+    String logId;
 
     public Job(JobProgress jobProgress) {
       this.status = toStatusString(jobProgress.getStatus());
@@ -63,6 +65,8 @@ public class PreviousImport {
       if (RUNNING.equals(jobProgress.getStatus())) {
         this.progress = new Progress(jobProgress.getPercentage());
       }
+      hasLog = jobProgress.getLogfile() != null;
+      this.logId = jobProgress.getId();
     }
 
     @Data

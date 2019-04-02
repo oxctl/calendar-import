@@ -23,6 +23,10 @@ public class JobProgress {
   private String lastMessage;
   private Status status;
   private int percentage;
+  /**
+   * URL to logfile.
+   */
+  private String logfile;
 
   public JobProgress(String id) {
     this.id = id;

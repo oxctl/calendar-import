@@ -31,7 +31,7 @@ public class CSVCalendarImportJobTest {
   public void testSingleEvent() throws IOException {
     List<CalendarEvent> calendarEvents =
         csvImportJob.parseCSV(getClass().getResource("/one-event.csv"));
-    assertFalse(csvImportJob.getErrors().hasNext());
+    assertFalse(csvImportJob.hasErrors());
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);
@@ -44,7 +44,7 @@ public class CSVCalendarImportJobTest {
   public void testMultipleEvents() throws IOException {
     List<CalendarEvent> calendarEvents =
         csvImportJob.parseCSV(getClass().getResource("/two-events.csv"));
-    assertFalse(csvImportJob.getErrors().hasNext());
+    assertFalse(csvImportJob.hasErrors());
     assertNotNull(calendarEvents);
     assertEquals(2, calendarEvents.size());
     {
@@ -61,7 +61,7 @@ public class CSVCalendarImportJobTest {
   public void testIgnoredHeaders() throws IOException {
     List<CalendarEvent> calendarEvents =
         csvImportJob.parseCSV(getClass().getResource("/extra-headers.csv"));
-    assertFalse(csvImportJob.getErrors().hasNext());
+    assertFalse(csvImportJob.hasErrors());
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);
@@ -74,7 +74,7 @@ public class CSVCalendarImportJobTest {
   public void testIgnoredRowValues() throws IOException {
     List<CalendarEvent> calendarEvents =
         csvImportJob.parseCSV(getClass().getResource("/extra-values.csv"));
-    assertFalse(csvImportJob.getErrors().hasNext());
+    assertFalse(csvImportJob.hasErrors());
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);
@@ -87,7 +87,7 @@ public class CSVCalendarImportJobTest {
   public void testWhitespaceInHeader() throws IOException {
     List<CalendarEvent> calendarEvents =
             csvImportJob.parseCSV(getClass().getResource("/whitespace-in-header.csv"));
-    assertFalse(csvImportJob.getErrors().hasNext());
+    assertFalse(csvImportJob.hasErrors());
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);

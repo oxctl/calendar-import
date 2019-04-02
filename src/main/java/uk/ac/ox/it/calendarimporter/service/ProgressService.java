@@ -39,14 +39,14 @@ public class ProgressService {
    *
    * @param triggerId The trigger ID.
    * @param message The latest message.
-   * @param percentage The percentage complete the job is estimated to be.
+   * @param percentage The percentage complete the job is estimated to be, can be null.
    */
   @Transactional
   public JobProgress updateJob(String triggerId, String message, Integer percentage) {
     checkArgument(triggerId != null, "You must supply a triggerId");
     checkArgument(message != null, "You must supply a message");
     checkArgument(
-        percentage != null && 0 <= percentage && percentage <= 100,
+        percentage == null || 0 <= percentage && percentage <= 100,
         "Percentage must be from 0 to 100");
 
     JobProgress progress =
@@ -58,7 +58,9 @@ public class ProgressService {
     }
     progress.setLastMessage(message);
     progress.setStatus(JobProgress.Status.RUNNING);
-    progress.setPercentage(percentage);
+    if (percentage != null) {
+      progress.setPercentage(percentage);
+    }
     return progressRepository.save(progress);
   }
 
@@ -83,7 +85,7 @@ public class ProgressService {
    * @param triggerId The job ID.
    */
   @Transactional
-  public JobProgress updateJobStopped(String triggerId, String error) {
+  public JobProgress updateJobStopped(String triggerId, String error, String logfile) {
     log.debug("Trigger {} stopped", triggerId);
     JobProgress jobProgress =
         progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
@@ -93,6 +95,7 @@ public class ProgressService {
     } else {
       jobProgress.setStatus(JobProgress.Status.COMPLETED);
     }
+    jobProgress.setLogfile(logfile);
     jobProgress.setCompleted(Instant.now());
     return progressRepository.save(jobProgress);
   }
