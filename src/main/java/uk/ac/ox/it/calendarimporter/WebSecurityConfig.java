@@ -8,6 +8,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,6 +60,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired private ToolConsumerService toolConsumerService;
 
+  @Value("${spring.lti.launch.path:/launch}")
+  private String ltiLaunchPath;
+
+  @Value("${spring.data.rest.basePath:/}")
+  private String apiPath;
+
   @Override
   public void configure(WebSecurity webSecurity) throws Exception {
     super.configure(webSecurity);
@@ -74,15 +81,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     http.setSharedObject(RequestCache.class, new HttpSessionRequestCache());
     http.setSharedObject(LtiLoginService.class, ltiLoginService);
-    LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, "/launch", true);
+    LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, ltiLaunchPath, true);
     http.apply(ltiConfigurer);
-    http.csrf().requireCsrfProtectionMatcher(new AndRequestMatcher(new LtiLaunchCsrfMatcher("/launch"), new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**"))));
+    http.csrf().requireCsrfProtectionMatcher(new AndRequestMatcher(new LtiLaunchCsrfMatcher(ltiLaunchPath), new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**"))));
 
     LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPointMap = new LinkedHashMap<>();
-    // TODO should come from config
       BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
       basicAuthenticationEntryPoint.setRealmName("API");
-      entryPointMap.put(new AntPathRequestMatcher("/api/**"), basicAuthenticationEntryPoint);
+      entryPointMap.put(new AntPathRequestMatcher(apiPath+ "/**"), basicAuthenticationEntryPoint);
 
     DelegatingAuthenticationEntryPoint authenticationEntryPoint = new DelegatingAuthenticationEntryPoint(entryPointMap);
     authenticationEntryPoint.setDefaultEntryPoint(new Http403ForbiddenEntryPoint());
@@ -90,7 +96,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**").permitAll()
         .and()
         // TODO Should prevent LTI from working here so that even if a user comes across with this role they can't access the APM
-        .authorizeRequests().antMatchers("/api/**").hasRole("API")
+        .authorizeRequests().antMatchers(apiPath+ "/**").hasRole("API")
         .and()
         .authorizeRequests().anyRequest().authenticated()
         .and()
@@ -101,10 +107,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .authorizedClientRepository(oAuth2AuthorizedClientRepository)
         .authorizationCodeGrant()
         .accessTokenResponseClient(accessTokenResposeClient()).and()
-           // We don't want the basic auth to ever prompt for authentication
+       // We only want to prompt for authentication on some URLs.
         .and().httpBasic().authenticationEntryPoint(authenticationEntryPoint)
-    //
-    // .apply(oauth2).tokenEndpoint().accessTokenResponseClient(accessTokenResposeClient()).and().authorizedClientRepository(oAuth2AuthorizedClientRepository);
     ;
   }
 
