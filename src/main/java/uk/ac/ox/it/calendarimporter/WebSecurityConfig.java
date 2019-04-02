@@ -4,9 +4,6 @@ import edu.ksu.lti.launch.service.LtiLoginService;
 import edu.ksu.lti.launch.service.ToolConsumerService;
 import edu.ksu.lti.launch.spring.config.LtiConfigurer;
 import edu.ksu.lti.launch.spring.config.LtiLaunchCsrfMatcher;
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.ObjectProvider;
@@ -25,7 +22,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
@@ -33,13 +29,22 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCo
 import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.util.StringUtils;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.client.RestTemplate;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.endpoint.CanvasOAuth2AuthorizationCodeGrantRequestEntityConverter;
 import uk.ac.ox.it.calendarimporter.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 
 @Configuration
 // The alternative way to debug is to do WebSecurity.debug(true)
@@ -71,8 +76,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.setSharedObject(LtiLoginService.class, ltiLoginService);
     LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, "/launch", true);
     http.apply(ltiConfigurer);
-    http.csrf().requireCsrfProtectionMatcher(new LtiLaunchCsrfMatcher("/launch"));
+    http.csrf().requireCsrfProtectionMatcher(new AndRequestMatcher(new LtiLaunchCsrfMatcher("/launch"), new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**"))));
 
+    LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPointMap = new LinkedHashMap<>();
+    // TODO should come from config
+      BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
+      basicAuthenticationEntryPoint.setRealmName("API");
+      entryPointMap.put(new AntPathRequestMatcher("/api/**"), basicAuthenticationEntryPoint);
+
+    DelegatingAuthenticationEntryPoint authenticationEntryPoint = new DelegatingAuthenticationEntryPoint(entryPointMap);
+    authenticationEntryPoint.setDefaultEntryPoint(new Http403ForbiddenEntryPoint());
     http.authorizeRequests()
         .antMatchers("/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**").permitAll()
         .and()
@@ -89,7 +102,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .authorizationCodeGrant()
         .accessTokenResponseClient(accessTokenResposeClient()).and()
            // We don't want the basic auth to ever prompt for authentication
-        .and().httpBasic().authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+        .and().httpBasic().authenticationEntryPoint(authenticationEntryPoint)
     //
     // .apply(oauth2).tokenEndpoint().accessTokenResponseClient(accessTokenResposeClient()).and().authorizedClientRepository(oAuth2AuthorizedClientRepository);
     ;
