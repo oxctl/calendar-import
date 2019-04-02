@@ -5,7 +5,12 @@ enum Field {
   TITLE("Title", true),
   DATE("Date", true),
   TIME("Start", true),
-  DURATION("Duration", true);
+  DURATION("Duration", false),
+  END_TIME("End", false),
+  DESCRIPTION("Description", false),
+  LOCATION("Location", false),
+  ADDRESS("Address", false);
+
 
   private final String header;
 

@@ -1,10 +1,5 @@
 package uk.ac.ox.it.calendarimporter.jobs.csv;
 
-import static uk.ac.ox.it.calendarimporter.jobs.csv.Field.DATE;
-import static uk.ac.ox.it.calendarimporter.jobs.csv.Field.DURATION;
-import static uk.ac.ox.it.calendarimporter.jobs.csv.Field.TIME;
-import static uk.ac.ox.it.calendarimporter.jobs.csv.Field.TITLE;
-
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import java.io.IOException;
@@ -34,6 +29,8 @@ import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.ical.TerminatingInputStream;
 import uk.ac.ox.it.calendarimporter.service.EventService;
 
+import static uk.ac.ox.it.calendarimporter.jobs.csv.Field.*;
+
 /**
  * This job reads a CSV from a URL (probably local), parses it and then uploads the events into
  * Canvas.
@@ -55,6 +52,10 @@ public class CSVImportJob extends CanvasCalendarJob {
     URL url = new URL(this.url);
     List<CalendarEvent> calendarEvents = parseCSV(url);
     log("Source file read.");
+    if (calendarEvents.isEmpty()) {
+      log("No events found in file");
+      return;
+    }
     CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
     int eventProgress = 0;
     int eventTotal = calendarEvents.size();
@@ -75,7 +76,7 @@ public class CSVImportJob extends CanvasCalendarJob {
       progress += progressPerEvent;
       log(progress, "Processed event %d of %d", ++eventProgress, eventTotal);
     }
-    log("Completed import, found %d events, imported %d into calendar.", eventTotal, created);
+    log("Completed import, found %d events, imported %d events into calendar.", eventTotal, created);
   }
 
   public List<CalendarEvent> parseCSV(URL url) throws IOException {
@@ -115,13 +116,29 @@ public class CSVImportJob extends CanvasCalendarJob {
     try {
       CalendarEvent event = new CalendarEvent();
       event.setTitle(record.get(TITLE));
-      Duration duration = DateTimeParser.parseDuration(record.get(DURATION).trim());
       LocalTime time = DateTimeParser.parseTime(record.get(TIME).trim());
       LocalDate date = DateTimeParser.parseDate(record.get(DATE).trim());
       LocalDateTime dateTime = LocalDateTime.of(date, time);
       // TODO Timezone
       Instant starts = dateTime.atZone(ZoneId.systemDefault()).toInstant();
-      Instant ends = starts.plus(duration);
+      Instant ends = null;
+      String durationStr = record.get(DURATION);
+      if (durationStr != null && !durationStr.isBlank()) {
+        Duration duration = DateTimeParser.parseDuration(durationStr.trim());
+        ends = starts.plus(duration);
+      }
+      String endTimeStr = record.get(END_TIME);
+      if (endTimeStr != null && !endTimeStr.isBlank()) {
+          LocalTime endTime = DateTimeParser.parseTime(endTimeStr.trim());
+          LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
+          ends = endDateTime.atZone(ZoneId.systemDefault()).toInstant();
+          if (!starts.isBefore(ends)) {
+            throw new RowException(record.getRecordNumber(), "Start time cannot be after end time.");
+          }
+      }
+      event.setDescription(record.get(DESCRIPTION));
+      event.setLocationName(record.get(LOCATION));
+      event.setLocationAddress(record.get(ADDRESS));
       event.setStartAt(starts);
       event.setEndAt(ends);
       event.setAllDay(false);
@@ -132,6 +149,8 @@ public class CSVImportJob extends CanvasCalendarJob {
   }
 
   private void validateRow(CSVRecord record) {
+    // We want either end time or duration, not both
+    boolean knowEnd = false;
     for (Field field : Field.values()) {
       if (field.isRequired()) {
         String s = null;
@@ -144,7 +163,23 @@ public class CSVImportJob extends CanvasCalendarJob {
           throw new RowException(
               record.getRecordNumber(), "Missing required field: " + field.getHeader());
         }
+      } else {
+        String value = record.get(field);
+        if (value != null && !value.isBlank()) {
+          switch (field) {
+            case DURATION:
+            case END_TIME:
+              if (knowEnd) {
+                throw new RowException(record.getRecordNumber(), "Cannot have both end time and duration set.");
+              }
+              knowEnd = true;
+              break;
+          }
+        }
       }
+    }
+    if (!knowEnd) {
+      throw new RowException(record.getRecordNumber(), "You must have either end time or duration set.");
     }
   }
 
