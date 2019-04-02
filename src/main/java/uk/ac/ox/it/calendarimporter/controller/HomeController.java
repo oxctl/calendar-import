@@ -3,15 +3,6 @@ package uk.ac.ox.it.calendarimporter.controller;
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,18 +13,16 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.support.BindingAwareModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.ac.ox.it.calendarimporter.controller.pojo.Alert;
 import uk.ac.ox.it.calendarimporter.controller.pojo.PreviousImport;
-import uk.ac.ox.it.calendarimporter.persistence.model.*;
+import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
@@ -41,6 +30,16 @@ import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.Registered
 import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/{tenant}/{context}/")
@@ -94,7 +93,7 @@ public class HomeController {
 
   @ModelAttribute("courseCalendarUrl")
   public String courseCalendarUrl(LtiSession ltiSession) {
-    // https://canvas.instructure.com/calendar?include_contexts=course_1234
+    // An example of the calendar URL: https://canvas.instructure.com/calendar?include_contexts=course_1234
     String url = ltiSession.getLtiLaunchData().getCustom().get("canvas_api_domain");
     String courseId = ltiSession.getLtiLaunchData().getCustom().get("canvas_course_id");
     return String.format("https://%s/calendar?include_contexts=course_%s", url, courseId);
@@ -223,4 +222,5 @@ public class HomeController {
         "alert", new Alert(Alert.Type.INFO, "Calendar delete started"));
     return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
   }
+
 }
