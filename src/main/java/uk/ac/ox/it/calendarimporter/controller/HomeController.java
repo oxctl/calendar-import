@@ -62,6 +62,9 @@ public class HomeController {
   @Value("${calendar.brand.json}")
   private String defaultBrandJson;
 
+  @Value("${spring.application.name}")
+  private String applicationName;
+
   @Value("${calendar.beta:false}")
   private boolean beta;
 
@@ -129,6 +132,11 @@ public class HomeController {
       }
     }
     return canvasCss;
+  }
+
+  @ModelAttribute("applicationName")
+  public String applicationName() {
+    return applicationName;
   }
 
   @PostMapping
