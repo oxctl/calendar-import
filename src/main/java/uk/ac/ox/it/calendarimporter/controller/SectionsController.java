@@ -3,14 +3,12 @@ package uk.ac.ox.it.calendarimporter.controller;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.SectionReader;
 import edu.ksu.canvas.model.Section;
-import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
+import edu.ksu.canvas.oauth.OauthToken;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
-
-import edu.ksu.canvas.oauth.OauthToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -42,9 +40,10 @@ public class SectionsController {
       path = "sections",
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public List<CourseSection> getSections(
-          @PathVariable("tenant") String tenantName,
-          @PathVariable("context") String context,
-          @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client, Authentication authentication)
+      @PathVariable("tenant") String tenantName,
+      @PathVariable("context") String context,
+      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+      Authentication authentication)
       throws IOException {
 
     // TODO exception

@@ -8,30 +8,40 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CSVCalendarImportJobTest {
+public class CSVReaderTest {
 
-  private CSVImportJob csvImportJob;
+  private CSVReader csvReader;
+  private boolean hasErrors;
+  private CSVReader.ErrorHandler errorHandler =
+      new CSVReader.ErrorHandler() {
+        @Override
+        public void handleError(RowException e) {
+          e.printStackTrace();
+          hasErrors = true;
+        }
+      };
 
   @Before
   public void setUp() {
-    csvImportJob = new CSVImportJob();
+    csvReader = new CSVReader();
+    hasErrors = false;
   }
 
   @Test(expected = RuntimeException.class)
   public void testEmptyImport() throws IOException {
-    csvImportJob.parseCSV(getClass().getResource("/empty.csv"));
+    csvReader.parseCSV(getClass().getResource("/empty.csv"), errorHandler);
   }
 
   @Test
   public void testEmptyBlankFirstLine() throws IOException {
-    csvImportJob.parseCSV(getClass().getResource("/blank-first-line.csv"));
+    csvReader.parseCSV(getClass().getResource("/blank-first-line.csv"), errorHandler);
   }
 
   @Test
   public void testSingleEvent() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvImportJob.parseCSV(getClass().getResource("/one-event.csv"));
-    assertFalse(csvImportJob.hasErrors());
+        csvReader.parseCSV(getClass().getResource("/one-event.csv"), errorHandler);
+    assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);
@@ -43,8 +53,8 @@ public class CSVCalendarImportJobTest {
   @Test
   public void testMultipleEvents() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvImportJob.parseCSV(getClass().getResource("/two-events.csv"));
-    assertFalse(csvImportJob.hasErrors());
+        csvReader.parseCSV(getClass().getResource("/two-events.csv"), errorHandler);
+    assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(2, calendarEvents.size());
     {
@@ -60,8 +70,8 @@ public class CSVCalendarImportJobTest {
   @Test
   public void testIgnoredHeaders() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvImportJob.parseCSV(getClass().getResource("/extra-headers.csv"));
-    assertFalse(csvImportJob.hasErrors());
+        csvReader.parseCSV(getClass().getResource("/extra-headers.csv"), errorHandler);
+    assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);
@@ -73,8 +83,8 @@ public class CSVCalendarImportJobTest {
   @Test
   public void testIgnoredRowValues() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvImportJob.parseCSV(getClass().getResource("/extra-values.csv"));
-    assertFalse(csvImportJob.hasErrors());
+        csvReader.parseCSV(getClass().getResource("/extra-values.csv"), errorHandler);
+    assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);
@@ -86,8 +96,8 @@ public class CSVCalendarImportJobTest {
   @Test
   public void testWhitespaceInHeader() throws IOException {
     List<CalendarEvent> calendarEvents =
-            csvImportJob.parseCSV(getClass().getResource("/whitespace-in-header.csv"));
-    assertFalse(csvImportJob.hasErrors());
+        csvReader.parseCSV(getClass().getResource("/whitespace-in-header.csv"), errorHandler);
+    assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
     CalendarEvent event = calendarEvents.get(0);

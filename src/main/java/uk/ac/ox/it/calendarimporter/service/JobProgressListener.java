@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * This watches for job start/stops and updates the basic job progress. This should actually be a
- * TriggerListener as that's more what it's interested in. Using a listener means we don't have to have the same
- * code across multiple jobs and it's more certian that the start/stop code gets run.
+ * TriggerListener as that's more what it's interested in. Using a listener means we don't have to
+ * have the same code across multiple jobs and it's more certian that the start/stop code gets run.
  */
 @Component
 public class JobProgressListener implements JobListener {

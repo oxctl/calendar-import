@@ -22,15 +22,15 @@ public class Tenant {
   private long id;
 
   /**
-   * This is the name for the tenant, this comes from the OAuth registration. We don't want to allow people to update
-   * this value because it's embedded in other fields (eg the prefix for principals). */
+   * This is the name for the tenant, this comes from the OAuth registration. We don't want to allow
+   * people to update this value because it's embedded in other fields (eg the prefix for
+   * principals).
+   */
   @Column(nullable = false, unique = true, updatable = false)
   @NotNull
   private String name;
 
-  /**
-   * The name that this tenant is called.
-   */
+  /** The name that this tenant is called. */
   private String displayName;
 
   /** This is the endpoint for the canvas deployment, which we use for API calls back. */

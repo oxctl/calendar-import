@@ -9,10 +9,7 @@ import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
-import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
 import edu.ksu.canvas.oauth.OauthToken;
-import edu.ksu.canvas.oauth.OauthTokenRefresher;
-import edu.ksu.canvas.oauth.RefreshableOauthToken;
 import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
 import java.io.IOException;
 import java.util.List;
@@ -71,12 +68,14 @@ public class DeleteJob implements Job {
     CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
     String refreshToken = config.getString(CanvasCalendarJob.REFRESH_TOKEN);
     String accessToken = config.getString(ACCESS_TOKEN);
-    OauthToken oauthToken = oauthTokenFactory.getToken(tenant,
-        config.getString(TENANT_NAME)+ ":"+ config.getString(USERNAME), accessToken, refreshToken
-    );
+    OauthToken oauthToken =
+        oauthTokenFactory.getToken(
+            tenant,
+            config.getString(TENANT_NAME) + ":" + config.getString(USERNAME),
+            accessToken,
+            refreshToken);
 
-    CalendarWriter calendarWriter =
-        canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+    CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
 
     try {
       int deleted = 0;

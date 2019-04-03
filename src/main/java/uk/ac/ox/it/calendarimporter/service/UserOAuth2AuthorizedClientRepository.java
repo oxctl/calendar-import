@@ -14,8 +14,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 
 /**
  * This persists the OAuth2 tokens in the DB, this means we don't have to get the user to
- * authenticate each time they use the tool.
- * This should probably be cacheable.
+ * authenticate each time they use the tool. This should probably be cacheable.
  */
 @Component
 public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedClientRepository {

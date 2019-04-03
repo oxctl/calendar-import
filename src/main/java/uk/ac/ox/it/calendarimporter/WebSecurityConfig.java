@@ -4,6 +4,8 @@ import edu.ksu.lti.launch.service.LtiLoginService;
 import edu.ksu.lti.launch.service.ToolConsumerService;
 import edu.ksu.lti.launch.spring.config.LtiConfigurer;
 import edu.ksu.lti.launch.spring.config.LtiLaunchCsrfMatcher;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.ObjectProvider;
@@ -44,9 +46,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.endpoint.CanvasOAuth2AuthorizationCodeGrantRequestEntityConverter;
 import uk.ac.ox.it.calendarimporter.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-
 @Configuration
 // The alternative way to debug is to do WebSecurity.debug(true)
 @EnableWebSecurity(debug = false)
@@ -83,43 +82,61 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.setSharedObject(LtiLoginService.class, ltiLoginService);
     LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, ltiLaunchPath, true);
     http.apply(ltiConfigurer);
-    http.csrf().requireCsrfProtectionMatcher(new AndRequestMatcher(new LtiLaunchCsrfMatcher(ltiLaunchPath), new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**"))));
+    http.csrf()
+        .requireCsrfProtectionMatcher(
+            new AndRequestMatcher(
+                new LtiLaunchCsrfMatcher(ltiLaunchPath),
+                new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**"))));
 
     LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPointMap = new LinkedHashMap<>();
-      BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
-      basicAuthenticationEntryPoint.setRealmName("API");
-      entryPointMap.put(new AntPathRequestMatcher(apiPath+ "/**"), basicAuthenticationEntryPoint);
+    BasicAuthenticationEntryPoint basicAuthenticationEntryPoint =
+        new BasicAuthenticationEntryPoint();
+    basicAuthenticationEntryPoint.setRealmName("API");
+    entryPointMap.put(new AntPathRequestMatcher(apiPath + "/**"), basicAuthenticationEntryPoint);
 
-    DelegatingAuthenticationEntryPoint authenticationEntryPoint = new DelegatingAuthenticationEntryPoint(entryPointMap);
+    DelegatingAuthenticationEntryPoint authenticationEntryPoint =
+        new DelegatingAuthenticationEntryPoint(entryPointMap);
     authenticationEntryPoint.setDefaultEntryPoint(new Http403ForbiddenEntryPoint());
     http.authorizeRequests()
-        .antMatchers("/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**").permitAll()
+        .antMatchers("/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**")
+        .permitAll()
         .and()
-        // TODO Should prevent LTI from working here so that even if a user comes across with this role they can't access the APM
-        .authorizeRequests().antMatchers(apiPath+ "/**").hasRole("API")
+        // TODO Should prevent LTI from working here so that even if a user comes across with this
+        // role they can't access the APM
+        .authorizeRequests()
+        .antMatchers(apiPath + "/**")
+        .hasRole("API")
         .and()
-        .authorizeRequests().anyRequest().authenticated()
+        .authorizeRequests()
+        .anyRequest()
+        .authenticated()
         .and()
         // TODO Make better
-        .headers().frameOptions().disable()
+        .headers()
+        .frameOptions()
+        .disable()
         .and()
         .oauth2Client()
         .authorizedClientRepository(oAuth2AuthorizedClientRepository)
         .authorizationCodeGrant()
-        .accessTokenResponseClient(accessTokenResposeClient()).and()
-       // We only want to prompt for authentication on some URLs.
-        .and().httpBasic().authenticationEntryPoint(authenticationEntryPoint)
-    ;
+        .accessTokenResponseClient(accessTokenResposeClient())
+        .and()
+        // We only want to prompt for authentication on some URLs.
+        .and()
+        .httpBasic()
+        .authenticationEntryPoint(authenticationEntryPoint);
   }
 
   /**
-   * This just calls the autoconfigurer as it's skipped because we have OAuth configured.
-   * This sets up a user and if the password isn't specified creates one and writes it to the logs.
+   * This just calls the autoconfigurer as it's skipped because we have OAuth configured. This sets
+   * up a user and if the password isn't specified creates one and writes it to the logs.
    */
   @Bean
   @Lazy
-  public InMemoryUserDetailsManager inMemoryUserDetailsManager(SecurityProperties properties, ObjectProvider<PasswordEncoder> passwordEncoder) {
-    return new UserDetailsServiceAutoConfiguration().inMemoryUserDetailsManager(properties, passwordEncoder);
+  public InMemoryUserDetailsManager inMemoryUserDetailsManager(
+      SecurityProperties properties, ObjectProvider<PasswordEncoder> passwordEncoder) {
+    return new UserDetailsServiceAutoConfiguration()
+        .inMemoryUserDetailsManager(properties, passwordEncoder);
   }
 
   // This is so we can remove old tokens.
@@ -150,7 +167,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     // builder.authenticationProvider()
     super.configure(builder);
     builder
-            .inMemoryAuthentication().and()
-            .authenticationEventPublisher(new DefaultAuthenticationEventPublisher(applicationEventPublisher));
+        .inMemoryAuthentication()
+        .and()
+        .authenticationEventPublisher(
+            new DefaultAuthenticationEventPublisher(applicationEventPublisher));
   }
 }

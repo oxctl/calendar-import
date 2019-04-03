@@ -11,7 +11,6 @@ enum Field {
   LOCATION("Location", false),
   ADDRESS("Address", false);
 
-
   private final String header;
 
   private final boolean required;

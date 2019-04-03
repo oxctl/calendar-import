@@ -121,6 +121,8 @@
                                                     <div class="ig-details__item"><b>Progress</b> {{complete}}/100%</div>
                                                 {{/progress}}
                                                 <div><b>Last Message</b> {{message}}</div>
+                                                <br>
+                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{logId}}" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
                                             </div>
                                         </div>
                                         <div class="ig-admin">
@@ -154,6 +156,8 @@
                                                     <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
                                                 {{/progress}}
                                                 <div><b>Last Message</b> {{message}}</div>
+                                                <br>
+                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{logId}}" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
                                             </div>
                                         </div>
                                     </div>

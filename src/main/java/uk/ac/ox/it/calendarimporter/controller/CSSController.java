@@ -31,7 +31,7 @@ public class CSSController {
     if (ltiSession != null) {
       String url =
           ltiSession.getLtiLaunchData().getCustom().get("com_instructure_brand_config_json_url");
-      Map map = (url != null)?cssLoader.loadJSON(url):Collections.emptyMap();
+      Map map = (url != null) ? cssLoader.loadJSON(url) : Collections.emptyMap();
       return new ModelAndView("brand", Collections.singletonMap("values", map.entrySet()));
     }
     return null;

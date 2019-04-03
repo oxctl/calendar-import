@@ -3,10 +3,18 @@ package uk.ac.ox.it.calendarimporter.jobs;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.oauth.OauthToken;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.util.Optional;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
@@ -17,14 +25,9 @@ import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.URL;
-import java.util.Optional;
-
 public abstract class CanvasCalendarJob implements InterruptableJob {
+
+  private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
 
   public static final String SOURCE_URL = "url";
   public static final String CONTEXT = "context";
@@ -63,6 +66,10 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   @Autowired private ProgressService progressService;
 
   @Autowired private UploadDepositService depositService;
+
+  public void setProgressService(ProgressService progressService) {
+    this.progressService = progressService;
+  }
 
   public void setContext(String context) {
     this.context = context;
@@ -112,7 +119,12 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     this.calendarImport = calendarImport.orElseThrow(JobExecutionException::new);
 
     canvasApiFactory = new CanvasApiFactory(canvasUrl);
-    oauthToken = oauthTokenFactory.getToken(this.tenant, config.getString(TENANT_NAME)+ ":"+ config.getString(USERNAME), accessToken, refreshToken);
+    oauthToken =
+        oauthTokenFactory.getToken(
+            this.tenant,
+            config.getString(TENANT_NAME) + ":" + config.getString(USERNAME),
+            accessToken,
+            refreshToken);
 
     File logfile = null;
     try {
@@ -138,14 +150,17 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
 
   public abstract void run() throws IOException, JobExecutionException;
 
-
-  public void log(String message, Object... args) throws IOException {
+  public void log(String message, Object... args) {
     log(null, message, args);
   }
 
-  public void log(Integer percent, String message, Object... args) throws IOException {
+  public void log(Integer percent, String message, Object... args) {
     String formatted = (args.length > 0) ? String.format(message, args) : message;
-    logWriter.append(formatted).append('\n');
+    try {
+      logWriter.append(formatted).append('\n');
+    } catch (IOException e) {
+      log.warn("Failed to write to logger {}", logWriter);
+    }
     progressService.updateJob(triggerId, formatted, percent);
   }
 }
