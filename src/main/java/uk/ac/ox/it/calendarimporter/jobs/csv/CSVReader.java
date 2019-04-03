@@ -16,11 +16,14 @@ import java.util.Set;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.unit.DataSize;
 import uk.ac.ox.it.calendarimporter.jobs.ical.TerminatingInputStream;
 
 /**
  * This reads in the CSV file calling the handler for any errors.
+ *
  * @see RowException The exception for any problems we find.
  */
 @Component
@@ -31,13 +34,15 @@ public class CSVReader {
     void handleError(RowException e);
   }
 
-  private long inputLimit = 1048576 * 10;
+  @Value("${spring.servlet.multipart.max-file-size}")
+  private DataSize inputLimit = DataSize.ofMegabytes(1);
 
   public List<CalendarEvent> parseCSV(URL url, ErrorHandler errorHandler) throws IOException {
     try {
       URLConnection connection = url.openConnection();
       connection.setReadTimeout(10000);
-      try (InputStream in = new TerminatingInputStream(connection.getInputStream(), inputLimit)) {
+      try (InputStream in =
+          new TerminatingInputStream(connection.getInputStream(), inputLimit.toBytes())) {
         // Ignore blank lines
         CSVFormat format =
             CSVFormat.EXCEL

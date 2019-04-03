@@ -21,8 +21,6 @@ public class CSVImportJob extends CanvasCalendarJob {
 
   private Logger log = LoggerFactory.getLogger(CSVImportJob.class);
 
-  private long inputLimit = 1048576 * 10;
-
   private boolean hasErrors;
 
   @Autowired private EventService eventService;

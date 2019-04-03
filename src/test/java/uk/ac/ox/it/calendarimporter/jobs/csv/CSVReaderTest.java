@@ -60,7 +60,7 @@ public class CSVReaderTest {
   @Test
   public void testSingleEventBasics() throws IOException {
     List<CalendarEvent> calendarEvents =
-            csvReader.parseCSV(getResource("/one-event-basics.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/one-event-basics.csv"), errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -129,7 +129,8 @@ public class CSVReaderTest {
 
   @Test
   public void testZeroEvents() throws IOException {
-    List<CalendarEvent> calendarEvents = csvReader.parseCSV(getResource("/zero-events.csv"), errorHandler);
+    List<CalendarEvent> calendarEvents =
+        csvReader.parseCSV(getResource("/zero-events.csv"), errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertTrue(calendarEvents.isEmpty());
@@ -138,7 +139,7 @@ public class CSVReaderTest {
   @Test
   public void testEndTime() throws IOException {
     List<CalendarEvent> calendarEvents =
-            csvReader.parseCSV(getResource("/end-time.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/end-time.csv"), errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -151,7 +152,7 @@ public class CSVReaderTest {
   @Test
   public void testEndBeforeStart() throws IOException {
     List<CalendarEvent> calendarEvents =
-            csvReader.parseCSV(getResource("/end-before-start.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/end-before-start.csv"), errorHandler);
     assertTrue(hasErrors);
     assertTrue(calendarEvents.isEmpty());
   }
@@ -160,11 +161,8 @@ public class CSVReaderTest {
   public void testMissingData() throws IOException {
     // Has all the required headers, but is missing essential data on each row.
     List<CalendarEvent> calendarEvents =
-            csvReader.parseCSV(getResource("/missing-data.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/missing-data.csv"), errorHandler);
     assertTrue(hasErrors);
     assertTrue(calendarEvents.isEmpty());
   }
-
-  
-
 }
