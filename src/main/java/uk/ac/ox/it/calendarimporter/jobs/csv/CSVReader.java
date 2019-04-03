@@ -19,6 +19,10 @@ import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.jobs.ical.TerminatingInputStream;
 
+/**
+ * This reads in the CSV file calling the handler for any errors.
+ * @see RowException The exception for any problems we find.
+ */
 @Component
 public class CSVReader {
 
