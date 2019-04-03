@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
@@ -54,6 +56,11 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   private String refreshToken;
   private boolean run = true;
   private OutputStreamWriter logWriter;
+
+  // These are for preventing lots of small DB updates.
+  private Instant lastUpdate = Instant.MIN;
+  private String unsavedMessage;
+  private final Duration updateInterval = Duration.ofMinutes(1);
 
   @Autowired private TenantRepository tenantRepository;
 
@@ -142,6 +149,10 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     } catch (IOException e) {
       throw new JobExecutionException(e);
     } finally {
+      // Make sure to flush the last message.
+      if (unsavedMessage != null) {
+        progressService.updateJob(triggerId, unsavedMessage, null);
+      }
       // Persist the log
       URL deposit = depositService.deposit(logfile);
       context.setResult(deposit.toExternalForm());
@@ -161,6 +172,14 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     } catch (IOException e) {
       log.warn("Failed to write to logger {}", logWriter);
     }
-    progressService.updateJob(triggerId, formatted, percent);
+    // Rate limit to updating the DB every 10 seconds.
+    Instant now = Instant.now();
+    if (lastUpdate.plus(updateInterval).isBefore(now)) {
+      unsavedMessage = null;
+      progressService.updateJob(triggerId, formatted, percent);
+    } else {
+      unsavedMessage = formatted;
+    }
+    lastUpdate = now;
   }
 }
