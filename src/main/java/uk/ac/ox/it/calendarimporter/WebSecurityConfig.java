@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter;
 
+import edu.ksu.lti.launch.oauth.LtiAuthenticationFilterEntryPoint;
 import edu.ksu.lti.launch.service.LtiLoginService;
 import edu.ksu.lti.launch.service.ToolConsumerService;
 import edu.ksu.lti.launch.spring.config.LtiConfigurer;
@@ -80,13 +81,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     http.setSharedObject(RequestCache.class, new HttpSessionRequestCache());
     http.setSharedObject(LtiLoginService.class, ltiLoginService);
-    LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, ltiLaunchPath, true);
+    LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, ltiLaunchPath, true, "/error");
     http.apply(ltiConfigurer);
     http.csrf()
         .requireCsrfProtectionMatcher(
             new AndRequestMatcher(
                 new LtiLaunchCsrfMatcher(ltiLaunchPath),
-                new NegatedRequestMatcher(new AntPathRequestMatcher("/api/**"))));
+                new NegatedRequestMatcher(new AntPathRequestMatcher(apiPath+ "/**"))));
 
     LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPointMap = new LinkedHashMap<>();
     BasicAuthenticationEntryPoint basicAuthenticationEntryPoint =
@@ -96,7 +97,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     DelegatingAuthenticationEntryPoint authenticationEntryPoint =
         new DelegatingAuthenticationEntryPoint(entryPointMap);
-    authenticationEntryPoint.setDefaultEntryPoint(new Http403ForbiddenEntryPoint());
+    LtiHandlerImpl defaultEntryPoint = new LtiHandlerImpl();
+    defaultEntryPoint.setErrorPage("/error");
+    authenticationEntryPoint.setDefaultEntryPoint(defaultEntryPoint);
     http.authorizeRequests()
         .antMatchers("/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**")
         .permitAll()

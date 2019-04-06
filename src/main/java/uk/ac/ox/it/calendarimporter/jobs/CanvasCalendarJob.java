@@ -146,6 +146,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     } catch (InvalidOauthTokenException e) {
       // TODO This should be passed in rather than rebuilding the principal.
       userTokensRepository.deleteById(this.tenant.getName() + ":" + config.getString(USERNAME));
+      throw new JobExecutionException("Approved Integration has stopped working, please re-run the job.");
     } catch (IOException e) {
       throw new JobExecutionException(e);
     } finally {

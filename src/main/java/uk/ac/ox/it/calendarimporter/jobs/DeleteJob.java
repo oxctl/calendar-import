@@ -6,6 +6,7 @@ import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Statu
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.MISSING;
 
 import edu.ksu.canvas.CanvasApiFactory;
+import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
@@ -27,6 +28,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
@@ -45,6 +47,7 @@ public class DeleteJob implements Job {
   @Autowired private ImportedEventRepository importedEventRepository;
   @Autowired private ProgressService progressService;
   @Autowired private OauthTokenFactory oauthTokenFactory;
+  @Autowired private UserTokensRepository userTokensRepository;
 
   public void execute(JobExecutionContext jobContext) throws JobExecutionException {
     JobDataMap config = jobContext.getMergedJobDataMap();
@@ -114,6 +117,9 @@ public class DeleteJob implements Job {
           tenant);
       progressService.updateJob(
           triggerId, String.format("Removed %d events of total of %d.", deleted, total), 100);
+    } catch (InvalidOauthTokenException e) {
+      userTokensRepository.deleteById(tenant.getName() + ":" + config.getString(USERNAME));
+      throw new JobExecutionException("Approved Integration has stopped working, please re-run the job.");
     } catch (IOException e) {
       log.warn("Problem removing events.", e);
     }

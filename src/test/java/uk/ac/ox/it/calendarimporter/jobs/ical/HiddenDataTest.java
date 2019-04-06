@@ -2,6 +2,7 @@ package uk.ac.ox.it.calendarimporter.jobs.ical;
 
 import org.junit.Assert;
 import org.junit.Test;
+import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 public class HiddenDataTest {
 

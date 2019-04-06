@@ -18,8 +18,13 @@ $(function () {
                 }
             })
             .fail(function (jqxhr, textStatus, error) {
-                var $failed = $("<option disabled>Failed to load sections</option>");
-                $select.append($failed);
+                if (jqxhr.status == 401) {
+                    // This gets the user to relogin again because their OAuth token isnt' valid any more.
+                    $("#relogin").submit();
+                } else {
+                    var $failed = $("<option disabled>Failed to load sections</option>");
+                    $select.append($failed);
+                }
             })
             .always(function() {
                 $loading.remove();

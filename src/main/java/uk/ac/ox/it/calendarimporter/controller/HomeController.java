@@ -160,7 +160,7 @@ public class HomeController {
     String into = null;
     importService.importNow(type, url, url, client, user.getId(), context, into);
     redirectAttributes.addFlashAttribute(
-        "alert", new Alert(Alert.Type.INFO, "Calendar import started"));
+        "alert", new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
     return new ModelAndView("redirect:/" + tenantName + "/" + context + "/");
   }
 
@@ -186,7 +186,7 @@ public class HomeController {
       RedirectAttributes redirectAttributes,
       @RequestParam(defaultValue = "CSV") ImportType type,
       @RequestParam(defaultValue = "") String dest,
-      @RequestParam MultipartFile file,
+      @RequestParam() MultipartFile file,
       LtiAuthenticationToken authentication)
       throws SchedulerException {
     LtiPrincipal principal = authentication.getPrincipal();
@@ -194,22 +194,30 @@ public class HomeController {
         userRepository
             .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
             .orElseThrow();
-    try {
-      File tempFile = File.createTempFile("upload", null);
-      file.transferTo(tempFile);
-      URL deposit = uploadDepositService.deposit(tempFile);
-      redirectAttributes.addFlashAttribute(
-          "alert", new Alert(Alert.Type.INFO, "Calendar import started"));
-      importService.importNow(
-          type,
-          deposit.toString(),
-          file.getOriginalFilename(),
-          client,
-          user.getId(),
-          context,
-          dest);
-    } catch (IOException e) {
-      e.printStackTrace();
+      if (file.isEmpty()) {
+        redirectAttributes.addFlashAttribute("alert", new Alert(Alert.Type.ERROR, "You must supply a file to import."));
+      } else {
+        try {
+        String originalFilename = file.getOriginalFilename();
+        File tempFile = File.createTempFile("upload", null);
+        file.transferTo(tempFile);
+        URL deposit = uploadDepositService.deposit(tempFile);
+        if (originalFilename == null) {
+          originalFilename = "file.csv";
+        }
+        importService.importNow(
+                type,
+                deposit.toString(),
+                originalFilename,
+                client,
+                user.getId(),
+                context,
+                dest);
+          redirectAttributes.addFlashAttribute(
+                  "alert", new Alert(Alert.Type.INFO, "Calendar import started, click update button to follow it's progress."));
+        } catch(IOException e){
+          e.printStackTrace();
+        }
     }
     return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
   }

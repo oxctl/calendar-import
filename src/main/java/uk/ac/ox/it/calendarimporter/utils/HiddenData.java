@@ -1,4 +1,4 @@
-package uk.ac.ox.it.calendarimporter.jobs.ical;
+package uk.ac.ox.it.calendarimporter.utils;
 
 import java.nio.charset.Charset;
 import java.util.Base64;

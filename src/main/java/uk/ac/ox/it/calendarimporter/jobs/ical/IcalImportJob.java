@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
+import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 // There's no place to store a UUID in Canvas which is required on a iCal event.
 // Just have a simple map that takes a canvas ID and iCal UUID

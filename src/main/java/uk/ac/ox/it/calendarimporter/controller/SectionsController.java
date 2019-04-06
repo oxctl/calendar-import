@@ -1,6 +1,7 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
 import edu.ksu.canvas.CanvasApiFactory;
+import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.interfaces.SectionReader;
 import edu.ksu.canvas.model.Section;
 import edu.ksu.canvas.oauth.OauthToken;
@@ -55,11 +56,9 @@ public class SectionsController {
     SectionReader reader = factory.getReader(SectionReader.class, token);
     String courseId = getCourseId(context);
     List<Section> sections = reader.listCourseSections(courseId, Collections.emptyList());
-    List<CourseSection> courseSections =
-        sections.stream()
-            .map(s -> new CourseSection("course_section_" + s.getId(), s.getName()))
-            .collect(Collectors.toList());
-    return courseSections;
+    return sections.stream()
+        .map(s -> new CourseSection("course_section_" + s.getId(), s.getName()))
+        .collect(Collectors.toList());
   }
 
   private String getCourseId(String context) {
@@ -73,5 +72,10 @@ public class SectionsController {
   @ExceptionHandler({IllegalArgumentException.class})
   public void handleException(HttpServletResponse response) throws IOException {
     response.sendError(400, "Invalid Request");
+  }
+
+  @ExceptionHandler({InvalidOauthTokenException.class})
+  public void handleInvalidOauthTokenException(HttpServletResponse response) throws IOException {
+    response.sendError(401, "Invalid Token");
   }
 }

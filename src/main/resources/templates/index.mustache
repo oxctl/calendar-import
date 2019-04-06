@@ -72,14 +72,11 @@
                     <h3 class="ic-Action-header__Heading">Previous Imports</h3>
                 </div>
                 <div class="ic-Action-header__Secondary">
-                    <form style="display: inline" action="./relogin" method="post">
+                    <form style="display: inline" id="relogin" action="./relogin" method="post">
                         <input class="Button" type="submit" value="Relogin"/>
                         <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
                     </form>
-                    <a class="al-trigger btn" href="./" role="button" title="Refresh">
-                        <i class="icon-refresh"></i>
-                        <span class="screenreader-only">Refresh</span>
-                    </a>
+                    <a class="al-trigger btn icon-refresh" href="./" role="button" title="Refresh">Update</a>
                 </div>
             </div>
             {{#imports}}

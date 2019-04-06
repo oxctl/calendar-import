@@ -24,14 +24,17 @@
                             <div class="ic-Error-confirmation__content">
 
                                 <h2 class="ic-Error-confirmation__headline">
-                                    Error
+                                    Error: {{error}}
                                 </h2>
                                 <p>
                                     <strong>Something went wrong and we're sorry.</strong>
                                 </p>
                                 <p>
-                                    This shouldn't happen and you might need to re-login
+                                    {{message}}
                                 </p>
+                                {{#reloginUrl}}
+                                    <a class="Button Button--block" href="{{reloginUrl}}">Retry Authorization</a>
+                                {{/reloginUrl}}
                             </div>
                         </div>
 

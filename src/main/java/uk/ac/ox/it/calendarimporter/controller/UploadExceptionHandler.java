@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import edu.ksu.lti.launch.exception.InvalidInstanceException;
 import edu.ksu.lti.launch.model.LtiSession;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 import uk.ac.ox.it.calendarimporter.controller.pojo.Alert;
 
@@ -19,7 +21,7 @@ import uk.ac.ox.it.calendarimporter.controller.pojo.Alert;
 public class UploadExceptionHandler {
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
-  public ResponseEntity handleException(
+  public ResponseEntity handleUploadSizeException(
       HttpServletRequest request,
       MaxUploadSizeExceededException e,
       RedirectAttributesModelMap redirectAttributes,
@@ -28,12 +30,10 @@ public class UploadExceptionHandler {
     // TODO This currently means we will also wrongly handle API methods that are too large
     // We should probably look at the accepts header to work out if we should be redirecting (html
     // yes| json no)
-    redirectAttributes.addFlashAttribute(
-        "alert", new Alert(Alert.Type.ERROR, "Upload is too large: " + e.getMaxUploadSize()));
-    //    RequestContextUtils.getOutputFlashMap(request)
-    //        .put("message", new Alert(Alert.Type.ERROR, "Upload is too large, "));
-    // Need to get error page.
+    // The max size in the exception appears to be -1 which isn't useful for a user.
+    redirectAttributes.addFlashAttribute("alert", new Alert(Alert.Type.ERROR, "Upload is too large"));
 
     return ResponseEntity.status(303).location(new URI(ltiSession.getInitialViewPath())).build();
   }
+
 }

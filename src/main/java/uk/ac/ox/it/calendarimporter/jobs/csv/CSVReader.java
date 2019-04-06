@@ -1,8 +1,14 @@
 package uk.ac.ox.it.calendarimporter.jobs.csv;
 
-import static uk.ac.ox.it.calendarimporter.jobs.csv.Field.*;
-
 import edu.ksu.canvas.model.CalendarEvent;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.util.unit.DataSize;
+import uk.ac.ox.it.calendarimporter.jobs.ical.TerminatingInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,13 +19,8 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.springframework.util.unit.DataSize;
-import uk.ac.ox.it.calendarimporter.jobs.ical.TerminatingInputStream;
+
+import static uk.ac.ox.it.calendarimporter.jobs.csv.Field.*;
 
 /**
  * This reads in the CSV file calling the handler for any errors.
