@@ -169,8 +169,5 @@ Detect this in JavaScript and display a message on the no-authentication page te
 # TODO
 
 - Blocked cookie detection
-- Cross instance security check.
-- Admin backend?
-- Error Handling
 - Marking all events as ours.
 
