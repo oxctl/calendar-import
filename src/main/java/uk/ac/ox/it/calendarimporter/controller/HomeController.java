@@ -165,6 +165,15 @@ public class HomeController {
     return new ModelAndView("redirect:/" + tenantName + "/" + context + "/");
   }
 
+  /**
+   * This is used to force a relogin to occur, this is useful when a user has revoked their tokens in Canvas
+   * but we still hold them and don't yet know they aren't valid.
+   * @param client The client.
+   * @param ltiAuthenticationToken Our LTI Authentication.
+   * @param httpServletRequest The current request (not actually used).
+   * @param response The current response (not actuall used).
+   * @return A redirect so that the normal rules about requiring a OAuth2 client kick in.
+   */
   @PostMapping("relogin")
   public ModelAndView relogin(
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
