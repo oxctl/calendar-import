@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.service.EventService;
+import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 /**
  * This job reads a CSV from a URL (probably local), parses it and then uploads the events into
@@ -30,6 +33,9 @@ public class CSVImportJob extends CanvasCalendarJob {
   @Override
   public void run() throws IOException, JobExecutionException {
     int progress = 0;
+    // Just a short code that should be unique to group together imports.
+    // We don't want to use the triggerID as it's semi secret
+    String hiddenData = HiddenData.toHidden("csv-import:"+ UUID.randomUUID().toString().substring(0, 6));
     log(progress, "Import started.");
     URL url = new URL(this.url);
     log.debug("Attempting to load CSV file: {}", url);
@@ -57,6 +63,9 @@ public class CSVImportJob extends CanvasCalendarJob {
         throw new JobExecutionException("Job interrupted");
       }
       event.setContextCode(context);
+      // Flag that this was created by an import
+      String description = HiddenData.insertHidden(event.getDescription(), hiddenData);
+      event.setDescription(description);
       Optional<CalendarEvent> calendarEventOpt = calendarWriter.createCalendarEvent(event);
       if (calendarEventOpt.isPresent()) {
         eventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());

@@ -33,8 +33,7 @@ import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 /**
- * This will remove all events from a calendar. This is an admin job that isn't designed to be
- * exposed to user. TODO This should support only removing events created by our importer.
+ * This will remove all events that an import job added to a calendar.
  */
 public class DeleteJob implements Job {
 
@@ -119,7 +118,8 @@ public class DeleteJob implements Job {
           triggerId, String.format("Removed %d events of total of %d.", deleted, total), 100);
     } catch (InvalidOauthTokenException e) {
       userTokensRepository.deleteById(tenant.getName() + ":" + config.getString(USERNAME));
-      throw new JobExecutionException("Approved Integration has stopped working, please re-run the job.");
+      throw new JobExecutionException(
+          "Approved Integration has stopped working, please re-run the job.");
     } catch (IOException e) {
       log.warn("Problem removing events.", e);
     }

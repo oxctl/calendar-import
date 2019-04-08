@@ -1,6 +1,5 @@
 package uk.ac.ox.it.calendarimporter;
 
-import edu.ksu.lti.launch.oauth.LtiAuthenticationFilterEntryPoint;
 import edu.ksu.lti.launch.service.LtiLoginService;
 import edu.ksu.lti.launch.service.ToolConsumerService;
 import edu.ksu.lti.launch.spring.config.LtiConfigurer;
@@ -35,7 +34,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -81,13 +79,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     http.setSharedObject(RequestCache.class, new HttpSessionRequestCache());
     http.setSharedObject(LtiLoginService.class, ltiLoginService);
-    LtiConfigurer ltiConfigurer = new LtiConfigurer(toolConsumerService, ltiLaunchPath, true, "/error");
+    LtiConfigurer ltiConfigurer =
+        new LtiConfigurer(toolConsumerService, ltiLaunchPath, true, "/error");
     http.apply(ltiConfigurer);
     http.csrf()
         .requireCsrfProtectionMatcher(
             new AndRequestMatcher(
                 new LtiLaunchCsrfMatcher(ltiLaunchPath),
-                new NegatedRequestMatcher(new AntPathRequestMatcher(apiPath+ "/**"))));
+                new NegatedRequestMatcher(new AntPathRequestMatcher(apiPath + "/**"))));
 
     LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPointMap = new LinkedHashMap<>();
     BasicAuthenticationEntryPoint basicAuthenticationEntryPoint =
@@ -101,7 +100,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     defaultEntryPoint.setErrorPage("/error");
     authenticationEntryPoint.setDefaultEntryPoint(defaultEntryPoint);
     http.authorizeRequests()
-        .antMatchers("/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**")
+        .antMatchers(
+            "/", "/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**")
         .permitAll()
         .and()
         // TODO Should prevent LTI from working here so that even if a user comes across with this

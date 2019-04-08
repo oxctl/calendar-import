@@ -140,7 +140,7 @@ public class CartridgeLtiLink {
     @XmlAttribute(name = "name")
     private String name;
 
-    @XmlElement(name = "options", namespace = "http://www.imsglobal.org/xsd/imslticm_v1p0")
+    @XmlElement(name = "property", namespace = "http://www.imsglobal.org/xsd/imslticm_v1p0")
     private List<Property> properties;
 
     public String getName() {

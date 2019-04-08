@@ -3,7 +3,7 @@ package uk.ac.ox.it.calendarimporter.utils;
 import java.nio.charset.Charset;
 import java.util.Base64;
 
-/** Utility methods for hiding data in the calendar description */
+/** Utility methods for hiding data in the calendar description. */
 public class HiddenData {
 
   private static final String prefix =
@@ -25,9 +25,9 @@ public class HiddenData {
     return description + hidden;
   }
 
-  public static String toHidden(String uuid) {
+  public static String toHidden(String data) {
     // We don't want the UUID
-    String encoded = Base64.getEncoder().encodeToString(uuid.getBytes(Charset.forName("UTF-8")));
+    String encoded = Base64.getEncoder().encodeToString(data.getBytes(Charset.forName("UTF-8")));
     StringBuilder comment = new StringBuilder();
     comment.append(prefix);
     comment.append(encoded);

@@ -17,76 +17,69 @@
 package uk.ac.ox.it.calendarimporter;
 
 import java.io.IOException;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.WebAttributes;
-import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
- * Special access denied handler for LTI tools. As there is no login page we just send the user to the error page
- * with the exception and the status.
+ * Special access denied handler for LTI tools. As there is no login page we just send the user to
+ * the error page with the exception and the status.
  */
 public class LtiHandlerImpl implements AuthenticationEntryPoint {
-    // ~ Static fields/initializers
-    // =====================================================================================
+  // ~ Static fields/initializers
+  // =====================================================================================
 
-    protected static final Log logger = LogFactory.getLog(LtiHandlerImpl.class);
+  protected static final Log logger = LogFactory.getLog(LtiHandlerImpl.class);
 
-    // ~ Instance fields
-    // ================================================================================================
+  // ~ Instance fields
+  // ================================================================================================
 
-    private String errorPage;
+  private String errorPage;
 
-    // ~ Methods
-    // ========================================================================================================
+  // ~ Methods
+  // ========================================================================================================
 
-    @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        if (!response.isCommitted()) {
-            if (errorPage != null) {
-                // Put exception into request scope (perhaps of use to a view)
-                request.setAttribute("javax.servlet.error.exception", authException);
+  @Override
+  public void commence(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AuthenticationException authException)
+      throws IOException, ServletException {
+    if (!response.isCommitted()) {
+      if (errorPage != null) {
+        // Put exception into request scope (perhaps of use to a view)
+        request.setAttribute("javax.servlet.error.exception", authException);
 
-                // Set the 403 status code.
-                request.setAttribute("javax.servlet.error.status_code", HttpStatus.FORBIDDEN.value());
+        // Set the 403 status code.
+        request.setAttribute("javax.servlet.error.status_code", HttpStatus.FORBIDDEN.value());
 
-                // forward to error page.
-                RequestDispatcher dispatcher = request.getRequestDispatcher(errorPage);
-                dispatcher.forward(request, response);
-            }
-            else {
-                response.sendError(HttpStatus.FORBIDDEN.value(),
-                        HttpStatus.FORBIDDEN.getReasonPhrase());
-            }
-        }
+        // forward to error page.
+        RequestDispatcher dispatcher = request.getRequestDispatcher(errorPage);
+        dispatcher.forward(request, response);
+      } else {
+        response.sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
+      }
+    }
+  }
+
+  /**
+   * The error page to use. Must begin with a "/" and is interpreted relative to the current context
+   * root.
+   *
+   * @param errorPage the dispatcher path to display
+   * @throws IllegalArgumentException if the argument doesn't comply with the above limitations
+   */
+  public void setErrorPage(String errorPage) {
+    if ((errorPage != null) && !errorPage.startsWith("/")) {
+      throw new IllegalArgumentException("errorPage must begin with '/'");
     }
 
-    /**
-     * The error page to use. Must begin with a "/" and is interpreted relative to the
-     * current context root.
-     *
-     * @param errorPage the dispatcher path to display
-     *
-     * @throws IllegalArgumentException if the argument doesn't comply with the above
-     * limitations
-     */
-    public void setErrorPage(String errorPage) {
-        if ((errorPage != null) && !errorPage.startsWith("/")) {
-            throw new IllegalArgumentException("errorPage must begin with '/'");
-        }
-
-        this.errorPage = errorPage;
-    }
-
-
+    this.errorPage = errorPage;
+  }
 }

@@ -37,3 +37,36 @@ $(function () {
     loadSections();
 
 });
+
+// This watches for a string of keys to be typed and then reveals all elements with a class of debug
+$(function() {
+    var unlockStr = "debug";
+    var unlockPos = 0;
+
+    // Function that gets called when right keys are typed.
+    var unlockFun = function() {
+        $(".debug").css("visibility", "visible");
+    };
+
+    var checkKey = function(key) {
+        if (unlockStr.charAt(unlockPos) === key) {
+            if (unlockPos < unlockStr.length - 1) {
+                unlockPos++;
+            } else {
+                unlockFun();
+                unlockPos = 0;
+            }
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    $("body").on("keypress", function(e) {
+        var key = e.key;
+        if (!checkKey(key)) {
+            unlockPos = 0;
+            checkKey(key);
+        }
+    });
+});

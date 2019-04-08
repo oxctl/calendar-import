@@ -1,32 +1,17 @@
 package uk.ac.ox.it.calendarimporter;
 
-import com.samskivert.mustache.Mustache;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.mustache.MustacheEnvironmentCollector;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath;
-import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
-import org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver;
-import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import uk.ac.ox.it.calendarimporter.controller.CustomErrorController;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.utils.TenantProperties;
-
-import java.util.List;
 
 @EnableJpaRepositories("uk.ac.ox.it.calendarimporter.persistence.repo")
 @EntityScan({"uk.ac.ox.it.calendarimporter.persistence.model"})
@@ -39,12 +24,6 @@ public class CalendarImporterForCanvasApplication {
 
   @Autowired(required = false)
   private TenantProperties tenantProperties;
-
-  @Autowired
-  private ServerProperties serverProperties;
-
-  @Autowired
-  private List<ErrorViewResolver> errorViewResolvers;
 
   public static void main(String[] args) {
     SpringApplication.run(CalendarImporterForCanvasApplication.class, args);
@@ -69,31 +48,5 @@ public class CalendarImporterForCanvasApplication {
                 });
       }
     };
-  }
-
-  @Bean()
-  @Lazy
-  public Mustache.Compiler mustacheCompiler(
-      Mustache.TemplateLoader templateLoader, Environment environment) {
-
-    MustacheEnvironmentCollector collector = new MustacheEnvironmentCollector();
-    collector.setEnvironment(environment);
-
-    return Mustache.compiler()
-        .defaultValue("Some Default Value")
-        .withLoader(templateLoader)
-        .withCollector(collector);
-  }
-
-  @Bean
-  public BasicErrorController basicErrorController(ErrorAttributes errorAttributes) {
-    return new CustomErrorController(errorAttributes, this.serverProperties.getError(),
-            this.errorViewResolvers);
-  }
-
-  @Bean
-  public CustomErrorAttributes errorAttributes() {
-    return new CustomErrorAttributes(
-            this.serverProperties.getError().isIncludeException());
   }
 }

@@ -1,13 +1,12 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
-import java.util.List;
 
 /** Just like the standard one, but adds our properties to that we get our CSS. */
 public class CustomErrorController extends BasicErrorController {
@@ -21,7 +20,10 @@ public class CustomErrorController extends BasicErrorController {
   @Value("${spring.application.name}")
   private String applicationName;
 
-  public CustomErrorController(ErrorAttributes errorAttributes, ErrorProperties errorProperties, List<ErrorViewResolver> errorViewResolvers) {
+  public CustomErrorController(
+      ErrorAttributes errorAttributes,
+      ErrorProperties errorProperties,
+      List<ErrorViewResolver> errorViewResolvers) {
     super(errorAttributes, errorProperties, errorViewResolvers);
   }
 
@@ -44,5 +46,4 @@ public class CustomErrorController extends BasicErrorController {
   public String applicationName() {
     return applicationName;
   }
-
 }

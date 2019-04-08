@@ -51,8 +51,10 @@ This project is deploying onto AWS using Elastic Beanstalk (EB). There is a smal
 Currently this service requires manual SSL regeneration and setup. The certificates should be placed into the S3 bucket and then a replacement instance deployed which will copy out the new certificates and start using them. When building the certificates any additional certificates should be added so they can be served.
 
     cat www.example.com.crt bundle.crt > www.example.com.chained.crt
+    
+## UI Debug
 
-
+There are some elements that aren't shown to the user (`class="debug"`) in the UI, these are mainly for debugging, to get these to show, focus on the LTI tool and they type "debug" and they should appear. They are present in the UI so that we don't have page reflow when shown and there is some JS to watch for the keystrokes.
 
 # Could maybe get away without LTI and just use OAuth
 

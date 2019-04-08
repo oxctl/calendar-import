@@ -72,7 +72,7 @@
                     <h3 class="ic-Action-header__Heading">Previous Imports</h3>
                 </div>
                 <div class="ic-Action-header__Secondary">
-                    <form style="display: inline" id="relogin" action="./relogin" method="post">
+                    <form class="debug" style="display: inline" id="relogin" action="./relogin" method="post">
                         <input class="Button" type="submit" value="Relogin"/>
                         <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
                     </form>

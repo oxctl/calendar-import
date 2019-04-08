@@ -1,10 +1,19 @@
 package uk.ac.ox.it.calendarimporter;
 
+import com.samskivert.mustache.Mustache;
 import edu.ksu.lti.launch.service.LtiLoginService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mustache.MustacheEnvironmentCollector;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
+import org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.http.CacheControl;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
@@ -13,6 +22,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.WebContentInterceptor;
+import uk.ac.ox.it.calendarimporter.controller.CustomErrorController;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.web.method.annotation.OAuth2AuthorizedClientArgumentResolver;
 import uk.ac.ox.it.calendarimporter.support.LtiSessionArgumentResolver;
 
@@ -24,6 +34,10 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
   @Autowired private OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
 
   @Autowired private LtiLoginService ltiLoginService;
+
+  @Autowired private ServerProperties serverProperties;
+
+  @Autowired private List<ErrorViewResolver> errorViewResolvers;
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
@@ -48,5 +62,30 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     // We currently have jquery being used from a webjar.
     registry.addResourceHandler("/webjars/**").addResourceLocations("/webjars/");
+  }
+
+  @Bean()
+  @Lazy
+  public Mustache.Compiler mustacheCompiler(
+      Mustache.TemplateLoader templateLoader, Environment environment) {
+
+    MustacheEnvironmentCollector collector = new MustacheEnvironmentCollector();
+    collector.setEnvironment(environment);
+
+    return Mustache.compiler()
+        .defaultValue("Some Default Value")
+        .withLoader(templateLoader)
+        .withCollector(collector);
+  }
+
+  @Bean
+  public BasicErrorController basicErrorController(ErrorAttributes errorAttributes) {
+    return new CustomErrorController(
+        errorAttributes, this.serverProperties.getError(), this.errorViewResolvers);
+  }
+
+  @Bean
+  public CustomErrorAttributes errorAttributes() {
+    return new CustomErrorAttributes(this.serverProperties.getError().isIncludeException());
   }
 }

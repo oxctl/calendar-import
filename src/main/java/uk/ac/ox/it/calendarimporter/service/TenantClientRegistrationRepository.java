@@ -38,6 +38,12 @@ public class TenantClientRegistrationRepository implements ClientRegistrationRep
             .tokenUri(tenant.getUrl() + "/login/oauth2/token")
             .userInfoUri(tenant.getUrl() + "/api/v1/users/self")
             .userNameAttributeName("login_id")
+            // You can send scopes and they will be ignored if scoping isn't enabled.
+            .scope(
+                "url:GET|/api/v1/calendar_events",
+                "url:DELETE|/api/v1/calendar_events/:id",
+                "url:POST|/api/v1/calendar_events",
+                "url:GET|/api/v1/courses/:course_id/sections")
             .build();
 
     return registration;

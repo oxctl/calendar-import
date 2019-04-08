@@ -1,14 +1,13 @@
 package uk.ac.ox.it.calendarimporter.jobs.csv;
 
-import edu.ksu.canvas.model.CalendarEvent;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
+import edu.ksu.canvas.model.CalendarEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 public class CSVReaderTest {
 

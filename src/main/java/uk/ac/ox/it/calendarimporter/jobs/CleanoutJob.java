@@ -25,8 +25,9 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 
 /**
- * This will remove all events from a calendar. This is an admin job that isn't designed to be
- * exposed to user. TODO This should support only removing events created by our importer.
+ * This will remove all events from a calendar that were created by any import.
+ * This is used so that if we have a problem with a delete job not removing some events we can just flush out all
+ * events created by the importer and then re-import the actual files we want.
  */
 public class CleanoutJob implements Job {
 
