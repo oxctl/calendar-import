@@ -22,6 +22,7 @@ import uk.ac.ox.it.calendarimporter.utils.HiddenData;
  */
 public class CSVImportJob extends CanvasCalendarJob {
 
+  private static final String HIDDEN_DATA_PREFIX = "csv-import:";
   private Logger log = LoggerFactory.getLogger(CSVImportJob.class);
 
   private boolean hasErrors;
@@ -34,8 +35,8 @@ public class CSVImportJob extends CanvasCalendarJob {
   public void run() throws IOException, JobExecutionException {
     int progress = 0;
     // Just a short code that should be unique to group together imports.
-    // We don't want to use the triggerID as it's semi secret
-    String hiddenData = HiddenData.toHidden("csv-import:"+ UUID.randomUUID().toString().substring(0, 6));
+    // We don't want to use the triggerID as it's semi secret, only need a few characters so they don't clash
+    String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
     log(progress, "Import started.");
     URL url = new URL(this.url);
     log.debug("Attempting to load CSV file: {}", url);
