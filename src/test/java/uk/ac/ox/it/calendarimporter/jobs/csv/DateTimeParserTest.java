@@ -63,6 +63,24 @@ public class DateTimeParserTest {
   }
 
   @Test
+  public void testParseSingleYear() {
+    LocalDate date = DateTimeParser.parseDate("15/01/18");
+    assertEquals(LocalDate.of(2018, 1, 15), date);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testParseNoYear() {
+    LocalDate date = DateTimeParser.parseDate("15/01/");
+    assertEquals(LocalDate.of(2018, 1, 15), date);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testParseNoYearOrSlash() {
+    LocalDate date = DateTimeParser.parseDate("15/01");
+    assertEquals(LocalDate.of(2018, 1, 15), date);
+  }
+
+  @Test
   public void testParseDateShort() {
     LocalDate date = DateTimeParser.parseDate("1/1/1970");
     assertEquals(LocalDate.of(1970, 1, 1), date);
