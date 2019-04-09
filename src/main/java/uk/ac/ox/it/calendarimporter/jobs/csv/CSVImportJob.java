@@ -42,7 +42,7 @@ public class CSVImportJob extends CanvasCalendarJob {
     // don't clash
     String hiddenData =
         HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
-    log(progress, "Import started, timezone of: " + timeZone.getDisplayName());
+    log(progress, "Import started, timezone of: " + timeZone.getID());
     URL url = new URL(this.url);
     log.debug("Attempting to load CSV file: {}", url);
     CSVReader.ErrorHandler errorHandler =

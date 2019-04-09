@@ -136,7 +136,7 @@ public class HomeController {
   @ModelAttribute("commitId")
   public String commitId() {
     String id = buildProperties.get("git.commit.id");
-    return (id != null && id.length() > 6) ? id.substring (0, 6) : "";
+    return (id != null && id.length() > 6) ? id.substring(0, 6) : "";
   }
 
   @ModelAttribute("applicationName")
