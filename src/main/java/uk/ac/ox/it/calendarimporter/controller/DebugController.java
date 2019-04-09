@@ -19,60 +19,72 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 
-/**
- * A controller for various debug functions that aren't part of the standard UI.
- */
+/** A controller for various debug functions that aren't part of the standard UI. */
 @Controller
 @RequestMapping("/{tenant}/{context}/")
 public class DebugController {
 
-    @Autowired private ContextJobRepository contextJobRepository;
+  @Autowired private ContextJobRepository contextJobRepository;
 
-    @Autowired private TenantRepository tenantRepository;
+  @Autowired private TenantRepository tenantRepository;
 
-    @Autowired private Scheduler scheduler;
+  @Autowired private Scheduler scheduler;
 
-    /**
-     * This hides all the imports that are associated with this content.
-     * @param tenantName The name of the tenant.
-     * @param context The context the user is in.
-     * @return A redirect to the main page.
-     */
-    @PostMapping("hide")
-    public ModelAndView hide(@PathVariable("tenant") String tenantName, @PathVariable("context") String context, RedirectAttributes redirectAttributes) {
-        Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(NotFoundException::new);
-        Page<ContextJob> jobs = contextJobRepository.findByTenantAndContextAndHiddenOrderByCreatedDesc(tenant, context, false, Pageable.unpaged());
-        for (ContextJob contextJob : jobs) {
-            contextJob.setHidden(true);
-        }
-        contextJobRepository.saveAll(jobs);
-        redirectAttributes.addFlashAttribute(new Alert(Alert.Type.INFO, "Removed all imports."));
-        return new ModelAndView("redirect:.");
+  /**
+   * This hides all the imports that are associated with this content.
+   *
+   * @param tenantName The name of the tenant.
+   * @param context The context the user is in.
+   * @return A redirect to the main page.
+   */
+  @PostMapping("hide")
+  public ModelAndView hide(
+      @PathVariable("tenant") String tenantName,
+      @PathVariable("context") String context,
+      RedirectAttributes redirectAttributes) {
+    Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(NotFoundException::new);
+    Page<ContextJob> jobs =
+        contextJobRepository.findByTenantAndContextAndHiddenOrderByCreatedDesc(
+            tenant, context, false, Pageable.unpaged());
+    for (ContextJob contextJob : jobs) {
+      contextJob.setHidden(true);
     }
+    contextJobRepository.saveAll(jobs);
+    redirectAttributes.addFlashAttribute(new Alert(Alert.Type.INFO, "Removed all imports."));
+    return new ModelAndView("redirect:.");
+  }
 
-    /**
-     * This runs a job to remove all the imported calendar events that have been put in the calendar for this course.
-     * @param tenant
-     * @param context
-     * @param ltiAuthenticationToken
-     * @return
-     */
-    @PostMapping("purge")
-    public ModelAndView purge(@PathVariable("tenant") String tenant, @PathVariable("context") String context, LtiAuthenticationToken ltiAuthenticationToken, RedirectAttributes redirectAttributes) throws SchedulerException {
+  /**
+   * This runs a job to remove all the imported calendar events that have been put in the calendar
+   * for this course.
+   *
+   * @param tenant
+   * @param context
+   * @param ltiAuthenticationToken
+   * @return
+   */
+  @PostMapping("purge")
+  public ModelAndView purge(
+      @PathVariable("tenant") String tenant,
+      @PathVariable("context") String context,
+      LtiAuthenticationToken ltiAuthenticationToken,
+      RedirectAttributes redirectAttributes)
+      throws SchedulerException {
 
-        JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
-        Trigger trigger =
-                TriggerBuilder.newTrigger()
-                        .startNow()
-                        .usingJobData(CanvasCalendarJob.CONTEXT, context)
-                        .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
-                        .usingJobData(CanvasCalendarJob.USERNAME, ltiAuthenticationToken.getPrincipal().getName())
-                        .forJob(job)
-                        .build();
+    JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
+    Trigger trigger =
+        TriggerBuilder.newTrigger()
+            .startNow()
+            .usingJobData(CanvasCalendarJob.CONTEXT, context)
+            .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
+            .usingJobData(
+                CanvasCalendarJob.USERNAME, ltiAuthenticationToken.getPrincipal().getName())
+            .forJob(job)
+            .build();
 
-        scheduler.scheduleJob(job, trigger);
-        redirectAttributes.addFlashAttribute(new Alert(Alert.Type.INFO, "Started job to removed all imported events."));
-        return new ModelAndView("redirect:.");
-    }
-
+    scheduler.scheduleJob(job, trigger);
+    redirectAttributes.addFlashAttribute(
+        new Alert(Alert.Type.INFO, "Started job to removed all imported events."));
+    return new ModelAndView("redirect:.");
+  }
 }

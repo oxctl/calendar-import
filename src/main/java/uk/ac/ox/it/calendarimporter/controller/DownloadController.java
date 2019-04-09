@@ -60,7 +60,7 @@ public class DownloadController {
       InputStream inputStream = url.openStream();
       long length = connection.getContentLengthLong();
       ResponseEntity.BodyBuilder bodyBuilder =
-              ResponseEntity.ok().contentType(mediaType).contentLength(length);
+          ResponseEntity.ok().contentType(mediaType).contentLength(length);
       if (filename != null) {
         bodyBuilder.header("Content-Disposition", "attachment; filename=\"" + filename + "\"");
       }

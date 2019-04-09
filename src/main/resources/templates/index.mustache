@@ -3,9 +3,9 @@
 <head>
     <link type="text/css" href="{{{canvasCommonCss}}}" rel="stylesheet"/>
     <link type="text/css" href="{{{canvasBrandCss}}}" rel="stylesheet"/>
-    <link type="text/css" href="/resources/style.css" rel="stylesheet"/>
+    <link type="text/css" href="/resources/style.css?{{commitId}}" rel="stylesheet"/>
     <script src="/webjars/jquery/3.1.1/jquery.min.js"></script>
-    <script src="/resources/import.js"></script>
+    <script src="/resources/import.js?{{commitId}}"></script>
     <title>{{applicationName}}</title>
 </head>
 <body>
@@ -196,7 +196,8 @@
                     </ul>
                 </div>
             {{/imports}}
-        </div>
+            </div>
+    </div>
     </div>
 </div>
 </body>

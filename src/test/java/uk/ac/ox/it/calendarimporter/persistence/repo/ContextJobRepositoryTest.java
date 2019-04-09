@@ -78,7 +78,8 @@ public class ContextJobRepositoryTest {
     }
     {
       Page<ContextJob> jobs =
-          repository.findByTenantAndContextAndHiddenOrderByCreatedDesc(tenant, "context_1", false, null);
+          repository.findByTenantAndContextAndHiddenOrderByCreatedDesc(
+              tenant, "context_1", false, null);
       assertFalse(jobs.isEmpty());
       Iterator<ContextJob> iterator = jobs.iterator();
       assertTrue(iterator.hasNext());

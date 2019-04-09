@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -39,7 +38,8 @@ public class CSVReader {
   @Value("${spring.servlet.multipart.max-file-size:10MB}")
   private DataSize inputLimit = DataSize.ofMegabytes(10);
 
-  public List<CalendarEvent> parseCSV(URL url, TimeZone timeZone, ErrorHandler errorHandler) throws IOException {
+  public List<CalendarEvent> parseCSV(URL url, TimeZone timeZone, ErrorHandler errorHandler)
+      throws IOException {
     try {
       URLConnection connection = url.openConnection();
       connection.setReadTimeout(10000);

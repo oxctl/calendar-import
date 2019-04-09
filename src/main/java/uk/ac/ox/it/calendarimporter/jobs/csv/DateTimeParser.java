@@ -7,7 +7,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
-import java.time.format.FormatStyle;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,15 +38,14 @@ public class DateTimeParser {
     List<DateTimeFormatter> patterns = new ArrayList<>();
     patterns.add(
         new DateTimeFormatterBuilder()
-                .appendPattern("d/M/")
-                .optionalStart()
-                .appendPattern("uuuu")
-                .optionalEnd()
-                .optionalStart()
-                .appendValueReduced(ChronoField.YEAR, 2, 2, 1990)
-                .optionalEnd()
-                .toFormatter()
-    );
+            .appendPattern("d/M/")
+            .optionalStart()
+            .appendPattern("uuuu")
+            .optionalEnd()
+            .optionalStart()
+            .appendValueReduced(ChronoField.YEAR, 2, 2, 1990)
+            .optionalEnd()
+            .toFormatter());
 
     for (DateTimeFormatter pattern : patterns) {
       try {

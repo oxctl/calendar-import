@@ -3,9 +3,17 @@ package uk.ac.ox.it.calendarimporter.controller;
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -30,14 +38,6 @@ import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Controller
 @RequestMapping("/{tenant}/{context}/")
 public class HomeController {
@@ -53,6 +53,8 @@ public class HomeController {
   @Autowired private CalendarImportRepository calendarImportRepository;
 
   @Autowired private UserOAuth2AuthorizedClientRepository clientRepository;
+
+  @Autowired BuildProperties buildProperties;
 
   @Value("${calendar.common.css}")
   private String defaultCommonCss;
@@ -131,6 +133,12 @@ public class HomeController {
     return canvasCss;
   }
 
+  @ModelAttribute("commitId")
+  public String commitId() {
+    String id = buildProperties.get("git.commit.id");
+    return (id != null && id.length() > 6) ? id.substring (0, 6) : "";
+  }
+
   @ModelAttribute("applicationName")
   public String applicationName() {
     return applicationName;
@@ -157,18 +165,22 @@ public class HomeController {
 
     TimeZone timeZone = getTimeZone(ltiSession);
     if (timeZone == null) {
-      redirectAttributes.addFlashAttribute(new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: "));
+      redirectAttributes.addFlashAttribute(
+          new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: "));
     }
     String into = null;
     importService.importNow(type, url, url, client, user.getId(), context, into, timeZone);
-    addAlert(redirectAttributes, new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
+    addAlert(
+        redirectAttributes,
+        new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
     return new ModelAndView("redirect:.");
   }
 
   /**
-   * This is used to force a relogin to occur, this is useful when a user has revoked their tokens in Canvas
-   * but we still hold them and don't yet know they aren't valid. This is used by the sections loader to
-   * get a new token if it fails toe load the sections.
+   * This is used to force a relogin to occur, this is useful when a user has revoked their tokens
+   * in Canvas but we still hold them and don't yet know they aren't valid. This is used by the
+   * sections loader to get a new token if it fails toe load the sections.
+   *
    * @param client The client.
    * @param ltiAuthenticationToken Our LTI Authentication.
    * @param httpServletRequest The current request (not actually used).
@@ -207,7 +219,8 @@ public class HomeController {
             .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
             .orElseThrow();
     if (file.isEmpty()) {
-      addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "You must supply a file to import."));
+      addAlert(
+          redirectAttributes, new Alert(Alert.Type.ERROR, "You must supply a file to import."));
     } else {
       try {
         String originalFilename = file.getOriginalFilename();
@@ -220,11 +233,23 @@ public class HomeController {
         TimeZone timeZone = getTimeZone(ltiSession);
         if (timeZone == null) {
           timeZone = TimeZone.getDefault();
-          addAlert(redirectAttributes,  new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: "+ timeZone.getDisplayName()));
+          addAlert(
+              redirectAttributes,
+              new Alert(
+                  Alert.Type.WARNING,
+                  "Couldn't get timezone, using: " + timeZone.getDisplayName()));
         }
         importService.importNow(
-            type, deposit.toString(), originalFilename, client, user.getId(), context, dest, timeZone);
-        addAlert(redirectAttributes,
+            type,
+            deposit.toString(),
+            originalFilename,
+            client,
+            user.getId(),
+            context,
+            dest,
+            timeZone);
+        addAlert(
+            redirectAttributes,
             new Alert(
                 Alert.Type.INFO,
                 "Calendar import started, click update button to follow it's progress."));
@@ -256,7 +281,6 @@ public class HomeController {
     return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
   }
 
-
   public TimeZone getTimeZone(LtiSession session) {
     String addressTimezone = session.getLtiLaunchData().getCustom().get("person_address_timezone");
     TimeZone timeZone = null;
@@ -270,6 +294,7 @@ public class HomeController {
 
   /**
    * Add alert, supporting multiple alerts.
+   *
    * @param attributes The Redirect Attributes to add to.
    * @param alert The new alert to add.
    */
@@ -277,12 +302,12 @@ public class HomeController {
   protected void addAlert(RedirectAttributes attributes, Alert alert) {
     Object o = attributes.getFlashAttributes().get(ALERT);
     if (o instanceof List) {
-      List alerts = (List)o;
+      List alerts = (List) o;
       alerts.add(alert);
     } else {
       List alerts = new LinkedList();
       alerts.add(alert);
-      attributes.addFlashAttribute(ALERT,  alerts);
+      attributes.addFlashAttribute(ALERT, alerts);
     }
   }
 }

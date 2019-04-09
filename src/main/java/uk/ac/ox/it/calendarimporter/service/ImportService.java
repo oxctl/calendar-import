@@ -60,13 +60,14 @@ public class ImportService {
   // Should we just pass in a User object?
   // Should url be an actual URL?
   public ImportJob importNow(
-          ImportType type,
-          String url,
-          String filename,
-          OAuth2AuthorizedClient client,
-          Long userId,
-          String context,
-          String into, TimeZone timeZone)
+      ImportType type,
+      String url,
+      String filename,
+      OAuth2AuthorizedClient client,
+      Long userId,
+      String context,
+      String into,
+      TimeZone timeZone)
       throws SchedulerException {
     // Job ID should come from config.
     JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(type.name(), "import"));
@@ -198,7 +199,8 @@ public class ImportService {
 
   public Page<ContextJob> getJobs(Tenant tenant, String context, Pageable pageable) {
     Page<ContextJob> contextJobs =
-        contextJobRepository.findByTenantAndContextAndHiddenOrderByCreatedDesc(tenant, context, false, pageable);
+        contextJobRepository.findByTenantAndContextAndHiddenOrderByCreatedDesc(
+            tenant, context, false, pageable);
     return contextJobs;
   }
 }

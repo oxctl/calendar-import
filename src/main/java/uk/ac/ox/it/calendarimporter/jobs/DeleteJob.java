@@ -32,9 +32,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
-/**
- * This will remove all events that an import job added to a calendar.
- */
+/** This will remove all events that an import job added to a calendar. */
 public class DeleteJob implements Job {
 
   public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
