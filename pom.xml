@@ -196,6 +196,28 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build-info</goal>
+            </goals>
+            <configuration>
+              <additionalProperties>
+                <!-- This is set by the git-commit-id-plugin -->
+                <!--suppress UnresolvedMavenProperty -->
+                <git.commit.id>${git.commit.id}</git.commit.id>
+              </additionalProperties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+          <groupId>pl.project13.maven</groupId>
+          <artifactId>git-commit-id-plugin</artifactId>
+          <version>2.2.6</version>
+          <configuration>
+            <verbose>false</verbose>
+          </configuration>
       </plugin>
       <plugin>
         <!-- This allow simple building of a dockerfile without complexity -->
