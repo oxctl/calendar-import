@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.TimeZone;
-
 import org.junit.Before;
 import org.junit.Test;
 
