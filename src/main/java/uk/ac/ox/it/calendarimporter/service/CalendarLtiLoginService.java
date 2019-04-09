@@ -31,7 +31,9 @@ public class CalendarLtiLoginService extends SimpleLtiLoginService {
   }
 
   public String getInitialView(LtiPrincipal principal) {
-    return "/" + principal.getTenant() + "/course_" + getLtiSession().getCanvasCourseId() + "/";
+    // We pass the login=true so that if the client isn't accepting cookies we can detect it.
+    // This mainly affects Safari.
+    return "/" + principal.getTenant() + "/course_" + getLtiSession().getCanvasCourseId() + "/?login=true";
   }
 
   @Override
