@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.support.BindingAwareModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -36,9 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -77,10 +74,8 @@ public class HomeController {
       CsrfToken token,
       Pageable pageable,
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
-      LtiSession ltiSession,
-      BindingAwareModelMap map) {
+      LtiSession ltiSession) {
     Map<String, Object> model = new HashMap<>();
-    model.put("message", inModel.asMap().get("alert"));
     Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(RuntimeException::new);
     Page<ContextJob> jobs = importService.getJobs(tenant, context, pageable);
     List<PreviousImport> imports =
@@ -150,7 +145,8 @@ public class HomeController {
       @RequestParam ImportType type,
       @RequestParam(defaultValue = "course") String dest,
       @RequestParam String url,
-      LtiAuthenticationToken authentication)
+      LtiAuthenticationToken authentication,
+      LtiSession ltiSession)
       throws SchedulerException {
     // TODO Exception
     LtiPrincipal principal = authentication.getPrincipal();
@@ -159,12 +155,14 @@ public class HomeController {
             .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
             .orElseThrow();
 
+    TimeZone timeZone = getTimeZone(ltiSession);
+    if (timeZone == null) {
+      redirectAttributes.addFlashAttribute(new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: "));
+    }
     String into = null;
-    importService.importNow(type, url, url, client, user.getId(), context, into);
-    redirectAttributes.addFlashAttribute(
-        "alert",
-        new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
-    return new ModelAndView("redirect:/" + tenantName + "/" + context + "/");
+    importService.importNow(type, url, url, client, user.getId(), context, into, timeZone);
+    addAlert(redirectAttributes, new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
+    return new ModelAndView("redirect:.");
   }
 
   /**
@@ -200,6 +198,7 @@ public class HomeController {
       @RequestParam(defaultValue = "CSV") ImportType type,
       @RequestParam(defaultValue = "") String dest,
       @RequestParam() MultipartFile file,
+      LtiSession ltiSession,
       LtiAuthenticationToken authentication)
       throws SchedulerException {
     LtiPrincipal principal = authentication.getPrincipal();
@@ -208,8 +207,7 @@ public class HomeController {
             .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
             .orElseThrow();
     if (file.isEmpty()) {
-      redirectAttributes.addFlashAttribute(
-          "alert", new Alert(Alert.Type.ERROR, "You must supply a file to import."));
+      addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "You must supply a file to import."));
     } else {
       try {
         String originalFilename = file.getOriginalFilename();
@@ -219,10 +217,14 @@ public class HomeController {
         if (originalFilename == null) {
           originalFilename = "file.csv";
         }
+        TimeZone timeZone = getTimeZone(ltiSession);
+        if (timeZone == null) {
+          timeZone = TimeZone.getDefault();
+          addAlert(redirectAttributes,  new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: "+ timeZone.getDisplayName()));
+        }
         importService.importNow(
-            type, deposit.toString(), originalFilename, client, user.getId(), context, dest);
-        redirectAttributes.addFlashAttribute(
-            "alert",
+            type, deposit.toString(), originalFilename, client, user.getId(), context, dest, timeZone);
+        addAlert(redirectAttributes,
             new Alert(
                 Alert.Type.INFO,
                 "Calendar import started, click update button to follow it's progress."));
@@ -250,8 +252,37 @@ public class HomeController {
             .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
             .orElseThrow();
     importService.deleteImport(calendarImportId, client, user);
-    redirectAttributes.addFlashAttribute(
-        "alert", new Alert(Alert.Type.INFO, "Calendar delete started"));
+    addAlert(redirectAttributes, new Alert(Alert.Type.INFO, "Calendar delete started"));
     return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
+  }
+
+
+  public TimeZone getTimeZone(LtiSession session) {
+    String addressTimezone = session.getLtiLaunchData().getCustom().get("person_address_timezone");
+    TimeZone timeZone = null;
+    if (addressTimezone != null && !addressTimezone.isEmpty()) {
+      timeZone = TimeZone.getTimeZone(addressTimezone);
+    }
+    return timeZone;
+  }
+
+  private static final String ALERT = "alert";
+
+  /**
+   * Add alert, supporting multiple alerts.
+   * @param attributes The Redirect Attributes to add to.
+   * @param alert The new alert to add.
+   */
+  @SuppressWarnings("unchecked")
+  protected void addAlert(RedirectAttributes attributes, Alert alert) {
+    Object o = attributes.getFlashAttributes().get(ALERT);
+    if (o instanceof List) {
+      List alerts = (List)o;
+      alerts.add(alert);
+    } else {
+      List alerts = new LinkedList();
+      alerts.add(alert);
+      attributes.addFlashAttribute(ALERT,  alerts);
+    }
   }
 }

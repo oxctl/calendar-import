@@ -6,6 +6,8 @@ import edu.ksu.canvas.model.CalendarEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.TimeZone;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,6 +15,7 @@ public class CSVReaderTest {
 
   private CSVReader csvReader;
   private boolean hasErrors;
+  private TimeZone timeZone;
   private CSVReader.ErrorHandler errorHandler =
       new CSVReader.ErrorHandler() {
         @Override
@@ -25,6 +28,7 @@ public class CSVReaderTest {
   public void setUp() {
     csvReader = new CSVReader();
     hasErrors = false;
+    timeZone = TimeZone.getTimeZone("Europe/London");
   }
 
   private URL getResource(String s) {
@@ -33,18 +37,18 @@ public class CSVReaderTest {
 
   @Test(expected = RuntimeException.class)
   public void testEmptyImport() throws IOException {
-    csvReader.parseCSV(getResource("/empty.csv"), errorHandler);
+    csvReader.parseCSV(getResource("/empty.csv"), timeZone, errorHandler);
   }
 
   @Test
   public void testEmptyBlankFirstLine() throws IOException {
-    csvReader.parseCSV(getResource("/blank-first-line.csv"), errorHandler);
+    csvReader.parseCSV(getResource("/blank-first-line.csv"), timeZone, errorHandler);
   }
 
   @Test
   public void testSingleEvent() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/one-event.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/one-event.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -60,7 +64,7 @@ public class CSVReaderTest {
   @Test
   public void testSingleEventBasics() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/one-event-basics.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/one-event-basics.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -76,7 +80,7 @@ public class CSVReaderTest {
   @Test
   public void testMultipleEvents() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/two-events.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/two-events.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(2, calendarEvents.size());
@@ -93,7 +97,7 @@ public class CSVReaderTest {
   @Test
   public void testIgnoredHeaders() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/extra-headers.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/extra-headers.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -106,7 +110,7 @@ public class CSVReaderTest {
   @Test
   public void testIgnoredRowValues() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/extra-values.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/extra-values.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -119,7 +123,7 @@ public class CSVReaderTest {
   @Test
   public void testWhitespaceInHeader() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/whitespace-in-header.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/whitespace-in-header.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -130,7 +134,7 @@ public class CSVReaderTest {
   @Test
   public void testZeroEvents() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/zero-events.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/zero-events.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertTrue(calendarEvents.isEmpty());
@@ -139,7 +143,7 @@ public class CSVReaderTest {
   @Test
   public void testEndTime() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/end-time.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/end-time.csv"), timeZone, errorHandler);
     assertFalse(hasErrors);
     assertNotNull(calendarEvents);
     assertEquals(1, calendarEvents.size());
@@ -152,7 +156,7 @@ public class CSVReaderTest {
   @Test
   public void testEndBeforeStart() throws IOException {
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/end-before-start.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/end-before-start.csv"), timeZone, errorHandler);
     assertTrue(hasErrors);
     assertTrue(calendarEvents.isEmpty());
   }
@@ -161,7 +165,7 @@ public class CSVReaderTest {
   public void testMissingData() throws IOException {
     // Has all the required headers, but is missing essential data on each row.
     List<CalendarEvent> calendarEvents =
-        csvReader.parseCSV(getResource("/missing-data.csv"), errorHandler);
+        csvReader.parseCSV(getResource("/missing-data.csv"), timeZone, errorHandler);
     assertTrue(hasErrors);
     assertTrue(calendarEvents.isEmpty());
   }

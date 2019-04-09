@@ -6,6 +6,7 @@ import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobBuilder;
@@ -59,13 +60,13 @@ public class ImportService {
   // Should we just pass in a User object?
   // Should url be an actual URL?
   public ImportJob importNow(
-      ImportType type,
-      String url,
-      String filename,
-      OAuth2AuthorizedClient client,
-      Long userId,
-      String context,
-      String into)
+          ImportType type,
+          String url,
+          String filename,
+          OAuth2AuthorizedClient client,
+          Long userId,
+          String context,
+          String into, TimeZone timeZone)
       throws SchedulerException {
     // Job ID should come from config.
     JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(type.name(), "import"));
@@ -115,6 +116,7 @@ public class ImportService {
             // This is in the trigger key but it's better to be explicit about this.
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
             .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
+            .usingJobData(CanvasCalendarJob.TIME_ZONE, timeZone.getID())
             .forJob(detail)
             .build();
 

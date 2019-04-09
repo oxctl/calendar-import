@@ -38,9 +38,11 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   public static final String TENANT_NAME = "tenant_name";
   public static final String USERNAME = "user_id";
   public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
+  public static final String TIME_ZONE = "time_zone";
 
   protected String context;
   protected String url;
+  protected String timeZone;
   protected CanvasApiFactory canvasApiFactory;
   protected OauthToken oauthToken;
 
@@ -49,8 +51,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   protected String triggerId;
 
   // We need to always pass this in so that on beta/test we take the URL of the launch rather than
-  // the
-  // URL that we registered the tool with initially.
+  // the URL that we registered the tool with initially.
   private String canvasUrl;
   private String accessToken;
   private String refreshToken;
@@ -98,6 +99,10 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     this.url = url;
   }
 
+  public void setTimeZone(String timeZone) {
+    this.timeZone = timeZone;
+  }
+
   public void interrupt() {
     run = false;
   }
@@ -115,6 +120,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     setAccessToken(config.getString(ACCESS_TOKEN));
     setRefreshToken(config.getString(REFRESH_TOKEN));
     setContext(config.getString(CONTEXT));
+    setTimeZone(config.getString(TIME_ZONE));
 
     Optional<Tenant> tenant = tenantRepository.findByName(config.getString(TENANT_NAME));
     // TODO Exception

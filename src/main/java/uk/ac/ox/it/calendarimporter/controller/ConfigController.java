@@ -51,6 +51,7 @@ public class ConfigController {
           propertyList,
           "com_instructure_brand_config_json_url",
           "$com.instructure.brandConfigJSON.url");
+      addProperty(propertyList, "person_address_timezone", "$Person.address.timezone");
       link.setProperties(propertyList);
     }
 

@@ -13,6 +13,8 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -37,7 +39,7 @@ public class CSVReader {
   @Value("${spring.servlet.multipart.max-file-size:10MB}")
   private DataSize inputLimit = DataSize.ofMegabytes(10);
 
-  public List<CalendarEvent> parseCSV(URL url, ErrorHandler errorHandler) throws IOException {
+  public List<CalendarEvent> parseCSV(URL url, TimeZone timeZone, ErrorHandler errorHandler) throws IOException {
     try {
       URLConnection connection = url.openConnection();
       connection.setReadTimeout(10000);
@@ -55,7 +57,7 @@ public class CSVReader {
         for (CSVRecord record : parser) {
           try {
             validateRow(record);
-            CalendarEvent calendarEvent = parseRecord(record);
+            CalendarEvent calendarEvent = parseRecord(record, timeZone);
             events.add(calendarEvent);
           } catch (RowException e) {
             errorHandler.handleError(e);
@@ -68,15 +70,14 @@ public class CSVReader {
     }
   }
 
-  private CalendarEvent parseRecord(CSVRecord record) {
+  private CalendarEvent parseRecord(CSVRecord record, TimeZone timeZone) {
     try {
       CalendarEvent event = new CalendarEvent();
       event.setTitle(get(record, TITLE));
       LocalTime time = DateTimeParser.parseTime(get(record, TIME).trim());
       LocalDate date = DateTimeParser.parseDate(get(record, DATE).trim());
       LocalDateTime dateTime = LocalDateTime.of(date, time);
-      // TODO Timezone
-      Instant starts = dateTime.atZone(ZoneId.systemDefault()).toInstant();
+      Instant starts = dateTime.atZone(timeZone.toZoneId()).toInstant();
       Instant ends = null;
       String durationStr = get(record, DURATION);
       if (durationStr != null && !durationStr.isBlank()) {
@@ -87,7 +88,7 @@ public class CSVReader {
       if (endTimeStr != null && !endTimeStr.isBlank()) {
         LocalTime endTime = DateTimeParser.parseTime(endTimeStr.trim());
         LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
-        ends = endDateTime.atZone(ZoneId.systemDefault()).toInstant();
+        ends = endDateTime.atZone(timeZone.toZoneId()).toInstant();
         if (!starts.isBefore(ends)) {
           throw new RowException(record.getRecordNumber(), "Start time cannot be after end time.");
         }

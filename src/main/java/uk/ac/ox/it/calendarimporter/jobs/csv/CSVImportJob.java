@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.quartz.JobExecutionException;
@@ -33,11 +34,14 @@ public class CSVImportJob extends CanvasCalendarJob {
 
   @Override
   public void run() throws IOException, JobExecutionException {
+
+    TimeZone timeZone = TimeZone.getTimeZone(this.timeZone);
+
     int progress = 0;
     // Just a short code that should be unique to group together imports.
     // We don't want to use the triggerID as it's semi secret, only need a few characters so they don't clash
     String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
-    log(progress, "Import started.");
+    log(progress, "Import started, timezone of: "+ timeZone.getDisplayName());
     URL url = new URL(this.url);
     log.debug("Attempting to load CSV file: {}", url);
     CSVReader.ErrorHandler errorHandler =
@@ -46,7 +50,7 @@ public class CSVImportJob extends CanvasCalendarJob {
           log("Error on row %d, message: %s", e.getRow() + 1, e.getLocalizedMessage());
           hasErrors = true;
         };
-    List<CalendarEvent> calendarEvents = reader.parseCSV(url, errorHandler);
+    List<CalendarEvent> calendarEvents = reader.parseCSV(url, timeZone, errorHandler);
     log.trace("Parsed {} rows and has errors: {}", calendarEvents.size(), hasErrors);
     log("Source file read.");
     if (calendarEvents.isEmpty()) {
