@@ -28,6 +28,9 @@ public class ContextJob {
   // We need to be able to sort the jobs in the DB.
   @NotNull private Instant created;
 
+  /** Should this import be hidden from the UI. */
+  private boolean hidden;
+
   @NotNull
   @OneToOne(optional = false)
   private CalendarImport calendarImport;

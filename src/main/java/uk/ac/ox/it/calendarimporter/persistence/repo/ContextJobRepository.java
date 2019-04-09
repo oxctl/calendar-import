@@ -10,4 +10,5 @@ public interface ContextJobRepository extends CrudRepository<ContextJob, Long> {
 
   Page<ContextJob> findByTenantAndContextOrderByCreatedDesc(
       Tenant tenant, String context, Pageable pageable);
+
 }

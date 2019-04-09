@@ -31,7 +31,9 @@ public class CalendarImport {
   /** The URL of the import. */
   private String url;
 
+  /** The filename of the file uploaded */
   private String filename;
+
   /** The type of importer used. */
   private ImportType type;
 
