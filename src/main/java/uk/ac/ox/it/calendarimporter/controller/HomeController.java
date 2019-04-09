@@ -3,15 +3,6 @@ package uk.ac.ox.it.calendarimporter.controller;
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +30,16 @@ import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.Registered
 import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/{tenant}/{context}/")
@@ -87,6 +88,7 @@ public class HomeController {
             .map(job -> new PreviousImport(job.getCalendarImport()))
             .collect(Collectors.toList());
     model.put("imports", imports);
+    model.put("hasMore", jobs.hasNext());
     model.put("course", ltiSession.getLtiLaunchData().getContextLabel());
     model.put("beta", beta);
     model.put("_csrf", token);
@@ -167,7 +169,8 @@ public class HomeController {
 
   /**
    * This is used to force a relogin to occur, this is useful when a user has revoked their tokens in Canvas
-   * but we still hold them and don't yet know they aren't valid.
+   * but we still hold them and don't yet know they aren't valid. This is used by the sections loader to
+   * get a new token if it fails toe load the sections.
    * @param client The client.
    * @param ltiAuthenticationToken Our LTI Authentication.
    * @param httpServletRequest The current request (not actually used).

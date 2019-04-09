@@ -8,7 +8,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
 public interface ContextJobRepository extends CrudRepository<ContextJob, Long> {
 
-  Page<ContextJob> findByTenantAndContextOrderByCreatedDesc(
-      Tenant tenant, String context, Pageable pageable);
+  Page<ContextJob> findByTenantAndContextAndHiddenOrderByCreatedDesc(
+      Tenant tenant, String context, boolean hidden, Pageable pageable);
 
 }

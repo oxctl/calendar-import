@@ -1,11 +1,9 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
-import org.h2.engine.Mode;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,8 +18,6 @@ import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
-
-import javax.websocket.server.PathParam;
 
 /**
  * A controller for various debug functions that aren't part of the standard UI.
@@ -45,7 +41,7 @@ public class DebugController {
     @PostMapping("hide")
     public ModelAndView hide(@PathVariable("tenant") String tenantName, @PathVariable("context") String context, RedirectAttributes redirectAttributes) {
         Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(NotFoundException::new);
-        Page<ContextJob> jobs = contextJobRepository.findByTenantAndContextOrderByCreatedDesc(tenant, context, Pageable.unpaged());
+        Page<ContextJob> jobs = contextJobRepository.findByTenantAndContextAndHiddenOrderByCreatedDesc(tenant, context, false, Pageable.unpaged());
         for (ContextJob contextJob : jobs) {
             contextJob.setHidden(true);
         }

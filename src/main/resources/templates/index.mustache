@@ -72,6 +72,14 @@
                     <h3 class="ic-Action-header__Heading">Previous Imports</h3>
                 </div>
                 <div class="ic-Action-header__Secondary">
+                    <form class="debug" style="display: inline" id="hide" action="./purge" method="post">
+                        <input class="Button" type="submit" value="Purge Imported Events"/>
+                        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+                    </form>
+                    <form class="debug" style="display: inline" id="hide" action="./hide" method="post">
+                        <input class="Button" type="submit" value="Delete All"/>
+                        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+                    </form>
                     <form class="debug" style="display: inline" id="relogin" action="./relogin" method="post">
                         <input class="Button" type="submit" value="Relogin"/>
                         <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
@@ -163,6 +171,18 @@
                     </ul>
                 </div>
             {{/imports}}
+            {{#hasMore}}
+            <div class="item-group-condensed">
+                <ul class="ig-list">
+                    <li>
+                        <div class="ig-row ig-row-empty">
+                            <div class="ig-empty-msg">
+                                Older imports are hidden.
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            {{/hasMore}}
             {{^imports}}
                 <div class="item-group-condensed">
                     <ul class="ig-list">
@@ -177,30 +197,7 @@
                 </div>
             {{/imports}}
         </div>
-
     </div>
-    {{#beta}}
-    <div>
-        <form method="post" action="/api/v1/cleanup">
-            <label>Tenant <input type="text" name="tenant"/></label><br/>
-            <label>Context <input type="text" name="context"/></label><br/>
-            <input type="submit" value="Cleanout"/>
-            <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-        </form>
-    </div>
-
-    <div>
-        {{#message}}{{message}}{{/message}}
-        <form method="post">
-            <input type="text" name="url"/>
-            <input type="submit" value="Add"/>
-            <label>CSV<input type="radio" name="type" value="CSV" checked></label>
-            <label>iCal<input type="radio" name="type" value="ICAL"></label>
-            <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-
-        </form>
-    </div>
-    {{/beta}}
 </div>
 </body>
 </html>

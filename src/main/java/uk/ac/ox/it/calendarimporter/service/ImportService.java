@@ -196,7 +196,7 @@ public class ImportService {
 
   public Page<ContextJob> getJobs(Tenant tenant, String context, Pageable pageable) {
     Page<ContextJob> contextJobs =
-        contextJobRepository.findByTenantAndContextOrderByCreatedDesc(tenant, context, pageable);
+        contextJobRepository.findByTenantAndContextAndHiddenOrderByCreatedDesc(tenant, context, false, pageable);
     return contextJobs;
   }
 }
