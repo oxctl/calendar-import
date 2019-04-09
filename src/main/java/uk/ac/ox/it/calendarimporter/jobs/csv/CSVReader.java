@@ -83,6 +83,10 @@ public class CSVReader {
       if (durationStr != null && !durationStr.isBlank()) {
         Duration duration = DateTimeParser.parseDuration(durationStr.trim());
         ends = starts.plus(duration);
+        LocalDateTime endDateTime = dateTime.plus(duration);
+        if(dateTime.getYear() != endDateTime.getYear() || dateTime.getDayOfYear() != endDateTime.getDayOfYear()) {
+          throw new RowException(record.getRecordNumber(), "Event cannot span more than one day");
+        }
       }
       String endTimeStr = get(record, END_TIME);
       if (endTimeStr != null && !endTimeStr.isBlank()) {

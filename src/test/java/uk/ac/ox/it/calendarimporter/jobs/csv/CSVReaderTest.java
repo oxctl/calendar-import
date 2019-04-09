@@ -168,4 +168,13 @@ public class CSVReaderTest {
     assertTrue(hasErrors);
     assertTrue(calendarEvents.isEmpty());
   }
+
+  @Test
+  public void testDurationTooLong() throws IOException {
+    // Has all the required headers, but is missing essential data on each row.
+    List<CalendarEvent> calendarEvents =
+            csvReader.parseCSV(getResource("/too-long-duration.csv"), timeZone, errorHandler);
+    assertTrue(hasErrors);
+    assertTrue(calendarEvents.isEmpty());
+  }
 }
