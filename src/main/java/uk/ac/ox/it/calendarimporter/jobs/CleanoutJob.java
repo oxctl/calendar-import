@@ -1,8 +1,10 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
+import static edu.ksu.canvas.requestOptions.ListCalendarEventsOptions.Exclude.*;
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.*;
 
 import edu.ksu.canvas.CanvasApiFactory;
+import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.interfaces.CalendarReader;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
@@ -10,6 +12,7 @@ import edu.ksu.canvas.oauth.OauthToken;
 import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
 import edu.ksu.canvas.requestOptions.ListCalendarEventsOptions;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.quartz.Job;
@@ -68,30 +71,47 @@ public class CleanoutJob implements Job {
     ListCalendarEventsOptions options = new ListCalendarEventsOptions();
     options.contextCodes(Collections.singletonList(context));
     options.includeAllEvents(true);
+    // This just excludes attributes we don't need.
+    options.excludes(Arrays.asList(CHILD_EVENTS, ASSIGNMENT));
     try {
-      List<CalendarEvent> calendarEvent = calendarReader.listCurrentUserCalendarEvents(options);
+      List<CalendarEvent> calendarEvents = calendarReader.listCurrentUserCalendarEvents(options);
       int removed = 0;
-      for (CalendarEvent event : calendarEvent) {
-        if (HiddenData.extractHidden(event.getDescription()) != null) {
+      for (CalendarEvent event : calendarEvents) {
+        if (isImportedEvent(event)) {
           log.debug(
               "Attempting to remove event ID {} from calendar {} of {}",
               event.getId(),
               context,
               tenant);
-          calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getId()));
-          removed++;
+          try {
+            if (!isChildEvent(event)) {
+              calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getId()));
+              removed++;
+            } else {
+              log.debug("Skipped removal of event ID {} from calendar {} of {}", event.getId(), context, tenant);
+            }
+          } catch (UnauthorizedException ue) {
+            log.warn("Failed to remove event ID {} from calendar {} of {}", event.getId(), context, tenant);
+          }
         } else {
           log.debug("Ignoring event ID {} from calendar {} of {}", event.getId(), context, tenant);
         }
       }
       log.info(
           "Removed {} or {} events from calendar {} of {}",
-          removed,
-          calendarEvent.size(),
+          removed, calendarEvents.size(),
           context,
           tenant);
     } catch (IOException e) {
       throw new JobExecutionException(e);
     }
+  }
+
+  private boolean isImportedEvent(CalendarEvent event) {
+    return HiddenData.extractHidden(event.getDescription()) != null;
+  }
+
+  private boolean isChildEvent(CalendarEvent event) {
+    return event.getEffectiveContextCode() != null && !event.getEffectiveContextCode().equals(event.getContextCode());
   }
 }
