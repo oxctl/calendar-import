@@ -31,7 +31,6 @@ import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserJob;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
-import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
@@ -55,10 +54,10 @@ public class ImportService {
   // TODO Handling of SchedulerException
   // Should we just pass in a User object?
   // Should url be an actual URL?
-  public ImportJob importNow(ImportConfig importConfig)
-      throws SchedulerException {
+  public ImportJob importNow(ImportConfig importConfig) throws SchedulerException {
     // Job ID should come from config.
-    JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(importConfig.getType().name(), "import"));
+    JobDetail detail =
+        scheduler.getJobDetail(JobKey.jobKey(importConfig.getType().name(), "import"));
     if (detail == null) {
       detail =
           JobBuilder.newJob(importConfig.getType().getJobClass())
@@ -96,7 +95,8 @@ public class ImportService {
 
     // For repeating jobs we want to lookup much more of this that way if the token/url gets updated
     // later on jobs that run will use the new URL/token
-    String section = (importConfig.getInto()!= null)? importConfig.getInto().getSectionId():null;
+    String section =
+        (importConfig.getInto() != null) ? importConfig.getInto().getSectionId() : null;
     Trigger trigger =
         TriggerBuilder.newTrigger()
             .startNow()
@@ -105,8 +105,12 @@ public class ImportService {
             .usingJobData(CanvasCalendarJob.SOURCE_URL, importConfig.getUrl())
             .usingJobData(CanvasCalendarJob.CONTEXT, importConfig.getContext())
             .usingJobData(CanvasCalendarJob.SECTION, section)
-            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, importConfig.getClient().getAccessToken().getTokenValue())
-            .usingJobData(CanvasCalendarJob.REFRESH_TOKEN, importConfig.getClient().getRefreshToken().getTokenValue())
+            .usingJobData(
+                CanvasCalendarJob.ACCESS_TOKEN,
+                importConfig.getClient().getAccessToken().getTokenValue())
+            .usingJobData(
+                CanvasCalendarJob.REFRESH_TOKEN,
+                importConfig.getClient().getRefreshToken().getTokenValue())
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
             // This is in the trigger key but it's better to be explicit about this.
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())

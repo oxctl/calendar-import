@@ -5,7 +5,6 @@ import edu.ksu.canvas.model.CalendarEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +88,8 @@ public class CSVImportJob extends CanvasCalendarJob {
 
   /**
    * This moves the data into a calendar event section.
-   * @param sectionEvent The original event.
+   *
+   * @param event The original event.
    * @return A new event which will import the event into the specified section.
    */
   private CalendarEvent toSection(CalendarEvent event, String section) {

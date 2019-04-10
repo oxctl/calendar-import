@@ -164,6 +164,10 @@ Instead of using a second login we can just use the OAuth2Client support. This k
 
 It doesn't appear to allow us to only get the token just in time as the request saving just does a redirect after successful authentication rather than replaying the request/response objects which means that if we capture a POST it will get converted to a GET after the authentication is done.    
 
+# S3 for file uploads
+
+https://github.com/Upplication/Amazon-S3-FileSystem-NIO2 looks to be an easy way to integrate with S3 without tying the application code too closely to AWS. Although S3 is cheaper, for the amount of data we are storing on EFS it's probably simpler to stick with EFS. One advantage S3 has is that we don't have to stick to the same region and can cope with much higher latency. 
+
 # No Cookies
 
 Detect this in JavaScript and display a message on the no-authentication page telling the user.

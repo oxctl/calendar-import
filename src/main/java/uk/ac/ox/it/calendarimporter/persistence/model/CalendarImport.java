@@ -2,7 +2,6 @@ package uk.ac.ox.it.calendarimporter.persistence.model;
 
 import java.time.Instant;
 import javax.persistence.*;
-
 import lombok.Data;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 

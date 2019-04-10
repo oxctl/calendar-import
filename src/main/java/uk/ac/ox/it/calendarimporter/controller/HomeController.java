@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,20 +36,22 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import uk.ac.ox.it.calendarimporter.service.DepositService;
+import uk.ac.ox.it.calendarimporter.service.DepositService.Type;
 import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
-import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
 
 @Controller
 @RequestMapping("/{tenant}/{context}/")
+@Slf4j
 public class HomeController {
 
   @Autowired private UserRepository userRepository;
 
   @Autowired private ImportService importService;
 
-  @Autowired private UploadDepositService uploadDepositService;
+  @Autowired private DepositService depositService;
 
   @Autowired private TenantRepository tenantRepository;
 
@@ -175,7 +178,8 @@ public class HomeController {
           new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: "));
     }
     String into = null;
-    importService.importNow(new ImportConfig(type, url, url, client, user.getId(), context, dest, timeZone));
+    importService.importNow(
+        new ImportConfig(type, url, url, client, user.getId(), context, dest, timeZone));
     addAlert(
         redirectAttributes,
         new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
@@ -215,7 +219,7 @@ public class HomeController {
       RedirectAttributes redirectAttributes,
       @RequestParam(defaultValue = "CSV") ImportType type,
       @RequestParam(name = "destination", required = false) CourseSection dest,
-      @RequestParam() MultipartFile file,
+      @RequestParam(name = "file") MultipartFile upload,
       LtiSession ltiSession,
       LtiAuthenticationToken authentication)
       throws SchedulerException {
@@ -224,15 +228,15 @@ public class HomeController {
         userRepository
             .findByUsernameAndTenant_Name(principal.getName(), principal.getTenant())
             .orElseThrow();
-    if (file.isEmpty()) {
+    if (upload.isEmpty()) {
       addAlert(
           redirectAttributes, new Alert(Alert.Type.ERROR, "You must supply a file to import."));
     } else {
       try {
-        String originalFilename = file.getOriginalFilename();
+        String originalFilename = upload.getOriginalFilename();
         File tempFile = File.createTempFile("upload", null);
-        file.transferTo(tempFile);
-        URL deposit = uploadDepositService.deposit(tempFile);
+        upload.transferTo(tempFile);
+        URL deposit = depositService.deposit(tempFile, Type.UPLOAD);
         if (originalFilename == null) {
           originalFilename = "file.csv";
         }
@@ -246,15 +250,23 @@ public class HomeController {
                   "Couldn't get timezone, using: " + timeZone.getDisplayName()));
         }
         importService.importNow(
-                new ImportConfig(type, deposit.toString(), originalFilename, client, user.getId(), context, dest, timeZone));
+            new ImportConfig(
+                type,
+                deposit.toString(),
+                originalFilename,
+                client,
+                user.getId(),
+                context,
+                dest,
+                timeZone));
         addAlert(
             redirectAttributes,
             new Alert(
                 Alert.Type.INFO,
                 "Calendar import started, click update button to follow it's progress."));
       } catch (IOException e) {
-        // TODO?
-        addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "Serious problem occured."));
+        log.error("Failed to deposit file: {}", e.getMessage());
+        addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "Failed to upload file."));
       }
     }
     return new ModelAndView("redirect:.");

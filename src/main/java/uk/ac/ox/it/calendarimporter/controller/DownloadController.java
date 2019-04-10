@@ -66,7 +66,7 @@ public class DownloadController {
       }
       return bodyBuilder.body(new InputStreamResource(inputStream));
     } catch (FileNotFoundException e) {
-      return ResponseEntity.notFound().build();
+      throw new NotFoundException();
     }
   }
 }

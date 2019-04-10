@@ -23,13 +23,14 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
+import uk.ac.ox.it.calendarimporter.service.DepositService;
+import uk.ac.ox.it.calendarimporter.service.DepositService.Type;
 import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
-import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 
 public abstract class CanvasCalendarJob implements InterruptableJob {
 
-    private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
+  private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
 
   public static final String SOURCE_URL = "url";
   public static final String CONTEXT = "context";
@@ -75,7 +76,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
 
   @Autowired private ProgressService progressService;
 
-  @Autowired private UploadDepositService depositService;
+  @Autowired private DepositService depositService;
 
   public void setProgressService(ProgressService progressService) {
     this.progressService = progressService;
@@ -169,7 +170,12 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
         progressService.updateJob(triggerId, unsavedMessage, null);
       }
       // Persist the log
-      URL deposit = depositService.deposit(logfile);
+      URL deposit = null;
+      try {
+        deposit = depositService.deposit(logfile, Type.LOG);
+      } catch (IOException e) {
+        throw new JobExecutionException("Failed to save logfile.", e);
+      }
       context.setResult(deposit.toExternalForm());
     }
   }

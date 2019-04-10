@@ -88,10 +88,18 @@ public class CleanoutJob implements Job {
               calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getId()));
               removed++;
             } else {
-              log.debug("Skipped removal of event ID {} from calendar {} of {}", event.getId(), context, tenant);
+              log.debug(
+                  "Skipped removal of event ID {} from calendar {} of {}",
+                  event.getId(),
+                  context,
+                  tenant);
             }
           } catch (UnauthorizedException ue) {
-            log.warn("Failed to remove event ID {} from calendar {} of {}", event.getId(), context, tenant);
+            log.warn(
+                "Failed to remove event ID {} from calendar {} of {}",
+                event.getId(),
+                context,
+                tenant);
           }
         } else {
           log.debug("Ignoring event ID {} from calendar {} of {}", event.getId(), context, tenant);
@@ -99,7 +107,8 @@ public class CleanoutJob implements Job {
       }
       log.info(
           "Removed {} or {} events from calendar {} of {}",
-          removed, calendarEvents.size(),
+          removed,
+          calendarEvents.size(),
           context,
           tenant);
     } catch (IOException e) {
@@ -112,6 +121,7 @@ public class CleanoutJob implements Job {
   }
 
   private boolean isChildEvent(CalendarEvent event) {
-    return event.getEffectiveContextCode() != null && !event.getEffectiveContextCode().equals(event.getContextCode());
+    return event.getEffectiveContextCode() != null
+        && !event.getEffectiveContextCode().equals(event.getContextCode());
   }
 }

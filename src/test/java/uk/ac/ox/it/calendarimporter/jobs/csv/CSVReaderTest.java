@@ -63,7 +63,6 @@ public class CSVReaderTest {
     assertEquals("Event Address", event.getLocationAddress());
   }
 
-
   @Test
   public void testSingleEventBasics() throws IOException {
     List<CalendarEvent> calendarEvents = parse("/one-event-basics.csv");
