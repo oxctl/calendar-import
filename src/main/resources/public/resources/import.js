@@ -12,7 +12,8 @@ $(function () {
                     if (json.length > 1) {
                         $.each(json, function (i, section) {
                             $select.append(
-                                $("<option/>", {"value": section.sectionId}).text("Section: " + section.name)
+                                // We include both the name and the ID.
+                                $("<option/>", {"value": JSON.stringify(section)}).text("Section: " + section.name)
                             );
                         });
                     } else {
@@ -45,7 +46,7 @@ $(function() {
 
     // Function that gets called when right keys are typed.
     var unlockFun = function() {
-        $(".debug").css("visibility", "visible");
+        $(".debug").show();
     };
 
     var checkKey = function(key) {

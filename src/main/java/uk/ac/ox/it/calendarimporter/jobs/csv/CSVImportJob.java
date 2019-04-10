@@ -4,10 +4,8 @@ import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
-import java.util.Optional;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
+
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +70,9 @@ public class CSVImportJob extends CanvasCalendarJob {
       // Flag that this was created by an import
       String description = HiddenData.insertHidden(event.getDescription(), hiddenData);
       event.setDescription(description);
+      if (section != null) {
+        event = toSection(event, section);
+      }
       Optional<CalendarEvent> calendarEventOpt = calendarWriter.createCalendarEvent(event);
       if (calendarEventOpt.isPresent()) {
         eventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
@@ -84,6 +85,22 @@ public class CSVImportJob extends CanvasCalendarJob {
     log(
         "Completed import, found %d events, imported %d events into calendar.",
         eventTotal, created);
+  }
+
+  /**
+   * This moves the data into a calendar event section.
+   * @param sectionEvent The original event.
+   * @return A new event which will import the event into the specified section.
+   */
+  private CalendarEvent toSection(CalendarEvent event, String section) {
+    CalendarEvent.ChildEvent childEvent = new CalendarEvent.ChildEvent();
+    childEvent.setStartAt(event.getStartAt());
+    childEvent.setEndAt(event.getEndAt());
+    childEvent.setContextCode(section);
+    event.setStartAt(null);
+    event.setEndAt(null);
+    event.setChildEventsData(Collections.singletonList(childEvent));
+    return event;
   }
 
   public boolean hasErrors() {

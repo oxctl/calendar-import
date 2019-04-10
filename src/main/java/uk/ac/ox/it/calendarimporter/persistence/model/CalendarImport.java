@@ -1,12 +1,8 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
 import java.time.Instant;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
+
 import lombok.Data;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 
@@ -30,6 +26,11 @@ public class CalendarImport {
   private Instant created;
   /** The URL of the import. */
   private String url;
+
+  /** The name of the course/section into which this import was done. */
+  private String destinationName;
+  /** The ID the of the course/section into which this import was done. */
+  private String destinationId;
 
   /** The filename of the file uploaded */
   private String filename;

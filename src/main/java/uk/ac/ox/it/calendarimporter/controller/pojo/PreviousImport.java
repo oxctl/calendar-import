@@ -17,6 +17,7 @@ public class PreviousImport {
   String user;
   String when;
   String filename;
+  String dest;
   boolean canDelete;
   Job load;
   Job delete;
@@ -29,6 +30,7 @@ public class PreviousImport {
     this.filename = calendarImport.getFilename();
     this.canDelete = canDelete(calendarImport);
     this.load = new Job(calendarImport.getLoad());
+    this.dest = calendarImport.getDestinationName();
     if (calendarImport.getDelete() != null) {
       this.delete = new Job(calendarImport.getDelete());
     }

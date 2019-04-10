@@ -35,13 +35,15 @@
                 <label class="ic-Label" for="file-upload-input">File:</label>
                 <input type="file" name="file" accept=".csv,text/csv"/>
             </div>
-            {{#beta}}
+            {{#sectionImport}}
             <div class="ic-Form-control">
                 <label class="ic-Label" for="dest-input">Into:</label>
                 <select class="ic-Input" id="dest-input" name="destination" size="1">
-                    <option value="course">Course: {{course}}</option>
+                    <option value="">Course: {{course}}</option>
                 </select>
             </div>
+            {{/sectionImport}}
+            {{#beta}}
             <fieldset class="ic-Fieldset ic-Fieldset--radio-checkbox">
                 <legend class="ic-Legend">
                     Upload Type
@@ -64,7 +66,22 @@
             </div>
             <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
         </form>
+        <div class="ic-Form-actions debug" style="display: none">
+            <form class="ic-Form-group inline-form" id="purge" action="./purge" method="post">
+                <input class="Button" type="submit" value="Purge Imported Events"/>
+                <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+            </form>
+            <form class="ic-Form-group inline-form" id="delete-all" action="./hide" method="post">
+                <input class="Button" type="submit" value="Delete All"/>
+                <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+            </form>
+            <form class="ic-Form-group inline-form" id="relogin" action="./relogin" method="post">
+                <input class="Button" type="submit" value="Relogin"/>
+                <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
+            </form>
+        </div>
     </div>
+
     <div class="item-group-container">
         <div class="item-group-condensed">
             <div class="ic-Action-header">
@@ -72,18 +89,6 @@
                     <h3 class="ic-Action-header__Heading">Previous Imports</h3>
                 </div>
                 <div class="ic-Action-header__Secondary">
-                    <form class="debug" style="display: inline" id="hide" action="./purge" method="post">
-                        <input class="Button" type="submit" value="Purge Imported Events"/>
-                        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-                    </form>
-                    <form class="debug" style="display: inline" id="hide" action="./hide" method="post">
-                        <input class="Button" type="submit" value="Delete All"/>
-                        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-                    </form>
-                    <form class="debug" style="display: inline" id="relogin" action="./relogin" method="post">
-                        <input class="Button" type="submit" value="Relogin"/>
-                        <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
-                    </form>
                     <a class="al-trigger btn icon-refresh" href="./" role="button" title="Refresh">Update</a>
                 </div>
             </div>
@@ -100,6 +105,7 @@
                                     <div class="ig-info">
                                     <span class="ig-title">
                                         {{user}} imported <a href="./download/{{id}}">{{filename}}</a>
+                                        into {{#dest}} the section: {{dest}}{{/dest}}{{^dest}}the course{{/dest}}
                                     </span>
                                         <div class="ig-details">
                                             <div class="ig-details__item"><b>Created</b> {{when}}</div>

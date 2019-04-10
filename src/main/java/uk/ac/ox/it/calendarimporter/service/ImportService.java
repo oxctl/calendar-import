@@ -6,7 +6,6 @@ import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobBuilder;
@@ -22,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
-import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.DeleteJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
@@ -54,27 +52,17 @@ public class ImportService {
 
   @Autowired private ContextJobRepository contextJobRepository;
 
-  @Autowired private TenantRepository tenantRepository;
-
   // TODO Handling of SchedulerException
   // Should we just pass in a User object?
   // Should url be an actual URL?
-  public ImportJob importNow(
-      ImportType type,
-      String url,
-      String filename,
-      OAuth2AuthorizedClient client,
-      Long userId,
-      String context,
-      String into,
-      TimeZone timeZone)
+  public ImportJob importNow(ImportConfig importConfig)
       throws SchedulerException {
     // Job ID should come from config.
-    JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(type.name(), "import"));
+    JobDetail detail = scheduler.getJobDetail(JobKey.jobKey(importConfig.getType().name(), "import"));
     if (detail == null) {
       detail =
-          JobBuilder.newJob(type.getJobClass())
-              .withIdentity(type.name(), "import")
+          JobBuilder.newJob(importConfig.getType().getJobClass())
+              .withIdentity(importConfig.getType().name(), "import")
               .storeDurably()
               .build();
       scheduler.addJob(detail, true);
@@ -83,41 +71,47 @@ public class ImportService {
     UUID uuid = UUID.randomUUID();
 
     // TODO What exception?
-    User user = userRepository.findById(userId).orElseThrow();
+    User user = userRepository.findById(importConfig.getUserId()).orElseThrow();
 
     Tenant tenant = user.getTenant();
 
     // Allow lookups from user to jobs.
     UserJob userJob = new UserJob(uuid.toString());
     userJob.setCreated(Instant.now());
-    userJob.setUserId(userId);
+    userJob.setUserId(importConfig.getUserId());
     userJobRepository.save(userJob);
 
     CalendarImport calendarImport = new CalendarImport();
-    calendarImport.setContext(context);
+    calendarImport.setContext(importConfig.getContext());
     calendarImport.setCreated(Instant.now());
     calendarImport.setUser(user);
-    calendarImport.setUrl(url);
-    calendarImport.setFilename(filename);
-    calendarImport.setType(type);
+    calendarImport.setUrl(importConfig.getUrl());
+    calendarImport.setFilename(importConfig.getFilename());
+    calendarImport.setType(importConfig.getType());
+    if (importConfig.getInto() != null) {
+      calendarImport.setDestinationId(importConfig.getInto().getSectionId());
+      calendarImport.setDestinationName(importConfig.getInto().getName());
+    }
     calendarImport = calendarImportRepository.save(calendarImport);
 
     // For repeating jobs we want to lookup much more of this that way if the token/url gets updated
     // later on jobs that run will use the new URL/token
+    String section = (importConfig.getInto()!= null)? importConfig.getInto().getSectionId():null;
     Trigger trigger =
         TriggerBuilder.newTrigger()
             .startNow()
             .withIdentity(
                 TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getUsername()))
-            .usingJobData(CanvasCalendarJob.SOURCE_URL, url)
-            .usingJobData(CanvasCalendarJob.CONTEXT, context)
-            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, client.getAccessToken().getTokenValue())
-            .usingJobData(CanvasCalendarJob.REFRESH_TOKEN, client.getRefreshToken().getTokenValue())
+            .usingJobData(CanvasCalendarJob.SOURCE_URL, importConfig.getUrl())
+            .usingJobData(CanvasCalendarJob.CONTEXT, importConfig.getContext())
+            .usingJobData(CanvasCalendarJob.SECTION, section)
+            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, importConfig.getClient().getAccessToken().getTokenValue())
+            .usingJobData(CanvasCalendarJob.REFRESH_TOKEN, importConfig.getClient().getRefreshToken().getTokenValue())
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
             // This is in the trigger key but it's better to be explicit about this.
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
             .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
-            .usingJobData(CanvasCalendarJob.TIME_ZONE, timeZone.getID())
+            .usingJobData(CanvasCalendarJob.TIME_ZONE, importConfig.getTimeZone().getID())
             .forJob(detail)
             .build();
 
@@ -128,7 +122,7 @@ public class ImportService {
 
     ContextJob contextJob = new ContextJob();
     contextJob.setCalendarImport(calendarImport);
-    contextJob.setContext(context);
+    contextJob.setContext(importConfig.getContext());
     contextJob.setCreated(Instant.now());
     contextJob.setTenant(tenant);
     contextJobRepository.save(contextJob);

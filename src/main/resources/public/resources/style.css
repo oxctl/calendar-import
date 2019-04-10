@@ -4,7 +4,11 @@ body {
 }
 /* All the debug elements aren't show */
 .debug {
-    visibility: hidden;
+    display: none;
+}
+/* Put forms on the same line */
+.inline-form {
+    display: inline-block;
 }
 input[type=file] {
     /* Without this the input is stretched to 38px but the content appears at the top of the box on Chrome

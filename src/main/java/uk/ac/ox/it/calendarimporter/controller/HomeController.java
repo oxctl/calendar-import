@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.ac.ox.it.calendarimporter.controller.pojo.Alert;
+import uk.ac.ox.it.calendarimporter.controller.pojo.CourseSection;
 import uk.ac.ox.it.calendarimporter.controller.pojo.PreviousImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
@@ -34,6 +35,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
@@ -65,6 +67,9 @@ public class HomeController {
   @Value("${spring.application.name}")
   private String applicationName;
 
+  @Value("${calendar.section.import:false}")
+  private boolean sectionImport;
+
   @Value("${calendar.beta:false}")
   private boolean beta;
 
@@ -87,6 +92,7 @@ public class HomeController {
     model.put("imports", imports);
     model.put("hasMore", jobs.hasNext());
     model.put("course", ltiSession.getLtiLaunchData().getContextLabel());
+    model.put("sectionImport", sectionImport);
     model.put("beta", beta);
     model.put("_csrf", token);
     return new ModelAndView("index", model);
@@ -151,7 +157,7 @@ public class HomeController {
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       RedirectAttributes redirectAttributes,
       @RequestParam ImportType type,
-      @RequestParam(defaultValue = "course") String dest,
+      @RequestParam(required = false) CourseSection dest,
       @RequestParam String url,
       LtiAuthenticationToken authentication,
       LtiSession ltiSession)
@@ -169,7 +175,7 @@ public class HomeController {
           new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: "));
     }
     String into = null;
-    importService.importNow(type, url, url, client, user.getId(), context, into, timeZone);
+    importService.importNow(new ImportConfig(type, url, url, client, user.getId(), context, dest, timeZone));
     addAlert(
         redirectAttributes,
         new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
@@ -208,7 +214,7 @@ public class HomeController {
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       RedirectAttributes redirectAttributes,
       @RequestParam(defaultValue = "CSV") ImportType type,
-      @RequestParam(defaultValue = "") String dest,
+      @RequestParam(name = "destination", required = false) CourseSection dest,
       @RequestParam() MultipartFile file,
       LtiSession ltiSession,
       LtiAuthenticationToken authentication)
@@ -240,24 +246,18 @@ public class HomeController {
                   "Couldn't get timezone, using: " + timeZone.getDisplayName()));
         }
         importService.importNow(
-            type,
-            deposit.toString(),
-            originalFilename,
-            client,
-            user.getId(),
-            context,
-            dest,
-            timeZone);
+                new ImportConfig(type, deposit.toString(), originalFilename, client, user.getId(), context, dest, timeZone));
         addAlert(
             redirectAttributes,
             new Alert(
                 Alert.Type.INFO,
                 "Calendar import started, click update button to follow it's progress."));
       } catch (IOException e) {
-        e.printStackTrace();
+        // TODO?
+        addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "Serious problem occured."));
       }
     }
-    return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
+    return new ModelAndView("redirect:.");
   }
 
   @PostMapping("delete")

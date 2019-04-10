@@ -29,10 +29,11 @@ import uk.ac.ox.it.calendarimporter.service.UploadDepositService;
 
 public abstract class CanvasCalendarJob implements InterruptableJob {
 
-  private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
+    private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
 
   public static final String SOURCE_URL = "url";
   public static final String CONTEXT = "context";
+  public static final String SECTION = "section";
   public static final String ACCESS_TOKEN = "access_token";
   public static final String REFRESH_TOKEN = "refresh_token";
   public static final String TENANT_NAME = "tenant_name";
@@ -41,6 +42,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   public static final String TIME_ZONE = "time_zone";
 
   protected String context;
+  protected String section;
   protected String url;
   protected String timeZone;
   protected CanvasApiFactory canvasApiFactory;
@@ -103,6 +105,10 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     this.timeZone = timeZone;
   }
 
+  public void setSection(String section) {
+    this.section = section;
+  }
+
   public void interrupt() {
     run = false;
   }
@@ -121,6 +127,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     setRefreshToken(config.getString(REFRESH_TOKEN));
     setContext(config.getString(CONTEXT));
     setTimeZone(config.getString(TIME_ZONE));
+    setSection(config.getString(SECTION));
 
     Optional<Tenant> tenant = tenantRepository.findByName(config.getString(TENANT_NAME));
     // TODO Exception
