@@ -68,15 +68,15 @@
         </form>
         <div class="ic-Form-actions debug" style="display: none">
             <form class="ic-Form-group inline-form" id="purge" action="./purge" method="post">
-                <input class="Button" type="submit" value="Purge Imported Events"/>
+                <input class="Button" type="submit" value="Purge Imported Events" onclick="return confirm('This will remove all events created by this tool in the calendar.');"/>
                 <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
             </form>
             <form class="ic-Form-group inline-form" id="delete-all" action="./hide" method="post">
-                <input class="Button" type="submit" value="Delete All"/>
+                <input class="Button" type="submit" value="Delete All" onclick="return confirm('This will remove all import details.');"/>
                 <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
             </form>
             <form class="ic-Form-group inline-form" id="relogin" action="./relogin" method="post">
-                <input class="Button" type="submit" value="Relogin"/>
+                <input class="Button" type="submit" value="Relogin" onclick="return confirm('This will ask you to re-authenticate the application.');"/>
                 <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
             </form>
         </div>
