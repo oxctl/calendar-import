@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.ac.ox.it.calendarimporter.controller.pojo.Alert;
@@ -67,6 +68,7 @@ public class DebugController {
   public ModelAndView purge(
       @PathVariable("tenant") String tenant,
       @PathVariable("context") String context,
+      @RequestParam(name = "all", required = false, defaultValue = "false") boolean all,
       LtiAuthenticationToken ltiAuthenticationToken,
       RedirectAttributes redirectAttributes)
       throws SchedulerException {
@@ -79,6 +81,7 @@ public class DebugController {
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
             .usingJobData(
                 CanvasCalendarJob.USERNAME, ltiAuthenticationToken.getPrincipal().getName())
+            .usingJobData(CleanoutJob.ALL, all)
             .forJob(job)
             .build();
 

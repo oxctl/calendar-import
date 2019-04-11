@@ -36,6 +36,9 @@ import uk.ac.ox.it.calendarimporter.utils.HiddenData;
  */
 public class CleanoutJob implements Job {
 
+  /** If true in the job map then we remove everything in the calendar and not just those that were imported. */
+  public static final String ALL = "all";
+
   private Logger log = LoggerFactory.getLogger(CleanoutJob.class);
 
   @Autowired private TenantRepository tenantRepository;
@@ -73,11 +76,12 @@ public class CleanoutJob implements Job {
     options.includeAllEvents(true);
     // This just excludes attributes we don't need.
     options.excludes(Arrays.asList(CHILD_EVENTS, ASSIGNMENT));
+    boolean all = config.getBoolean(ALL);
     try {
       List<CalendarEvent> calendarEvents = calendarReader.listCurrentUserCalendarEvents(options);
       int removed = 0;
       for (CalendarEvent event : calendarEvents) {
-        if (isImportedEvent(event)) {
+        if (isImportedEvent(event) || all) {
           log.debug(
               "Attempting to remove event ID {} from calendar {} of {}",
               event.getId(),
