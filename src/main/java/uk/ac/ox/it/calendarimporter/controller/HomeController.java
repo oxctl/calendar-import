@@ -94,7 +94,7 @@ public class HomeController {
             .collect(Collectors.toList());
     model.put("imports", imports);
     model.put("hasMore", jobs.hasNext());
-    model.put("course", ltiSession.getLtiLaunchData().getContextLabel());
+    model.put("course", ltiSession.getLtiLaunchData().getContextTitle());
     model.put("sectionImport", sectionImport);
     model.put("beta", beta);
     model.put("_csrf", token);
