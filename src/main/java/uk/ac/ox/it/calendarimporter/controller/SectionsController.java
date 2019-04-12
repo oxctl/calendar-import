@@ -5,6 +5,12 @@ import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.interfaces.SectionReader;
 import edu.ksu.canvas.model.Section;
 import edu.ksu.canvas.oauth.OauthToken;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
@@ -17,13 +23,6 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * This allows loading of sections that are in a course. This is developed as an API so that the
@@ -61,11 +60,13 @@ public class SectionsController {
     SectionReader reader = factory.getReader(SectionReader.class, token);
     String courseId = getCourseId(context);
     List<Section> sections = reader.listCourseSections(courseId, Collections.emptyList());
-    List<CourseSection> courseSections = sections.stream()
+    List<CourseSection> courseSections =
+        sections.stream()
             .map(s -> new CourseSection("course_section_" + s.getId(), s.getName()))
             .collect(Collectors.toList());
-    return ResponseEntity.ok().cacheControl(CacheControl.maxAge(MAX_AGE, TimeUnit.MINUTES)).body(courseSections);
-
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(MAX_AGE, TimeUnit.MINUTES))
+        .body(courseSections);
   }
 
   private String getCourseId(String context) {

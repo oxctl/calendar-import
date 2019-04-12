@@ -1,13 +1,12 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import static org.hibernate.annotations.CacheConcurrencyStrategy.NONSTRICT_READ_WRITE;
+
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
+import org.hibernate.annotations.Cache;
 
 /**
  * This is a Canvas installation, the idea is that all objects are tied to a tenant (not always
@@ -15,6 +14,7 @@ import lombok.ToString;
  */
 @Entity
 @Data
+@Cache(usage = NONSTRICT_READ_WRITE)
 public class Tenant {
 
   @Id

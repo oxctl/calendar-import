@@ -2,12 +2,14 @@ package uk.ac.ox.it.calendarimporter.persistence.repo;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.CrudRepository;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
 public interface ContextJobRepository extends CrudRepository<ContextJob, Long> {
 
+  @EntityGraph("contextJobWithCalendarImport")
   Page<ContextJob> findByTenantAndContextAndHiddenOrderByCreatedDesc(
       Tenant tenant, String context, boolean hidden, Pageable pageable);
 }

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
@@ -34,8 +35,8 @@ public class ContextJobRepositoryTest {
     tenant.setUrl("http://example.com");
     entityManager.persist(tenant);
 
-    calendarImport = new CalendarImport();
-    entityManager.persist(calendarImport);
+    CalendarImport calendarImport = new CalendarImport();
+    this.calendarImport = entityManager.persist(calendarImport);
   }
 
   @Test(expected = ConstraintViolationException.class)
@@ -79,7 +80,7 @@ public class ContextJobRepositoryTest {
     {
       Page<ContextJob> jobs =
           repository.findByTenantAndContextAndHiddenOrderByCreatedDesc(
-              tenant, "context_1", false, null);
+              tenant, "context_1", false, Pageable.unpaged());
       assertFalse(jobs.isEmpty());
       Iterator<ContextJob> iterator = jobs.iterator();
       assertTrue(iterator.hasNext());

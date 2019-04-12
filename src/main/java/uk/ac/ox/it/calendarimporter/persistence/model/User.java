@@ -12,11 +12,14 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"tenant", "username"}))
 @Entity
 @Data
 @EqualsAndHashCode
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class User {
 
   @Id

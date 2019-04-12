@@ -14,6 +14,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -28,6 +30,7 @@ import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class UserTokens {
 
   // The user to who the tokens belong

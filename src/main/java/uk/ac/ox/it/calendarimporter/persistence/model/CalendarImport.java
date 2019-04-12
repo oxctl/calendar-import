@@ -38,8 +38,8 @@ public class CalendarImport {
   private ImportType type;
 
   /** The job used to load the data. */
-  @OneToOne private JobProgress load;
+  @OneToOne() private JobProgress load;
 
   /** The job used to remove the data. */
-  @OneToOne private JobProgress delete;
+  @OneToOne() private JobProgress delete;
 }

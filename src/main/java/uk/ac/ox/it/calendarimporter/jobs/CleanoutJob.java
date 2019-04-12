@@ -36,7 +36,10 @@ import uk.ac.ox.it.calendarimporter.utils.HiddenData;
  */
 public class CleanoutJob implements Job {
 
-  /** If true in the job map then we remove everything in the calendar and not just those that were imported. */
+  /**
+   * If true in the job map then we remove everything in the calendar and not just those that were
+   * imported.
+   */
   public static final String ALL = "all";
 
   private Logger log = LoggerFactory.getLogger(CleanoutJob.class);

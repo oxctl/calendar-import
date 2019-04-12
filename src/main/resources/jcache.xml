@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ehcache.org/v3" xmlns:jsr107="http://www.ehcache.org/v3/jsr107"
+        xsi:schemaLocation="
+        http://www.ehcache.org/v3
+        http://www.ehcache.org/schema/ehcache-core.xsd
+        http://www.ehcache.org/v3/jsr107
+        http://www.ehcache.org/schema/ehcache-107-ext.xsd">
+
+    <!-- https://hibernate.atlassian.net/browse/HHH-12531 -->
+    <service>
+        <jsr107:defaults enable-management="true" enable-statistics="true" default-template="default"  />
+    </service>
+
+    <cache alias="org.hibernate.cache.spi.QueryResultsRegion">
+        <expiry>
+            <tti unit="seconds">300</tti>
+        </expiry>
+        <heap unit="MB">128</heap>
+    </cache>
+
+    <cache alias="org.hibernate.cache.spi.TimestampsRegion">
+        <expiry>
+            <none />
+        </expiry>
+        <heap unit="MB">64</heap>
+    </cache>
+
+    <cache-template name="default">
+        <expiry>
+            <tti unit="seconds">300</tti>
+        </expiry>
+        <heap unit="MB">256</heap>
+    </cache-template>
+</config>

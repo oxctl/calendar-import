@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -16,6 +17,7 @@ import uk.ac.ox.it.calendarimporter.utils.TenantProperties;
 @EnableJpaRepositories("uk.ac.ox.it.calendarimporter.persistence.repo")
 @EntityScan({"uk.ac.ox.it.calendarimporter.persistence.model"})
 @SpringBootApplication(scanBasePackages = "uk.ac.ox.it.calendarimporter")
+@EnableCaching
 public class CalendarImporterForCanvasApplication {
 
   @Autowired private ApplicationEventPublisher applicationEventPublisher;
