@@ -186,7 +186,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     log(null, message, args);
   }
 
-  public void log(Integer percent, String message, Object... args) {
+  public void log(Float percent, String message, Object... args) {
     String formatted = (args.length > 0) ? String.format(message, args) : message;
     try {
       logWriter.append(formatted).append('\n');
@@ -197,7 +197,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     Instant now = Instant.now();
     if (lastUpdate.plus(updateInterval).isBefore(now)) {
       unsavedMessage = null;
-      progressService.updateJob(triggerId, formatted, percent);
+      progressService.updateJob(triggerId, formatted, percent.intValue());
     } else {
       unsavedMessage = formatted;
     }

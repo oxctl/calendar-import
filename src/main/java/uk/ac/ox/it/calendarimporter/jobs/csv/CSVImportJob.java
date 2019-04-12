@@ -33,7 +33,7 @@ public class CSVImportJob extends CanvasCalendarJob {
 
     TimeZone timeZone = TimeZone.getTimeZone(this.timeZone);
 
-    int progress = 0;
+    float progress = 0;
     // Just a short code that should be unique to group together imports.
     // We don't want to use the triggerID as it's semi secret, only need a few characters so they
     // don't clash
@@ -58,7 +58,7 @@ public class CSVImportJob extends CanvasCalendarJob {
     CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
     int eventProgress = 0;
     int eventTotal = calendarEvents.size();
-    int progressPerEvent = (100 - progress) / eventTotal;
+    float progressPerEvent = (100 - progress) / eventTotal;
     int created = 0;
     for (CalendarEvent event : calendarEvents) {
       if (isInterrupted()) {
