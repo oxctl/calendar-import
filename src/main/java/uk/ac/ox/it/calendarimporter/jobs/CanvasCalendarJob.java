@@ -64,7 +64,7 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   // These are for preventing lots of small DB updates.
   private Instant lastUpdate = Instant.MIN;
   private String unsavedMessage;
-  private final Duration updateInterval = Duration.ofMinutes(1);
+  private final Duration updateInterval = Duration.ofSeconds(1);
 
   @Autowired private TenantRepository tenantRepository;
 
