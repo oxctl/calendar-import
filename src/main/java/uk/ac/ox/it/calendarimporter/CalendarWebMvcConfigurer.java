@@ -55,6 +55,7 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
     // This is because CSS output by a controller is marked as uncachable otherwise.
     WebContentInterceptor interceptor = new WebContentInterceptor();
     interceptor.addCacheMapping(CacheControl.maxAge(1, TimeUnit.HOURS), "/**/*.css");
+    interceptor.addCacheMapping(CacheControl.maxAge(1, TimeUnit.HOURS), "/**/*.js");
     registry.addInterceptor(interceptor);
   }
 
