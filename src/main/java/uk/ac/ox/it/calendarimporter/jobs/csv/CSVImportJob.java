@@ -5,12 +5,16 @@ import edu.ksu.canvas.model.CalendarEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+
+import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
-import uk.ac.ox.it.calendarimporter.service.EventService;
+import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
+import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
+import uk.ac.ox.it.calendarimporter.service.ImportEventService;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 /**
@@ -24,16 +28,21 @@ public class CSVImportJob extends CanvasCalendarJob {
 
   private boolean hasErrors;
 
-  @Autowired private EventService eventService;
+  @Autowired private ImportEventService importEventService;
+
+  @Autowired private ImportedEventRepository importedEventRepository;
 
   @Autowired private CSVReader reader;
 
   @Override
   public void run() throws IOException, JobExecutionException {
+    float progress = 0;
+
+    CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+    runJobRecovery(calendarWriter);
 
     TimeZone timeZone = TimeZone.getTimeZone(this.timeZone);
 
-    float progress = 0;
     // Just a short code that should be unique to group together imports.
     // We don't want to use the triggerID as it's semi secret, only need a few characters so they
     // don't clash
@@ -55,7 +64,6 @@ public class CSVImportJob extends CanvasCalendarJob {
       log("No events found in file");
       return;
     }
-    CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
     int eventProgress = 0;
     int eventTotal = calendarEvents.size();
     float progressPerEvent = (100 - progress) / eventTotal;
@@ -74,7 +82,7 @@ public class CSVImportJob extends CanvasCalendarJob {
       }
       Optional<CalendarEvent> calendarEventOpt = calendarWriter.createCalendarEvent(event);
       if (calendarEventOpt.isPresent()) {
-        eventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
+        importEventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
         created++;
       }
 
@@ -84,6 +92,24 @@ public class CSVImportJob extends CanvasCalendarJob {
     log(
         "Completed import, found %d events, imported %d events into calendar.",
         eventTotal, created);
+  }
+
+  private void runJobRecovery(CalendarWriter calendarWriter) throws IOException {
+    // If the job was running when the scheduler died we first remove all the events created by the first run and
+    // ony then re-attempt to import the file.
+    List<ImportedEvent> existing = importEventService.findExisting(calendarImport);
+    if (!existing.isEmpty()) {
+      log("Recovering, first deleting existing events.");
+      int events = existing.size(), deleted = 0;
+      for (ImportedEvent event: existing) {
+        calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getIdentity().getId()));
+        deleted++;
+        // Unlike the delete job, here we cleanup events.
+        importedEventRepository.delete(event);
+        log ("Recovering, cleaning event %d of %d", deleted, events);
+      }
+      log("Recovery complete");
+    }
   }
 
   /**

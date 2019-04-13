@@ -3,14 +3,6 @@ package uk.ac.ox.it.calendarimporter.jobs;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.oauth.OauthToken;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.URL;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Optional;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -23,12 +15,12 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
-import uk.ac.ox.it.calendarimporter.service.DepositService;
-import uk.ac.ox.it.calendarimporter.service.DepositService.Type;
 import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
-import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
-public abstract class CanvasCalendarJob implements InterruptableJob {
+import java.io.IOException;
+import java.util.Optional;
+
+public abstract class CanvasCalendarJob extends LoggingJob implements InterruptableJob {
 
   private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
 
@@ -51,7 +43,6 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
 
   protected Tenant tenant;
   protected CalendarImport calendarImport;
-  protected String triggerId;
 
   // We need to always pass this in so that on beta/test we take the URL of the launch rather than
   // the URL that we registered the tool with initially.
@@ -59,12 +50,6 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   private String accessToken;
   private String refreshToken;
   private boolean run = true;
-  private OutputStreamWriter logWriter;
-
-  // These are for preventing lots of small DB updates.
-  private Instant lastUpdate = Instant.MIN;
-  private String unsavedMessage;
-  private final Duration updateInterval = Duration.ofSeconds(1);
 
   @Autowired private TenantRepository tenantRepository;
 
@@ -73,14 +58,6 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
   @Autowired private UserTokensRepository userTokensRepository;
 
   @Autowired private OauthTokenFactory oauthTokenFactory;
-
-  @Autowired private ProgressService progressService;
-
-  @Autowired private DepositService depositService;
-
-  public void setProgressService(ProgressService progressService) {
-    this.progressService = progressService;
-  }
 
   public void setContext(String context) {
     this.context = context;
@@ -118,9 +95,8 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
     return !run;
   }
 
-  public void execute(JobExecutionContext context) throws JobExecutionException {
-
-    triggerId = context.getTrigger().getKey().getName();
+  @Override
+  public void executeLogged(JobExecutionContext context) throws JobExecutionException {
 
     JobDataMap config = context.getMergedJobDataMap();
     setUrl(config.getString(SOURCE_URL));
@@ -147,16 +123,8 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
             accessToken,
             refreshToken);
 
-    File logfile = null;
     try {
-      logfile = File.createTempFile("calendar-import", ".log");
-    } catch (IOException e) {
-      throw new JobExecutionException("Failed to create logfile.", e);
-    }
-
-    try (OutputStreamWriter logWriter = new OutputStreamWriter(new FileOutputStream(logfile))) {
-      this.logWriter = logWriter;
-      run();
+        run();
     } catch (InvalidOauthTokenException e) {
       // TODO This should be passed in rather than rebuilding the principal.
       userTokensRepository.deleteById(this.tenant.getName() + ":" + config.getString(USERNAME));
@@ -164,43 +132,8 @@ public abstract class CanvasCalendarJob implements InterruptableJob {
           "Approved Integration has stopped working, please re-run the job.");
     } catch (IOException e) {
       throw new JobExecutionException(e);
-    } finally {
-      // Make sure to flush the last message.
-      if (unsavedMessage != null) {
-        progressService.updateJob(triggerId, unsavedMessage, null);
-      }
-      // Persist the log
-      URL deposit = null;
-      try {
-        deposit = depositService.deposit(logfile, Type.LOG);
-      } catch (IOException e) {
-        throw new JobExecutionException("Failed to save logfile.", e);
-      }
-      context.setResult(deposit.toExternalForm());
     }
   }
 
   public abstract void run() throws IOException, JobExecutionException;
-
-  public void log(String message, Object... args) {
-    log(null, message, args);
-  }
-
-  public void log(Float percent, String message, Object... args) {
-    String formatted = (args.length > 0) ? String.format(message, args) : message;
-    try {
-      logWriter.append(formatted).append('\n');
-    } catch (IOException e) {
-      log.warn("Failed to write to logger {}", logWriter);
-    }
-    // Rate limit to updating the DB every 10 seconds.
-    Instant now = Instant.now();
-    if (lastUpdate.plus(updateInterval).isBefore(now)) {
-      unsavedMessage = null;
-      progressService.updateJob(triggerId, formatted, percent.intValue());
-    } else {
-      unsavedMessage = formatted;
-    }
-    lastUpdate = now;
-  }
 }

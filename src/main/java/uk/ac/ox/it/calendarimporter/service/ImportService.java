@@ -63,6 +63,7 @@ public class ImportService {
           JobBuilder.newJob(importConfig.getType().getJobClass())
               .withIdentity(importConfig.getType().name(), "import")
               .storeDurably()
+              .requestRecovery()
               .build();
       scheduler.addJob(detail, true);
     }
