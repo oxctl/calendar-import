@@ -55,7 +55,7 @@ public class CleanoutJob implements Job {
             .findByName(config.getString(TENANT_NAME))
             .orElseThrow(JobExecutionException::new);
     String context = config.getString(CONTEXT);
-    log.debug("Cleaning out all events in {} of {}", context, tenant);
+    log.info("Cleaning out all events in {} of {}", context, tenant);
 
     String tenantUser = config.getString(TENANT_NAME) + ":" + config.getString(USERNAME);
     UserTokens userTokens =
@@ -113,7 +113,7 @@ public class CleanoutJob implements Job {
         }
       }
       log.info(
-          "Removed {} or {} events from calendar {} of {}",
+          "Removed {} of {} events from calendar {} of {}",
           removed,
           calendarEvents.size(),
           context,
