@@ -1,8 +1,6 @@
 package uk.ac.ox.it.calendarimporter.controller.pojo;
 
-import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.COMPLETED;
-import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.FAILED;
-import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.RUNNING;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.*;
 
 import com.github.marlonlom.utilities.timeago.TimeAgo;
 import lombok.Data;
@@ -49,7 +47,10 @@ public class PreviousImport {
     JobProgress.Status status = calendarImport.getLoad().getStatus();
     return (calendarImport.getDelete() == null
             || FAILED.equals(calendarImport.getDelete().getStatus()))
-        && (COMPLETED.equals(status) || FAILED.equals(status));
+        && (COMPLETED.equals(status)
+            || FAILED.equals(status)
+            || ERRORED.equals(status)
+            || PROBLEMS.equals(status));
   }
 
   @Data

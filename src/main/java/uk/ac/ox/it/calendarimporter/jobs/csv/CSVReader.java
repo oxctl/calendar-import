@@ -23,7 +23,7 @@ import org.springframework.util.unit.DataSize;
 import uk.ac.ox.it.calendarimporter.jobs.ical.TerminatingInputStream;
 
 /**
- * This reads in the CSV file calling the handler for any errors.
+ * This reads in the CSV file calling the handler for any errors during the progress of the file.
  *
  * @see RowException The exception for any problems we find.
  */
@@ -39,7 +39,7 @@ public class CSVReader {
   private DataSize inputLimit = DataSize.ofMegabytes(10);
 
   public List<CalendarEvent> parseCSV(URL url, TimeZone timeZone, ErrorHandler errorHandler)
-      throws IOException {
+      throws IOException, HeaderException {
     try {
       URLConnection connection = url.openConnection();
       connection.setReadTimeout(10000);
@@ -158,10 +158,10 @@ public class CSVReader {
     }
   }
 
-  private void validateHeader(Set<String> headers) {
+  private void validateHeader(Set<String> headers) throws HeaderException {
     for (Field field : Field.values()) {
       if (field.isRequired() && !headers.contains(field.getHeader())) {
-        throw new RuntimeException("Missing required header: " + field.getHeader());
+        throw new HeaderException("Missing required header: " + field.getHeader());
       }
     }
   }

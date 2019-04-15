@@ -12,6 +12,7 @@ import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.OrMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.ac.ox.it.calendarimporter.jobs.LoggingJob;
 
 /**
  * This watches for job start/stops and updates the basic job progress. This should actually be a
@@ -49,11 +50,20 @@ public class JobProgressListener implements JobListener {
   @Override
   public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
     String jobId = context.getTrigger().getKey().getName();
-    String logfile = (context.getResult() != null) ? context.getResult().toString() : null;
-    String error = null;
+    String error;
+    String logfile = null;
+    boolean problems = false, failure = false;
+    if (context.getResult() instanceof LoggingJob.JobResult) {
+      LoggingJob.JobResult result = (LoggingJob.JobResult) context.getResult();
+      logfile = result.getLogfile();
+      problems = result.isProblems();
+      failure = result.isFailure();
+    }
     if (jobException != null) {
       error = jobException.getLocalizedMessage();
+      progressService.updateJobStopped(jobId, error, logfile);
+    } else {
+      progressService.updateJobStopped(jobId, logfile, problems, failure);
     }
-    progressService.updateJobStopped(jobId, error, logfile);
   }
 }

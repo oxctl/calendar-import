@@ -30,9 +30,10 @@ import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 /**
- * This will remove all events from a calendar that were created by any import. This is used so that
- * if we have a problem with a delete job not removing some events we can just flush out all events
- * created by the importer and then re-import the actual files we want.
+ * This will remove all events from a calendar that were created by any import. It does this by
+ * looking for additional metadata hidden in event descriptions. This is used so that if we have a
+ * problem with a delete job not removing some events we can just flush out all events created by
+ * the importer and then re-import the actual files we want.
  */
 public class CleanoutJob implements Job {
 

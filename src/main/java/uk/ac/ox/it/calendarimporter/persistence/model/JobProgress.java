@@ -31,9 +31,17 @@ public class JobProgress {
   }
 
   public enum Status {
+    /** The job hasn't started running yet and it waiting to */
     QUEUED,
+    /** The job is currently running and we await the results. */
     RUNNING,
+    /** The jobs completed successfully. */
     COMPLETED,
-    FAILED
+    /** The job ran but there were errors. */
+    PROBLEMS,
+    /** The job completely failed to run. */
+    FAILED,
+    /** The jobs failed in an expected way. There is an exception here. */
+    ERRORED
   }
 }

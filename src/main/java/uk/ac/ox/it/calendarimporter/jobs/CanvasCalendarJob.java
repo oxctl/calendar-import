@@ -3,6 +3,8 @@ package uk.ac.ox.it.calendarimporter.jobs;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.oauth.OauthToken;
+import java.io.IOException;
+import java.util.Optional;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -16,9 +18,6 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
-
-import java.io.IOException;
-import java.util.Optional;
 
 public abstract class CanvasCalendarJob extends LoggingJob implements InterruptableJob {
 
@@ -124,7 +123,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
             refreshToken);
 
     try {
-        run();
+      run();
     } catch (InvalidOauthTokenException e) {
       // TODO This should be passed in rather than rebuilding the principal.
       userTokensRepository.deleteById(this.tenant.getName() + ":" + config.getString(USERNAME));

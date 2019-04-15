@@ -2,11 +2,10 @@ package uk.ac.ox.it.calendarimporter.jobs.csv;
 
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
+import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-
-import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +25,6 @@ public class CSVImportJob extends CanvasCalendarJob {
   private static final String HIDDEN_DATA_PREFIX = "csv-import:";
   private Logger log = LoggerFactory.getLogger(CSVImportJob.class);
 
-  private boolean hasErrors;
-
   @Autowired private ImportEventService importEventService;
 
   @Autowired private ImportedEventRepository importedEventRepository;
@@ -36,7 +33,6 @@ public class CSVImportJob extends CanvasCalendarJob {
 
   @Override
   public void run() throws IOException, JobExecutionException {
-    float progress = 0;
 
     CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
     runJobRecovery(calendarWriter);
@@ -48,29 +44,29 @@ public class CSVImportJob extends CanvasCalendarJob {
     // don't clash
     String hiddenData =
         HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
-    log(progress, "Import started, timezone of: " + timeZone.getID());
+    log("Import started, timezone of: " + timeZone.getID());
     URL url = new URL(this.url);
     log.debug("Attempting to load CSV file: {}", url);
-    CSVReader.ErrorHandler errorHandler =
-        e -> {
-          // Programmers are 0 based, users are 1 based
-          log("Error on row %d, message: %s", e.getRow() + 1, e.getLocalizedMessage());
-          hasErrors = true;
-        };
-    List<CalendarEvent> calendarEvents = reader.parseCSV(url, timeZone, errorHandler);
-    log.trace("Parsed {} rows and has errors: {}", calendarEvents.size(), hasErrors);
-    log("Source file read.");
-    if (calendarEvents.isEmpty()) {
-      log("No events found in file");
+    // Programmers are 0 based, users are 1 based
+    TrackingErrorHandler errorHandler = new TrackingErrorHandler();
+    List<CalendarEvent> calendarEvents;
+    try {
+      calendarEvents = reader.parseCSV(url, timeZone, errorHandler);
+    } catch (HeaderException he) {
+      failure("Failed to read file: " + he.getLocalizedMessage());
       return;
     }
-    int eventProgress = 0;
-    int eventTotal = calendarEvents.size();
-    float progressPerEvent = (100 - progress) / eventTotal;
+    log.trace("Parsed {} rows.", calendarEvents.size());
+    log("Source file read.");
+    if (calendarEvents.isEmpty()) {
+      problem("No events found in file");
+      return;
+    }
+    Progress progress = new Progress(calendarEvents.size());
     int created = 0;
     for (CalendarEvent event : calendarEvents) {
       if (isInterrupted()) {
-        log("Interrupted after %d of %d events", ++eventProgress, eventTotal);
+        log("Interrupted after %d of %d events", progress.getSeen(), progress.getTotal());
         throw new JobExecutionException("Job interrupted");
       }
       event.setContextCode(context);
@@ -85,28 +81,36 @@ public class CSVImportJob extends CanvasCalendarJob {
         importEventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
         created++;
       }
-
-      progress += progressPerEvent;
-      log(progress, "Processed event %d of %d", ++eventProgress, eventTotal);
+      progress.increment();
+      log(progress, "Processed event %d of %d", progress.getSeen(), progress.getTotal());
     }
-    log(
-        "Completed import, found %d events, imported %d events into calendar.",
-        eventTotal, created);
+    if (errorHandler.hasProblems()) {
+      log(
+          "Completed import, found %d events, imported %d events, problems with %d events",
+          progress.getTotal(), created, errorHandler.problems);
+
+    } else {
+      log(
+          "Completed import, found %d events, imported %d events into calendar.",
+          progress.getTotal(), created);
+    }
   }
 
   private void runJobRecovery(CalendarWriter calendarWriter) throws IOException {
-    // If the job was running when the scheduler died we first remove all the events created by the first run and
+    // If the job was running when the scheduler died we first remove all the events created by the
+    // first run and
     // ony then re-attempt to import the file.
-    List<ImportedEvent> existing = importEventService.findExisting(calendarImport);
+    List<ImportedEvent> existing = importedEventRepository.findByCalendarImport(calendarImport);
     if (!existing.isEmpty()) {
       log("Recovering, first deleting existing events.");
       int events = existing.size(), deleted = 0;
-      for (ImportedEvent event: existing) {
-        calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getIdentity().getId()));
+      for (ImportedEvent event : existing) {
+        calendarWriter.deleteCalendarEvent(
+            new DeleteCalendarEventOptions(event.getIdentity().getId()));
         deleted++;
         // Unlike the delete job, here we cleanup events.
         importedEventRepository.delete(event);
-        log ("Recovering, cleaning event %d of %d", deleted, events);
+        log("Recovering, cleaning event %d of %d", deleted, events);
       }
       log("Recovery complete");
     }
@@ -129,7 +133,18 @@ public class CSVImportJob extends CanvasCalendarJob {
     return event;
   }
 
-  public boolean hasErrors() {
-    return hasErrors;
+  private class TrackingErrorHandler implements CSVReader.ErrorHandler {
+    private int problems = 0;
+
+    @Override
+    public void handleError(RowException e) {
+      CSVImportJob.this.problem(
+          "Error on row %d, message: %s", e.getRow() + 1, e.getLocalizedMessage());
+      problems++;
+    }
+
+    public boolean hasProblems() {
+      return problems > 0;
+    }
   }
 }

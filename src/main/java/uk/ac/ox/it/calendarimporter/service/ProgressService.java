@@ -90,8 +90,31 @@ public class ProgressService {
     JobProgress jobProgress =
         progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
     if (error != null) {
-      jobProgress.setStatus(JobProgress.Status.FAILED);
+      jobProgress.setStatus(JobProgress.Status.ERRORED);
       jobProgress.setLastMessage(error);
+    } else {
+      jobProgress.setStatus(JobProgress.Status.COMPLETED);
+    }
+    jobProgress.setLogfile(logfile);
+    jobProgress.setCompleted(Instant.now());
+    return progressRepository.save(jobProgress);
+  }
+
+  /**
+   * Used by listener to mark a job as finished/failed.
+   *
+   * @param triggerId The job ID.
+   */
+  @Transactional
+  public JobProgress updateJobStopped(
+      String triggerId, String logfile, boolean problems, boolean failure) {
+    log.debug("Trigger {} stopped", triggerId);
+    JobProgress jobProgress =
+        progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
+    if (failure) {
+      jobProgress.setStatus(JobProgress.Status.FAILED);
+    } else if (problems) {
+      jobProgress.setStatus(JobProgress.Status.PROBLEMS);
     } else {
       jobProgress.setStatus(JobProgress.Status.COMPLETED);
     }

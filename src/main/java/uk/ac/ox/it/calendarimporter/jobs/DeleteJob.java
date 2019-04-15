@@ -30,7 +30,6 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
-import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 /** This will remove all events that an import job added to a calendar. */
 public class DeleteJob extends LoggingJob implements Job {
