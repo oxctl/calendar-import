@@ -47,6 +47,7 @@ public class CSVImportJob extends CanvasCalendarJob {
     log("Import started, timezone of: " + timeZone.getID());
     URL url = new URL(this.url);
     log.debug("Attempting to load CSV file: {}", url);
+    log("Reading in file.");
     // Programmers are 0 based, users are 1 based
     TrackingErrorHandler errorHandler = new TrackingErrorHandler();
     List<CalendarEvent> calendarEvents;
@@ -59,11 +60,12 @@ public class CSVImportJob extends CanvasCalendarJob {
     log.trace("Parsed {} rows.", calendarEvents.size());
     log("Source file read.");
     if (calendarEvents.isEmpty()) {
-      problem("No events found in file");
+      problem("No events found in file.");
       return;
     }
     Progress progress = new Progress(calendarEvents.size());
     int created = 0;
+    log("Creating events in Canvas.");
     for (CalendarEvent event : calendarEvents) {
       if (isInterrupted()) {
         log("Interrupted after %d of %d events", progress.getSeen(), progress.getTotal());
@@ -77,12 +79,12 @@ public class CSVImportJob extends CanvasCalendarJob {
         event = toSection(event, section);
       }
       Optional<CalendarEvent> calendarEventOpt = calendarWriter.createCalendarEvent(event);
-      if (calendarEventOpt.isPresent()) {
-        importEventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
-        created++;
-      }
       progress.increment();
-      log(progress, "Processed event %d of %d", progress.getSeen(), progress.getTotal());
+      if (calendarEventOpt.isPresent()) {
+        created++;
+        log(progress, "Created event %d of %d", progress.getSeen(), progress.getTotal());
+        importEventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
+      }
     }
     if (errorHandler.hasProblems()) {
       log(
@@ -102,7 +104,7 @@ public class CSVImportJob extends CanvasCalendarJob {
     // ony then re-attempt to import the file.
     List<ImportedEvent> existing = importedEventRepository.findByCalendarImport(calendarImport);
     if (!existing.isEmpty()) {
-      log("Recovering, first deleting existing events.");
+      log("Recovering, deleting existing events.");
       int events = existing.size(), deleted = 0;
       for (ImportedEvent event : existing) {
         calendarWriter.deleteCalendarEvent(
