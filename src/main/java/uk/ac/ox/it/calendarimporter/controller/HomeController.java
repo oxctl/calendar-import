@@ -59,7 +59,8 @@ public class HomeController {
 
   @Autowired private UserOAuth2AuthorizedClientRepository clientRepository;
 
-  @Autowired BuildProperties buildProperties;
+  // When just building using IntelliJ this doesn't get built which is why it's optional.
+  @Autowired(required = false) BuildProperties buildProperties;
 
   @Value("${calendar.common.css}")
   private String defaultCommonCss;
@@ -80,7 +81,6 @@ public class HomeController {
   public ModelAndView home(
       @PathVariable("tenant") String tenantName,
       @PathVariable("context") String context,
-      Model inModel,
       CsrfToken token,
       Pageable pageable,
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
@@ -144,7 +144,7 @@ public class HomeController {
 
   @ModelAttribute("commitId")
   public String commitId() {
-    String id = buildProperties.get("git.commit.id");
+    String id = (buildProperties != null)?buildProperties.get("git.commit.id"):null;
     return (id != null && id.length() > 6) ? id.substring(0, 6) : "";
   }
 
