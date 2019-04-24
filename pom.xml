@@ -77,6 +77,11 @@
       <optional>true</optional>
     </dependency>
 
+    <dependency>
+        <groupId>org.springframework.session</groupId>
+        <artifactId>spring-session-core</artifactId>
+    </dependency>
+
     <!-- Needed for building the config -->
     <dependency>
       <groupId>javax.xml.bind</groupId>

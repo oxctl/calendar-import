@@ -1,11 +1,17 @@
 package uk.ac.ox.it.calendarimporter.service;
 
 import edu.ksu.lti.launch.model.LtiLaunchData;
+import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
 import edu.ksu.lti.launch.service.SimpleLtiLoginService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.ac.ox.it.calendarimporter.CustomPathCookieSerializer;
 import uk.ac.ox.it.calendarimporter.controller.LTILaunchException;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
@@ -38,6 +44,19 @@ public class CalendarLtiLoginService extends SimpleLtiLoginService {
         + "/course_"
         + getLtiSession().getCanvasCourseId()
         + "/?login=true";
+  }
+
+  @Override
+  public void setLtiSession(LtiSession ltiSession) {
+    ServletRequestAttributes sra =
+        (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    HttpServletRequest req = sra.getRequest();
+    HttpSession session = req.getSession();
+    session.setAttribute(SimpleLtiLoginService.class.getName(), ltiSession);
+    // This is so that we have a custom path on our cookie
+    session.setAttribute(
+        CustomPathCookieSerializer.ADDITIONAL_PATH,
+        "/" + ltiSession.getApplicationName() + "/course_" + ltiSession.getCanvasCourseId());
   }
 
   @Override
