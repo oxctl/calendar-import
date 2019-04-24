@@ -247,7 +247,7 @@ public class HomeController {
               redirectAttributes,
               new Alert(
                   Alert.Type.WARNING,
-                  "Couldn't get timezone, using: " + timeZone.getDisplayName()));
+                  "Couldn't get timezone, using: " + timeZone.getID()));
         }
         importService.importNow(
             new ImportConfig(
