@@ -14,7 +14,8 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
 
 /**
  * Tracks the progress of jobs running. At the moment all updates go through to the database which
- * isn't ideal, we could use an in-memory store in the future.
+ * isn't ideal, we could use an in-memory store in the future. The job does however limit the writes
+ * through to the progress service so that it doesn't abuse the service with updates too frequently.
  */
 @Component
 @Slf4j
@@ -28,7 +29,7 @@ public class ProgressService {
    * @param triggerId The trigger id.
    * @return A new job progress that hasn't yet been persisted yet.
    */
-  private static JobProgress createJobProgress(String triggerId) {
+  private JobProgress createJobProgress(String triggerId) {
     JobProgress jobProgress = new JobProgress(triggerId);
     jobProgress.setStarted(Instant.now());
     return jobProgress;
@@ -131,11 +132,15 @@ public class ProgressService {
   @Transactional
   public JobProgress updateJobCreated(String triggerId) {
     log.debug("Trigger {} created", triggerId);
-    JobProgress jobProgress =
-        progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
-    jobProgress.setStatus(JobProgress.Status.QUEUED);
-    jobProgress.setLastMessage("Job queued");
-    return progressRepository.save(jobProgress);
+    JobProgress jobProgress = findById(triggerId).orElseGet(() -> new JobProgress(triggerId));
+    if (jobProgress.getStatus() != null) {
+      log.warn("Job already exists for trigger {}, not setting to queued.", triggerId);
+      return jobProgress;
+    } else {
+      jobProgress.setStatus(JobProgress.Status.QUEUED);
+      jobProgress.setLastMessage("Job queued");
+      return progressRepository.save(jobProgress);
+    }
   }
 
   public Optional<JobProgress> findById(String triggerId) {
