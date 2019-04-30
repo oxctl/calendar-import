@@ -58,7 +58,7 @@ public class LtiHandlerImpl implements AuthenticationEntryPoint {
           request.setAttribute(
               "javax.servlet.error.exception",
               new NoCookiesException(
-                  "You are blocking cookies, please allow cookies.", authException));
+                  "You are blocking cookies, please allow cookies. If you are using Safari on macOS please use a different browser as this browser isn't supported.", authException));
         } else {
           // Put exception into request scope (perhaps of use to a view)
           request.setAttribute("javax.servlet.error.exception", authException);
