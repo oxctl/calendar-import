@@ -20,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -60,7 +59,8 @@ public class HomeController {
   @Autowired private UserOAuth2AuthorizedClientRepository clientRepository;
 
   // When just building using IntelliJ this doesn't get built which is why it's optional.
-  @Autowired(required = false) BuildProperties buildProperties;
+  @Autowired(required = false)
+  BuildProperties buildProperties;
 
   @Value("${calendar.common.css}")
   private String defaultCommonCss;
@@ -144,7 +144,7 @@ public class HomeController {
 
   @ModelAttribute("commitId")
   public String commitId() {
-    String id = (buildProperties != null)?buildProperties.get("git.commit.id"):null;
+    String id = (buildProperties != null) ? buildProperties.get("git.commit.id") : null;
     return (id != null && id.length() > 6) ? id.substring(0, 6) : "";
   }
 
