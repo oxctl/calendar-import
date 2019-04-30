@@ -166,19 +166,17 @@
       <version>1.5</version>
     </dependency>
 
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.16</version>
+    </dependency>
+
     <!-- Using H2 in development/test -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <!-- Using MySQL in production -->
-    <!-- https://bugs.mysql.com/bug.php?id=93590 means we get lots of errors in logs -->
-    <!-- So until 8.0.16 is released we're using the older driver -->
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.47</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
