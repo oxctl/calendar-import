@@ -14,7 +14,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 
 /**
  * This persists the OAuth2 tokens in the DB, this means we don't have to get the user to
- * authenticate each time they use the tool. This should probably be cacheable.
+ * authenticate each time they use the tool.
  */
 @Component
 public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedClientRepository {
@@ -32,6 +32,7 @@ public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedCli
     if (clientRegistration != null) {
       String principal = authentication.getPrincipal().toString();
       oAuth2AuthorizedClient =
+          // Second level caching should catch this lookup by ID.
           userTokensRepository
               .findById(authentication.getPrincipal().toString())
               .map(userTokens -> userTokens.toOAuth2AuthorizedClient(clientRegistration, principal))
