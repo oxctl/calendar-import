@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.DeleteJob;
@@ -35,7 +35,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
 
-@Component
+@Service
 @Slf4j
 public class ImportService {
 

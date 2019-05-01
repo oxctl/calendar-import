@@ -5,6 +5,7 @@ import edu.ksu.lti.launch.service.LtiLoginService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.mustache.MustacheEnvironmentCollector;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
@@ -18,6 +19,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -34,10 +36,6 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
   @Autowired private OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
 
   @Autowired private LtiLoginService ltiLoginService;
-
-  @Autowired private ServerProperties serverProperties;
-
-  @Autowired private List<ErrorViewResolver> errorViewResolvers;
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
@@ -79,14 +77,25 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
         .withCollector(collector);
   }
 
-  @Bean
-  public BasicErrorController basicErrorController(ErrorAttributes errorAttributes) {
-    return new CustomErrorController(
-        errorAttributes, this.serverProperties.getError(), this.errorViewResolvers);
-  }
+  // This is conditional so that when using @WebMvcTest we don't try to setup error handling and
+  // fail.
+  @Configuration
+  @ConditionalOnBean(DispatcherServlet.class)
+  class ErrorConfiguration {
 
-  @Bean
-  public CustomErrorAttributes errorAttributes() {
-    return new CustomErrorAttributes(this.serverProperties.getError().isIncludeException());
+    @Autowired private ServerProperties serverProperties;
+
+    @Autowired private List<ErrorViewResolver> errorViewResolvers;
+
+    @Bean
+    public BasicErrorController basicErrorController(ErrorAttributes errorAttributes) {
+      return new CustomErrorController(
+          errorAttributes, this.serverProperties.getError(), this.errorViewResolvers);
+    }
+
+    @Bean
+    public CustomErrorAttributes errorAttributes() {
+      return new CustomErrorAttributes(this.serverProperties.getError().isIncludeException());
+    }
   }
 }

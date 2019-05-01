@@ -11,7 +11,7 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.OrMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.jobs.LoggingJob;
 
 /**
@@ -19,7 +19,7 @@ import uk.ac.ox.it.calendarimporter.jobs.LoggingJob;
  * TriggerListener as that's more what it's interested in. Using a listener means we don't have to
  * have the same code across multiple jobs and it's more certian that the start/stop code gets run.
  */
-@Component
+@Service
 public class JobProgressListener implements JobListener {
 
   @Autowired private Scheduler scheduler;

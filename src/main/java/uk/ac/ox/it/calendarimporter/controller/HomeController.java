@@ -245,9 +245,7 @@ public class HomeController {
           timeZone = TimeZone.getDefault();
           addAlert(
               redirectAttributes,
-              new Alert(
-                  Alert.Type.WARNING,
-                  "Couldn't get timezone, using: " + timeZone.getID()));
+              new Alert(Alert.Type.WARNING, "Couldn't get timezone, using: " + timeZone.getID()));
         }
         importService.importNow(
             new ImportConfig(

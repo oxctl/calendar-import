@@ -2,7 +2,7 @@ package uk.ac.ox.it.calendarimporter.service;
 
 import edu.ksu.canvas.model.CalendarEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
@@ -11,7 +11,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
  * When an event gets posted to Canvas this service should get called to do any additional local
  * processing.
  */
-@Component
+@Service
 public class ImportEventService {
 
   @Autowired private ImportedEventRepository importedEventRepository;

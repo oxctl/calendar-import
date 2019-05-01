@@ -46,7 +46,6 @@ import uk.ac.ox.it.calendarimporter.security.oauth2.client.endpoint.CanvasOAuth2
 import uk.ac.ox.it.calendarimporter.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 
 @Configuration
-// The alternative way to debug is to do WebSecurity.debug(true)
 @EnableWebSecurity(debug = false)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 

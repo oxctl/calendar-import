@@ -8,7 +8,7 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
 
@@ -17,7 +17,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
  * isn't ideal, we could use an in-memory store in the future. The job does however limit the writes
  * through to the progress service so that it doesn't abuse the service with updates too frequently.
  */
-@Component
+@Service
 @Slf4j
 public class ProgressService {
 

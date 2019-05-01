@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 
@@ -16,7 +16,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
  * This persists the OAuth2 tokens in the DB, this means we don't have to get the user to
  * authenticate each time they use the tool.
  */
-@Component
+@Service
 public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedClientRepository {
 
   @Autowired private UserTokensRepository userTokensRepository;
