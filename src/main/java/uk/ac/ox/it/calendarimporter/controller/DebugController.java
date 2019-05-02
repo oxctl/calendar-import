@@ -1,12 +1,15 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
-import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
+
+import edu.ksu.lti.launch.model.LtiSession;
+import java.security.Principal;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,7 +25,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 
 /** A controller for various debug functions that aren't part of the standard UI. */
 @Controller
-@RequestMapping("/{tenant}/{context}/")
+@RequestMapping("/app/")
 public class DebugController {
 
   @Autowired private ContextJobRepository contextJobRepository;
@@ -34,19 +37,16 @@ public class DebugController {
   /**
    * This hides all the imports that are associated with this content.
    *
-   * @param tenantName The name of the tenant.
-   * @param context The context the user is in.
+   * @param ltiSession The current LTI Session.
    * @return A redirect to the main page.
    */
   @PostMapping("hide")
-  public ModelAndView hide(
-      @PathVariable("tenant") String tenantName,
-      @PathVariable("context") String context,
-      RedirectAttributes redirectAttributes) {
-    Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(NotFoundException::new);
+  public ModelAndView hide(LtiSession ltiSession, RedirectAttributes redirectAttributes) {
+    Tenant tenant =
+        tenantRepository.findByName(toTenant(ltiSession)).orElseThrow(NotFoundException::new);
     Page<ContextJob> jobs =
         contextJobRepository.findByTenantAndContextAndHiddenOrderByCreatedDesc(
-            tenant, context, false, Pageable.unpaged());
+            tenant, toCourse(ltiSession), false, Pageable.unpaged());
     for (ContextJob contextJob : jobs) {
       contextJob.setHidden(true);
     }
@@ -58,18 +58,12 @@ public class DebugController {
   /**
    * This runs a job to remove all the imported calendar events that have been put in the calendar
    * for this course.
-   *
-   * @param tenant
-   * @param context
-   * @param ltiAuthenticationToken
-   * @return
    */
   @PostMapping("purge")
   public ModelAndView purge(
-      @PathVariable("tenant") String tenant,
-      @PathVariable("context") String context,
       @RequestParam(name = "all", required = false, defaultValue = "false") boolean all,
-      LtiAuthenticationToken ltiAuthenticationToken,
+      Principal principal,
+      LtiSession ltiSession,
       RedirectAttributes redirectAttributes)
       throws SchedulerException {
 
@@ -77,10 +71,9 @@ public class DebugController {
     Trigger trigger =
         TriggerBuilder.newTrigger()
             .startNow()
-            .usingJobData(CanvasCalendarJob.CONTEXT, context)
-            .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant)
-            .usingJobData(
-                CanvasCalendarJob.USERNAME, ltiAuthenticationToken.getPrincipal().getName())
+            .usingJobData(CanvasCalendarJob.CONTEXT, toCourse(ltiSession))
+            .usingJobData(CanvasCalendarJob.TENANT_NAME, toTenant(ltiSession))
+            .usingJobData(CanvasCalendarJob.USERNAME, principal.getName())
             .usingJobData(CleanoutJob.ALL, all)
             .forJob(job)
             .build();

@@ -20,7 +20,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
 
 /** This just serves up the log as a plain text response. */
 @Controller
-@RequestMapping("/{tenant}/{context}/")
+@RequestMapping("/app/")
 public class DownloadController {
 
   @Autowired private CalendarImportRepository importRepository;

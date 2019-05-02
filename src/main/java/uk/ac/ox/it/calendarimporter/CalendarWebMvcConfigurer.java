@@ -5,12 +5,7 @@ import edu.ksu.lti.launch.service.LtiLoginService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.mustache.MustacheEnvironmentCollector;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
-import org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -19,14 +14,13 @@ import org.springframework.http.CacheControl;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.WebContentInterceptor;
-import uk.ac.ox.it.calendarimporter.controller.CustomErrorController;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.web.method.annotation.OAuth2AuthorizedClientArgumentResolver;
 import uk.ac.ox.it.calendarimporter.support.LtiSessionArgumentResolver;
+import uk.ac.ox.it.calendarimporter.support.TenantAndContextArgumentResolver;
 
 @Configuration
 public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
@@ -45,6 +39,7 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
             clientRegistrationRepository, oAuth2AuthorizedClientRepository));
     // Allow LTI Session to be resolved.
     argumentResolvers.add(new LtiSessionArgumentResolver(ltiLoginService));
+    argumentResolvers.add(new TenantAndContextArgumentResolver());
   }
 
   @Override
@@ -75,27 +70,5 @@ public class CalendarWebMvcConfigurer implements WebMvcConfigurer {
         .defaultValue("Some Default Value")
         .withLoader(templateLoader)
         .withCollector(collector);
-  }
-
-  // This is conditional so that when using @WebMvcTest we don't try to setup error handling and
-  // fail.
-  @Configuration
-  @ConditionalOnBean(DispatcherServlet.class)
-  class ErrorConfiguration {
-
-    @Autowired private ServerProperties serverProperties;
-
-    @Autowired private List<ErrorViewResolver> errorViewResolvers;
-
-    @Bean
-    public BasicErrorController basicErrorController(ErrorAttributes errorAttributes) {
-      return new CustomErrorController(
-          errorAttributes, this.serverProperties.getError(), this.errorViewResolvers);
-    }
-
-    @Bean
-    public CustomErrorAttributes errorAttributes() {
-      return new CustomErrorAttributes(this.serverProperties.getError().isIncludeException());
-    }
   }
 }

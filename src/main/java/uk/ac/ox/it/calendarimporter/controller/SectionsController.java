@@ -1,10 +1,14 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
+
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.interfaces.SectionReader;
 import edu.ksu.canvas.model.Section;
 import edu.ksu.canvas.oauth.OauthToken;
+import edu.ksu.lti.launch.model.LtiSession;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +33,7 @@ import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
  * page can load quickly and doesn't hang about waiting for an API call from Canvas to come back.
  */
 @RestController
-@RequestMapping("/{tenant}/{context}/")
+@RequestMapping("/app/")
 public class SectionsController {
 
   private static final String PREFIX = "course_";
@@ -45,20 +49,19 @@ public class SectionsController {
       path = "sections",
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<List<CourseSection>> getSections(
-      @PathVariable("tenant") String tenantName,
-      @PathVariable("context") String context,
+      LtiSession ltiSession,
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       Authentication authentication)
       throws IOException {
 
     // TODO exception
-    Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow();
+    Tenant tenant = tenantRepository.findByName(toTenant(ltiSession)).orElseThrow();
     CanvasApiFactory factory = new CanvasApiFactory(tenant.getUrl());
 
     OauthToken token = oauthTokenFactory.getToken(authentication, client);
 
     SectionReader reader = factory.getReader(SectionReader.class, token);
-    String courseId = getCourseId(context);
+    String courseId = getCourseId(toCourse(ltiSession));
     List<Section> sections = reader.listCourseSections(courseId, Collections.emptyList());
     List<CourseSection> courseSections =
         sections.stream()

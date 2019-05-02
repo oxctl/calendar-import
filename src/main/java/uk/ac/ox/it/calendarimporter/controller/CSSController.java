@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
 import uk.ac.ox.it.calendarimporter.service.CSSLoader;
 
@@ -21,11 +20,7 @@ public class CSSController {
   @Autowired private CSSLoader cssLoader;
 
   @GetMapping(value = "/{tenant}/{context}/brand.css", produces = "text/css")
-  public ModelAndView brandUrl(
-      @PathVariable("tenant") String tenantName,
-      @PathVariable("context") String context,
-      LtiSession ltiSession,
-      HttpServletResponse response) {
+  public ModelAndView brandUrl(LtiSession ltiSession, HttpServletResponse response) {
     // When returning a ModelAndView you have to override the content-type from HTML
     response.setHeader("Content-type", "text/css");
     if (ltiSession != null) {

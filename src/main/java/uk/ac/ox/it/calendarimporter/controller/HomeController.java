@@ -1,5 +1,8 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
+
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
@@ -42,7 +45,7 @@ import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
 
 @Controller
-@RequestMapping("/{tenant}/{context}/")
+@RequestMapping("/app/")
 @Slf4j
 public class HomeController {
 
@@ -79,15 +82,14 @@ public class HomeController {
 
   @GetMapping
   public ModelAndView home(
-      @PathVariable("tenant") String tenantName,
-      @PathVariable("context") String context,
       CsrfToken token,
       Pageable pageable,
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       LtiSession ltiSession) {
     Map<String, Object> model = new HashMap<>();
-    Tenant tenant = tenantRepository.findByName(tenantName).orElseThrow(RuntimeException::new);
-    Page<ContextJob> jobs = importService.getJobs(tenant, context, pageable);
+    Tenant tenant =
+        tenantRepository.findByName(toTenant(ltiSession)).orElseThrow(RuntimeException::new);
+    Page<ContextJob> jobs = importService.getJobs(tenant, toCourse(ltiSession), pageable);
     List<PreviousImport> imports =
         jobs.get()
             .map(job -> new PreviousImport(job.getCalendarImport()))
@@ -155,8 +157,6 @@ public class HomeController {
 
   @PostMapping
   public ModelAndView runJob(
-      @PathVariable("tenant") String tenantName,
-      @PathVariable("context") String context,
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       RedirectAttributes redirectAttributes,
       @RequestParam ImportType type,
@@ -179,7 +179,8 @@ public class HomeController {
     }
     String into = null;
     importService.importNow(
-        new ImportConfig(type, url, url, client, user.getId(), context, dest, timeZone));
+        new ImportConfig(
+            type, url, url, client, user.getId(), toCourse(ltiSession), dest, timeZone));
     addAlert(
         redirectAttributes,
         new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
@@ -213,8 +214,6 @@ public class HomeController {
 
   @PostMapping("upload")
   public ModelAndView runJob(
-      @PathVariable("tenant") String tenant,
-      @PathVariable("context") String context,
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       RedirectAttributes redirectAttributes,
       @RequestParam(defaultValue = "CSV") ImportType type,
@@ -254,7 +253,7 @@ public class HomeController {
                 originalFilename,
                 client,
                 user.getId(),
-                context,
+                toCourse(ltiSession),
                 dest,
                 timeZone));
         addAlert(
@@ -272,8 +271,6 @@ public class HomeController {
 
   @PostMapping("delete")
   public ModelAndView delete(
-      @PathVariable("tenant") String tenant,
-      @PathVariable("context") String context,
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       RedirectAttributes redirectAttributes,
       @RequestParam Long calendarImportId,
@@ -288,7 +285,7 @@ public class HomeController {
             .orElseThrow();
     importService.deleteImport(calendarImportId, client, user);
     addAlert(redirectAttributes, new Alert(Alert.Type.INFO, "Calendar delete started"));
-    return new ModelAndView("redirect:/" + tenant + "/" + context + "/");
+    return new ModelAndView("redirect:.");
   }
 
   public TimeZone getTimeZone(LtiSession session) {

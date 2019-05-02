@@ -39,24 +39,29 @@ public class CalendarLtiLoginService extends SimpleLtiLoginService {
   public String getInitialView(LtiPrincipal principal) {
     // We pass the login=true so that if the client isn't accepting cookies we can detect it.
     // This mainly affects Safari.
-    return "/"
-        + principal.getTenant()
-        + "/course_"
-        + getLtiSession().getCanvasCourseId()
-        + "/?login=true";
+    return getAppRoot(principal) + "app/" + "?login=true";
   }
 
   @Override
-  public void setLtiSession(LtiSession ltiSession) {
+  public void setLtiSession(LtiPrincipal principal, LtiSession ltiSession) {
     ServletRequestAttributes sra =
         (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
     HttpServletRequest req = sra.getRequest();
     HttpSession session = req.getSession();
     session.setAttribute(SimpleLtiLoginService.class.getName(), ltiSession);
     // This is so that we have a custom path on our cookie
-    session.setAttribute(
-        CustomPathCookieSerializer.ADDITIONAL_PATH,
-        "/" + ltiSession.getApplicationName() + "/course_" + ltiSession.getCanvasCourseId());
+    // This is to allow multiple sessions from the same browser to the same server.
+    session.setAttribute(CustomPathCookieSerializer.ADDITIONAL_PATH, getAppRoot(principal));
+  }
+
+  /**
+   * For a principal work out the appplication root.
+   *
+   * @param principal An LTI Principal.
+   * @return The root path.
+   */
+  private String getAppRoot(LtiPrincipal principal) {
+    return "/t/" + principal.getTenant() + "/" + principal.getContext() + "/";
   }
 
   @Override

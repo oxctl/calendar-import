@@ -121,16 +121,16 @@ public class ImportService {
             .build();
 
     Date date = scheduler.scheduleJob(trigger);
-    JobProgress jobProgress = progressService.updateJobCreated(uuid.toString());
-    calendarImport.setLoad(jobProgress);
-    calendarImportRepository.save(calendarImport);
-
     ContextJob contextJob = new ContextJob();
     contextJob.setCalendarImport(calendarImport);
     contextJob.setContext(importConfig.getContext());
     contextJob.setCreated(Instant.now());
     contextJob.setTenant(tenant);
     contextJobRepository.save(contextJob);
+
+    JobProgress jobProgress = progressService.updateJobCreated(uuid.toString());
+    calendarImport.setLoad(jobProgress);
+    calendarImportRepository.save(calendarImport);
 
     ImportJob job = new ImportJob();
     job.setStarted(date.toInstant());
