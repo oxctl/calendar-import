@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.support;
 
+import edu.ksu.lti.launch.exception.NoLtiSessionException;
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.service.LtiLoginService;
 import org.springframework.core.MethodParameter;
@@ -8,7 +9,9 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-/** This allows the LTI Session to be easily injected into a method. */
+/**
+ *  This allows the LTI Session to be easily injected into a method.
+ */
 public class LtiSessionArgumentResolver implements HandlerMethodArgumentResolver {
 
   private LtiLoginService ltiLoginService;
@@ -29,7 +32,10 @@ public class LtiSessionArgumentResolver implements HandlerMethodArgumentResolver
       NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory)
       throws Exception {
-    // TODO What about session not found.
-    return ltiLoginService.getLtiSession();
+      try {
+        return ltiLoginService.getLtiSession();
+      } catch (NoLtiSessionException e) {
+        return null;
+      }
   }
 }

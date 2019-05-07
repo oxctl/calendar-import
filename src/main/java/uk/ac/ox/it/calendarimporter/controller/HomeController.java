@@ -65,15 +65,6 @@ public class HomeController {
   @Autowired(required = false)
   BuildProperties buildProperties;
 
-  @Value("${calendar.common.css}")
-  private String defaultCommonCss;
-
-  @Value("${calendar.brand.json}")
-  private String defaultBrandJson;
-
-  @Value("${spring.application.name}")
-  private String applicationName;
-
   @Value("${calendar.section.import:false}")
   private boolean sectionImport;
 
@@ -112,48 +103,12 @@ public class HomeController {
     return String.format("https://%s/calendar?include_contexts=course_%s", url, courseId);
   }
 
-  @ModelAttribute("canvasCommonCss")
-  public String canvasCommonCss(LtiSession ltiSession) {
-    String canvasCss = null;
-    if (ltiSession != null) {
-      canvasCss = ltiSession.getLtiLaunchData().getCustom().get("canvas_css_common");
-    }
-    if (canvasCss == null) {
-      canvasCss = defaultCommonCss;
-    }
-    return canvasCss;
-  }
-
-  @ModelAttribute("canvasBrandCss")
-  public String canvasBrandCss(LtiSession ltiSession) {
-    String canvasJson = null;
-    String canvasCss = null;
-    if (ltiSession != null) {
-      canvasJson =
-          ltiSession.getLtiLaunchData().getCustom().get("com_instructure_brand_config_json_url");
-    }
-    if (canvasJson == null) {
-      canvasJson = defaultBrandJson;
-    }
-    // This is a fudge as at the moment a CSS version exists alongside the JS version.
-    if (canvasJson != null) {
-      if (canvasJson.endsWith(".json")) {
-        canvasCss = canvasJson.substring(0, canvasJson.length() - ".json".length()) + ".css";
-      }
-    }
-    return canvasCss;
-  }
-
   @ModelAttribute("commitId")
   public String commitId() {
     String id = (buildProperties != null) ? buildProperties.get("git.commit.id") : null;
     return (id != null && id.length() > 6) ? id.substring(0, 6) : "";
   }
 
-  @ModelAttribute("applicationName")
-  public String applicationName() {
-    return applicationName;
-  }
 
   @PostMapping
   public ModelAndView runJob(
