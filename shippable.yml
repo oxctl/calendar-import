@@ -8,6 +8,6 @@ build:
   ci:
     - mvn install -DskipTests=true
     - mkdir -p shippable/testresults
-    - cp -r target/surefire-reports shippable/testresults
     - mkdir -p shippable/codecoverage
     - mvn test
+    - cp -r target/surefire-reports shippable/testresults
