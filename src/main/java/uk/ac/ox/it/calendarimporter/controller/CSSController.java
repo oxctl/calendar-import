@@ -17,7 +17,11 @@ import uk.ac.ox.it.calendarimporter.service.CSSLoader;
 @Controller
 public class CSSController {
 
-  @Autowired private CSSLoader cssLoader;
+  private final CSSLoader cssLoader;
+
+  public CSSController(CSSLoader cssLoader) {
+    this.cssLoader = cssLoader;
+  }
 
   @GetMapping(value = "/{tenant}/{context}/brand.css", produces = "text/css")
   public ModelAndView brandUrl(LtiSession ltiSession, HttpServletResponse response) {
