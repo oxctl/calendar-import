@@ -5,3 +5,8 @@ build:
   cache: true
   cache_dir_list:
     - ~/.m2
+  ci:
+    - mvn install -DskipTests=true
+    - ln -s target/surefire-reports shippable/testresults
+    - mkdir -p shippable/codecoverage
+    - mvn test
