@@ -58,16 +58,26 @@ public class DateTimeParser {
   }
 
   static LocalTime parseTime(String string) {
+    return parseTime(string, false);
+  }
+
+  static LocalTime parseTime(String string, boolean caseSensitive) {
     List<DateTimeFormatter> patterns = new ArrayList<>();
     patterns.add(DateTimeFormatter.ofPattern("hh:mm a"));
     patterns.add(DateTimeFormatter.ofPattern("hh:mm:ss a"));
     patterns.add(DateTimeFormatter.ofPattern("HH:mm"));
     patterns.add(DateTimeFormatter.ofPattern("HH:mm:ss"));
     // Java 8 Requires AM/PM to be in upper case (Java 11 requires it to be lowercase)
-    String upperString = string.toLowerCase();
     for (DateTimeFormatter pattern : patterns) {
       try {
-        return pattern.parse(upperString, LocalTime::from);
+          if (caseSensitive) {
+            return pattern.parse(string, LocalTime::from);
+          } else {
+            try {
+              return pattern.parse(string.toUpperCase(), LocalTime::from);
+            } catch (DateTimeParseException ignore) {}
+            return pattern.parse(string.toLowerCase(), LocalTime::from);
+          }
       } catch (DateTimeParseException e) {
         // Try another pattern.
       }
