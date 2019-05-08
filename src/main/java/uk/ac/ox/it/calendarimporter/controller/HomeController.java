@@ -109,7 +109,6 @@ public class HomeController {
     return (id != null && id.length() > 6) ? id.substring(0, 6) : "";
   }
 
-
   @PostMapping
   public ModelAndView runJob(
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
