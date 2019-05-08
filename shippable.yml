@@ -7,7 +7,7 @@ build:
     - ~/.m2
   ci:
     - mvn install -DskipTests=true
-    - mkdir -p shippable
-    - ln -s ../target/surefire-reports shippable/testresults
+    - mkdir -p shippable/testresults
+    - cp -r target/surefire-reports shippable/testresults
     - mkdir -p shippable/codecoverage
     - mvn test
