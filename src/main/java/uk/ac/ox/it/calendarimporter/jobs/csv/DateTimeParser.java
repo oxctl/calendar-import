@@ -70,14 +70,15 @@ public class DateTimeParser {
     // Java 8 Requires AM/PM to be in upper case (Java 11 requires it to be lowercase)
     for (DateTimeFormatter pattern : patterns) {
       try {
-          if (caseSensitive) {
-            return pattern.parse(string, LocalTime::from);
-          } else {
-            try {
-              return pattern.parse(string.toUpperCase(), LocalTime::from);
-            } catch (DateTimeParseException ignore) {}
-            return pattern.parse(string.toLowerCase(), LocalTime::from);
+        if (caseSensitive) {
+          return pattern.parse(string, LocalTime::from);
+        } else {
+          try {
+            return pattern.parse(string.toUpperCase(), LocalTime::from);
+          } catch (DateTimeParseException ignore) {
           }
+          return pattern.parse(string.toLowerCase(), LocalTime::from);
+        }
       } catch (DateTimeParseException e) {
         // Try another pattern.
       }

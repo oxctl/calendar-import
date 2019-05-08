@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.FilterChain;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -23,10 +22,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class MultiTenancyFilter extends OncePerRequestFilter {
 
-    /**
-     * If this attribute is set on the request this we revert back from our MultiTenancy ways.
-     */
-    public static final String REVERT = MultiTenancyFilter.class.getName()+"#REVERT";
+  /** If this attribute is set on the request this we revert back from our MultiTenancy ways. */
+  public static final String REVERT = MultiTenancyFilter.class.getName() + "#REVERT";
 
   private static final Pattern pattern =
       Pattern.compile("^(?<contextPath>/t/[^/]+/[^/]+)(?<servletPath>.*)$");
@@ -49,22 +46,21 @@ public class MultiTenancyFilter extends OncePerRequestFilter {
           new HttpServletRequestWrapper(request) {
             @Override
             public String getContextPath() {
-                if (request.getAttribute(REVERT) != null) {
-                    return super.getContextPath();
-                } else {
-                    return contextPath;
-                }
+              if (request.getAttribute(REVERT) != null) {
+                return super.getContextPath();
+              } else {
+                return contextPath;
+              }
             }
 
             @Override
             public String getServletPath() {
-                if (request.getAttribute(REVERT) != null) {
-                    return super.getServletPath();
-                } else {
-                    return servletPath;
-                }
+              if (request.getAttribute(REVERT) != null) {
+                return super.getServletPath();
+              } else {
+                return servletPath;
+              }
             }
-
           },
           response);
     } else {

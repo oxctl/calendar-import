@@ -2,9 +2,7 @@ package uk.ac.ox.it.calendarimporter.jobs.csv;
 
 import static org.junit.Assert.assertEquals;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.*;
 import org.junit.Test;
 
 public class DateTimeParserTest {
