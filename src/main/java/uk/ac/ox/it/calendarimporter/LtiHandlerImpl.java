@@ -70,6 +70,9 @@ public class LtiHandlerImpl implements AuthenticationEntryPoint {
 
         // forward to error page.
         RequestDispatcher dispatcher = request.getRequestDispatcher(errorPage);
+        // If we don't do this then Spring continues to lookup all the controller and @ModelAttributes for the orignial
+        // URL
+        request.setAttribute(MultiTenancyFilter.REVERT, "true");
         dispatcher.forward(request, response);
       } else {
         response.sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
