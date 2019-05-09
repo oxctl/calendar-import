@@ -17,6 +17,10 @@ public class CalendarImport {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
 
+  /**
+   * The context in which the import is to be done. Typically this is the course although in the future
+   * we may wish to support importing into a user's calendar. Example: course_123.
+   */
   private String context;
 
   /** The user who created this import. */
