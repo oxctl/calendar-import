@@ -65,15 +65,17 @@ public class LtiHandlerImpl implements AuthenticationEntryPoint {
           request.setAttribute("javax.servlet.error.exception", authException);
         }
 
-        // Set the 403 status code.
-        request.setAttribute("javax.servlet.error.status_code", HttpStatus.FORBIDDEN.value());
-
         // forward to error page.
         RequestDispatcher dispatcher = request.getRequestDispatcher(errorPage);
         // If we don't do this then Spring continues to lookup all the controller and
         // @ModelAttributes for the orignial
         // URL
         request.setAttribute(MultiTenancyFilter.REVERT, "true");
+
+        // When there isn't a error controller we want to have a good status.
+        response.setStatus(HttpStatus.FORBIDDEN.value());
+
+        // Allow the error handling to display a nicer page.
         dispatcher.forward(request, response);
       } else {
         response.sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
