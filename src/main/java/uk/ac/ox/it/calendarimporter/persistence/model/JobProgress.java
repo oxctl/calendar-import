@@ -1,10 +1,11 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import java.time.Instant;
-import javax.persistence.Entity;
-import javax.persistence.Id;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import java.time.Instant;
 
 /**
  * Holds the progress of a job that means that we don't have to query quartz to find out what's
