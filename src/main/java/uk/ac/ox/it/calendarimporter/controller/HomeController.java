@@ -59,8 +59,6 @@ public class HomeController {
 
   @Autowired private CalendarImportRepository calendarImportRepository;
 
-  @Autowired private UserOAuth2AuthorizedClientRepository clientRepository;
-
   // When just building using IntelliJ this doesn't get built which is why it's optional.
   @Autowired(required = false)
   BuildProperties buildProperties;
@@ -141,30 +139,6 @@ public class HomeController {
     return new ModelAndView("redirect:.");
   }
 
-  /**
-   * This is used to force a relogin to occur, this is useful when a user has revoked their tokens
-   * in Canvas but we still hold them and don't yet know they aren't valid. This is used by the
-   * sections loader to get a new token if it fails toe load the sections.
-   *
-   * @param client The client.
-   * @param ltiAuthenticationToken Our LTI Authentication.
-   * @param httpServletRequest The current request (not actually used).
-   * @param response The current response (not actuall used).
-   * @return A redirect so that the normal rules about requiring a OAuth2 client kick in.
-   */
-  @PostMapping("relogin")
-  public ModelAndView relogin(
-      @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
-      LtiAuthenticationToken ltiAuthenticationToken,
-      HttpServletRequest httpServletRequest,
-      HttpServletResponse response) {
-    clientRepository.removeAuthorizedClient(
-        client.getClientRegistration().getRegistrationId(),
-        ltiAuthenticationToken,
-        httpServletRequest,
-        response);
-    return new ModelAndView("redirect:.");
-  }
 
   @PostMapping("upload")
   public ModelAndView runJob(
