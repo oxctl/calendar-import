@@ -104,7 +104,7 @@
                                     </div>
                                     <div class="ig-info">
                                     <span class="ig-title">
-                                        {{user}} imported <a href="./download/{{id}}">{{filename}}</a>
+                                        {{user}} imported <a href="./download/{{contextJobId}}">{{filename}}</a>
                                         into {{#dest}} the section: {{dest}}{{/dest}}{{^dest}}the course{{/dest}}
                                     </span>
                                         <div class="ig-details">
@@ -132,7 +132,7 @@
                                                 {{/progress}}
                                                 <div><b>Last Message</b> {{message}}</div>
                                                 <br>
-                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{logId}}" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
+                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{contextJobId}}/load" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
                                             </div>
                                         </div>
                                         <div class="ig-admin">
@@ -167,7 +167,7 @@
                                                 {{/progress}}
                                                 <div><b>Last Message</b> {{message}}</div>
                                                 <br>
-                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{logId}}" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
+                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{contextJobId}}/delete" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
                                             </div>
                                         </div>
                                     </div>

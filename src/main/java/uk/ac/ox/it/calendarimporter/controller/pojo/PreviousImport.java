@@ -5,6 +5,7 @@ import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.
 import com.github.marlonlom.utilities.timeago.TimeAgo;
 import lombok.Data;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 
 /** This holds all the data needed to display a previous import in the UI. */
@@ -12,6 +13,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 public class PreviousImport {
 
   String id;
+  String contextJobId;
   String user;
   String when;
   String filename;
@@ -19,6 +21,11 @@ public class PreviousImport {
   boolean canDelete;
   Job load;
   Job delete;
+
+  public PreviousImport(ContextJob job) {
+    this(job.getCalendarImport());
+    this.contextJobId = Long.toString(job.getId());
+  }
 
   public PreviousImport(CalendarImport calendarImport) {
     this.id = Long.toString(calendarImport.getId());

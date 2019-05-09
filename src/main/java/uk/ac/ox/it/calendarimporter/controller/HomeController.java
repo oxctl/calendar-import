@@ -79,9 +79,8 @@ public class HomeController {
     Tenant tenant =
         tenantRepository.findByName(toTenant(ltiSession)).orElseThrow(RuntimeException::new);
     Page<ContextJob> jobs = importService.getJobs(tenant, toCourse(ltiSession), pageable);
-    List<PreviousImport> imports =
-        jobs.get()
-            .map(job -> new PreviousImport(job.getCalendarImport()))
+    List<PreviousImport> imports = jobs.get()
+            .map(PreviousImport::new)
             .collect(Collectors.toList());
     model.put("imports", imports);
     model.put("hasMore", jobs.hasNext());
