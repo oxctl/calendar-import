@@ -1,18 +1,8 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
-
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,17 +22,23 @@ import uk.ac.ox.it.calendarimporter.controller.pojo.CourseSection;
 import uk.ac.ox.it.calendarimporter.controller.pojo.PreviousImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
-import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
-import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.DepositService.Type;
 import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
-import uk.ac.ox.it.calendarimporter.service.UserOAuth2AuthorizedClientRepository;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
 
 @Controller
 @RequestMapping("/app/")
@@ -54,8 +50,6 @@ public class HomeController {
   @Autowired private ImportService importService;
 
   @Autowired private DepositService depositService;
-
-  @Autowired private TenantRepository tenantRepository;
 
   @Autowired private CalendarImportRepository calendarImportRepository;
 
@@ -76,12 +70,8 @@ public class HomeController {
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       LtiSession ltiSession) {
     Map<String, Object> model = new HashMap<>();
-    Tenant tenant =
-        tenantRepository.findByName(toTenant(ltiSession)).orElseThrow(RuntimeException::new);
-    Page<ContextJob> jobs = importService.getJobs(tenant, toCourse(ltiSession), pageable);
-    List<PreviousImport> imports = jobs.get()
-            .map(PreviousImport::new)
-            .collect(Collectors.toList());
+    Page<ContextJob> jobs = importService.getJobs(toTenant(ltiSession), toCourse(ltiSession), pageable);
+    List<PreviousImport> imports = jobs.get().map(PreviousImport::new).collect(Collectors.toList());
     model.put("imports", imports);
     model.put("hasMore", jobs.hasNext());
     model.put("course", ltiSession.getLtiLaunchData().getContextTitle());
@@ -137,7 +127,6 @@ public class HomeController {
         new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
     return new ModelAndView("redirect:.");
   }
-
 
   @PostMapping("upload")
   public ModelAndView runJob(

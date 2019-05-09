@@ -88,4 +88,27 @@ public class ContextJobRepositoryTest {
       assertEquals(id, job.getId());
     }
   }
+
+  @Test
+  public void testFindByTenentNameAndContext() {
+    long id;
+    {
+      ContextJob job = new ContextJob();
+      job.setTenant(tenant);
+      job.setContext("context_1");
+      job.setCreated(Instant.now());
+      job.setCalendarImport(calendarImport);
+      id = repository.save(job).getId();
+    }
+    {
+      Page<ContextJob> jobs =
+          repository.findByTenantNameAndContextAndHiddenOrderByCreatedDesc(
+              tenant.getName(), "context_1", false, Pageable.unpaged());
+      assertFalse(jobs.isEmpty());
+      Iterator<ContextJob> iterator = jobs.iterator();
+      assertTrue(iterator.hasNext());
+      ContextJob job = iterator.next();
+      assertEquals(id, job.getId());
+    }
+  }
 }
