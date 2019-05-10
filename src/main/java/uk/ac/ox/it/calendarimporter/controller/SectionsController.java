@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
@@ -34,6 +35,7 @@ import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
  */
 @RestController
 @RequestMapping("/app/")
+@Slf4j
 public class SectionsController {
 
   private static final String PREFIX = "course_";
@@ -54,10 +56,17 @@ public class SectionsController {
       Authentication authentication)
       throws IOException {
 
-    // TODO exception
-    Tenant tenant = tenantRepository.findByName(toTenant(ltiSession)).orElseThrow();
+    String tenantName = toTenant(ltiSession);
+    Tenant tenant =
+        tenantRepository
+            .findByName(tenantName)
+            .orElseThrow(
+                () -> {
+                  log.warn(
+                      "Attempt to access sections in tenant that doesn't exist: {}", tenantName);
+                  throw new NotFoundException();
+                });
     CanvasApiFactory factory = new CanvasApiFactory(tenant.getUrl());
-
     OauthToken token = oauthTokenFactory.getToken(authentication, client);
 
     SectionReader reader = factory.getReader(SectionReader.class, token);
