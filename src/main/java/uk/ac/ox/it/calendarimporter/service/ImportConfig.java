@@ -19,10 +19,11 @@ public class ImportConfig {
   private final OAuth2AuthorizedClient client;
   private final Long userId;
   /**
-   * The context in which the import is to be done. Typically this is the course although in the future
-   * we may wish to support importing into a user's calendar. Example: course_123.
+   * The context in which the import is to be done. Typically this is the course although in the
+   * future we may wish to support importing into a user's calendar. Example: course_123.
    */
   private final String context;
+
   private final CourseSection into;
   private final TimeZone timeZone;
 }
