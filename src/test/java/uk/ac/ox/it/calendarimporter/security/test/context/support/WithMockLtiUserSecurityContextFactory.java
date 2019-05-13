@@ -70,7 +70,13 @@ final class WithMockLtiUserSecurityContextFactory
               + Arrays.asList(withUser.authorities()));
     }
 
-    ToolConsumer toolConsumer = new SimpleToolConsumer("instance", "name", "url");
+    WithMockToolConsumer withToolConsumer = withUser.toolConsumer();
+    if (withToolConsumer == null) {
+      throw new IllegalArgumentException(withUser + " cannot have null toolConsumer.");
+    }
+
+    ToolConsumer toolConsumer = new SimpleToolConsumer(withToolConsumer.instance(), withToolConsumer.name(), withToolConsumer.url());
+
     ConsumerCredentials credentials =
         new ConsumerCredentials("key", "signature", "method", "base", "token");
     LtiPrincipal principal = new LtiPrincipal(toolConsumer, username);

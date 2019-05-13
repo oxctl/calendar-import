@@ -86,6 +86,14 @@ public @interface WithMockLtiUser {
   String[] authorities() default {};
 
   /**
+   * The tool consumer to use. A {@link edu.ksu.lti.launch.service.ToolConsumer} will be created to match this.
+   *
+   * <p>If unset then a default tool consumer will be used.</p>
+   * @return
+   */
+  WithMockToolConsumer toolConsumer() default @WithMockToolConsumer;
+
+  /**
    * Determines when the {@link SecurityContext} is setup. The default is before {@link
    * TestExecutionEvent#TEST_METHOD} which occurs during {@link
    * org.springframework.test.context.TestExecutionListener#beforeTestMethod(TestContext)}
