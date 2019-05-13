@@ -26,7 +26,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
-import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
+import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 /**
@@ -46,7 +46,7 @@ public class CleanoutJob implements Job {
   private Logger log = LoggerFactory.getLogger(CleanoutJob.class);
 
   @Autowired private TenantRepository tenantRepository;
-  @Autowired private OauthTokenFactory oauthTokenFactory;
+  @Autowired private CanvasApiCreator canvasApiCreator;
   @Autowired private UserTokensRepository userTokensRepository;
 
   public void execute(JobExecutionContext jobContext) throws JobExecutionException {
@@ -65,7 +65,7 @@ public class CleanoutJob implements Job {
             .orElseThrow(
                 () -> new JobExecutionException("Couldn't find tokens for: " + tenantUser));
     OauthToken oauthToken =
-        oauthTokenFactory.getToken(
+        canvasApiCreator.getToken(
             tenant,
             tenantUser,
             userTokens.getAccessToken().getTokenValue(),

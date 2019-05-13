@@ -27,7 +27,7 @@ import uk.ac.ox.it.calendarimporter.controller.pojo.CourseSection;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
-import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
+import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 
 /**
  * This allows loading of sections that are in a course. This is developed as an API so that the
@@ -45,7 +45,7 @@ public class SectionsController {
 
   @Autowired private TenantRepository tenantRepository;
 
-  @Autowired private OauthTokenFactory oauthTokenFactory;
+  @Autowired private CanvasApiCreator canvasApiCreator;
 
   @GetMapping(
       path = "sections",
@@ -66,8 +66,8 @@ public class SectionsController {
                       "Attempt to access sections in tenant that doesn't exist: {}", tenantName);
                   throw new NotFoundException();
                 });
-    CanvasApiFactory factory = new CanvasApiFactory(tenant.getUrl());
-    OauthToken token = oauthTokenFactory.getToken(authentication, client);
+    CanvasApiFactory factory = canvasApiCreator.getInstance(tenant.getUrl());
+    OauthToken token = canvasApiCreator.getToken(authentication, client);
 
     SectionReader reader = factory.getReader(SectionReader.class, token);
     String courseId = getCourseId(toCourse(ltiSession));

@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.service;
 
+import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.oauth.*;
 import java.io.IOException;
 import java.time.Instant;
@@ -19,11 +20,21 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
  * live on beta/test. Then when the tokens get updated live will break.
  */
 @Service
-public class OauthTokenFactory {
+public class CanvasApiCreator {
 
   public static final String PROTOCOL_SEP = "://";
 
   @Autowired private UserTokensRepository userTokensRepository;
+
+  /**
+   * Get a new CanvasApiFactory.
+   *
+   * @param url The URL of the Canvas instance.
+   * @return A new CanvasApiFactory.
+   */
+  public CanvasApiFactory getInstance(String url) {
+    return new CanvasApiFactory(url);
+  }
 
   public OauthTokenRefresher getRefresher(
       String principal, String clientId, String clientSecret, String url) {

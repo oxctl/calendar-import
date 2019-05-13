@@ -17,7 +17,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
-import uk.ac.ox.it.calendarimporter.service.OauthTokenFactory;
+import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 
 public abstract class CanvasCalendarJob extends LoggingJob implements InterruptableJob {
 
@@ -56,7 +56,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
   @Autowired private UserTokensRepository userTokensRepository;
 
-  @Autowired private OauthTokenFactory oauthTokenFactory;
+  @Autowired private CanvasApiCreator canvasApiCreator;
 
   public void setContext(String context) {
     this.context = context;
@@ -116,7 +116,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     canvasApiFactory = new CanvasApiFactory(canvasUrl);
     oauthToken =
-        oauthTokenFactory.getToken(
+        canvasApiCreator.getToken(
             this.tenant,
             config.getString(TENANT_NAME) + ":" + config.getString(USERNAME),
             accessToken,

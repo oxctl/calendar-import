@@ -5,13 +5,13 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OauthTokenFactoryTest {
+public class CanvasApiCreatorTest {
 
-  private OauthTokenFactory factory;
+  private CanvasApiCreator factory;
 
   @Before
   public void setUp() {
-    factory = new OauthTokenFactory();
+    factory = new CanvasApiCreator();
   }
 
   @Test

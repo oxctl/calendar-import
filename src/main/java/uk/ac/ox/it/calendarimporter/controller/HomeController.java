@@ -1,8 +1,16 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
+
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +38,6 @@ import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.DepositService.Type;
 import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
 
 @Controller
 @RequestMapping("/app/")
@@ -70,7 +69,8 @@ public class HomeController {
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       LtiSession ltiSession) {
     Map<String, Object> model = new HashMap<>();
-    Page<ContextJob> jobs = importService.getJobs(toTenant(ltiSession), toCourse(ltiSession), pageable);
+    Page<ContextJob> jobs =
+        importService.getJobs(toTenant(ltiSession), toCourse(ltiSession), pageable);
     List<PreviousImport> imports = jobs.get().map(PreviousImport::new).collect(Collectors.toList());
     model.put("imports", imports);
     model.put("hasMore", jobs.hasNext());
