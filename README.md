@@ -127,6 +127,8 @@ You can't have HTML in raw descriptions, but you can put it in another property,
 
 ## SSL
 
+### Development
+
 The simplest way to enable SSL for development is to install [mkcert](https://github.com/FiloSottile/mkcert) and the create a test SSL cert.
 
     mkcert calendar.local
@@ -140,6 +142,16 @@ On macOS you can add this additional hostname to the DNS:
     dns-sd -P calendar _http._tcp local 8080 calendar.local 127.0.0.1
 
 on other platforms you may be able todo something similar or alternatively, just use localhost or edit your platform's hosts file.
+
+### AWS
+
+For AWS we need to have a SSL key/certificate, these are hosted in a S3 bucket and then copied into the EC2 instance at deployment time. The `openssl` configuration should be stored in a file matching the hostname and then a key and certificate signing request should be generated.
+
+    openssl req -nodes -new -keyout calendar-import.canvas.ox.ac.uk-key.pem -out calendar-import.canvas.ox.ac.uk.csr -config calendar-import.cfg -batch -verbose
+
+The CSR can then be uploaded to request the certificate.
+
+
 
 
 ## Cookies
