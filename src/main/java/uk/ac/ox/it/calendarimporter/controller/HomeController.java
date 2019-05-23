@@ -124,7 +124,7 @@ public class HomeController {
             type, url, url, client, user.getId(), toCourse(ltiSession), dest, timeZone));
     addAlert(
         redirectAttributes,
-        new Alert(Alert.Type.INFO, "Calendar import started, click update to see it's progress."));
+        new Alert(Alert.Type.INFO, "Calendar import started, click update to see its progress."));
     return new ModelAndView("redirect:.");
   }
 
@@ -176,7 +176,7 @@ public class HomeController {
             redirectAttributes,
             new Alert(
                 Alert.Type.INFO,
-                "Calendar import started, click update button to follow it's progress."));
+                "Calendar import started, click update button to follow its progress."));
       } catch (IOException e) {
         log.error("Failed to deposit file: {}", e.getMessage());
         addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "Failed to upload file."));

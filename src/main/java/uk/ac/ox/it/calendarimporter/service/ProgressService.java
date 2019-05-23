@@ -36,7 +36,7 @@ public class ProgressService {
   }
 
   /**
-   * This is designed to be used by a job reporting it's progress.
+   * This is designed to be used by a job reporting its progress.
    *
    * @param triggerId The trigger ID.
    * @param message The latest message.
