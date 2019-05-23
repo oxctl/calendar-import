@@ -79,6 +79,14 @@ public class CSVReaderTest {
   }
 
   @Test
+  public void testAdditionalEmptyLines() throws IOException, HeaderException {
+    List<CalendarEvent> calendarEvents = parse("/additional-empty-lines.csv");
+    assertFalse(hasErrors);
+    assertNotNull(calendarEvents);
+    assertEquals(1, calendarEvents.size());
+  }
+
+  @Test
   public void testMultipleEvents() throws IOException, HeaderException {
     List<CalendarEvent> calendarEvents = parse("/two-events.csv");
     assertFalse(hasErrors);

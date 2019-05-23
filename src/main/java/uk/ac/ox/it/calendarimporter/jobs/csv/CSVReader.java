@@ -10,10 +10,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -55,6 +53,9 @@ public class CSVReader {
         validateHeader(parser.getHeaderMap().keySet());
         List<CalendarEvent> events = new ArrayList<>();
         for (CSVRecord record : parser) {
+          if (ignoreRecord(record)) {
+            continue;
+          }
           try {
             validateRow(record);
             CalendarEvent calendarEvent = parseRecord(record, timeZone);
@@ -68,6 +69,21 @@ public class CSVReader {
     } catch (IOException e) {
       throw e;
     }
+  }
+
+  /**
+   * Check if we should ignore this record. Currently it looks for records that have all empty fields.
+   * It's easy in Excel to accidentally export a spreadsheet with lots of trailing empty rows.
+   * @param record The record.
+   * @return <code>true</code> if the record should be skipped.
+   */
+  private boolean ignoreRecord(CSVRecord record) {
+    for (String field : record) {
+      if (!field.isEmpty()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private CalendarEvent parseRecord(CSVRecord record, TimeZone timeZone) {
