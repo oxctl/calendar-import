@@ -1,7 +1,7 @@
 package uk.ac.ox.it.calendarimporter.service;
 
 import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.QUEUED;
-import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.RUNNING;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.PROCESSING;
 
 import java.time.Instant;
 import java.util.Date;
@@ -149,7 +149,7 @@ public class ImportService {
     CalendarImport calendarImport =
         calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
     JobProgress load = calendarImport.getLoad();
-    if (QUEUED.equals(load.getStatus()) || RUNNING.equals(load.getStatus())) {
+    if (QUEUED.equals(load.getStatus()) || PROCESSING.equals(load.getStatus())) {
       throw new IllegalStateException("Cannot delete an import that is running or queued.");
     }
 

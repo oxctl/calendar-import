@@ -58,7 +58,7 @@ public class ProgressService {
       throw new IllegalStateException("Can't update a job that's complete: " + triggerId);
     }
     progress.setLastMessage(message);
-    progress.setStatus(JobProgress.Status.RUNNING);
+    progress.setStatus(JobProgress.Status.PROCESSING);
     if (percentage != null) {
       progress.setPercentage(percentage);
     }
@@ -75,7 +75,7 @@ public class ProgressService {
     log.debug("Trigger {} started", triggerId);
     JobProgress jobProgress =
         progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
-    jobProgress.setStatus(JobProgress.Status.RUNNING);
+    jobProgress.setStatus(JobProgress.Status.PROCESSING);
     jobProgress.setStarted(Instant.now());
     return progressRepository.save(jobProgress);
   }

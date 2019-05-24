@@ -34,7 +34,7 @@ public class JobProgress {
     /** The job hasn't started running yet and it waiting to */
     QUEUED,
     /** The job is currently running and we await the results. */
-    RUNNING,
+    PROCESSING,
     /** The jobs completed successfully. */
     COMPLETED,
     /** The job ran but there were errors. */

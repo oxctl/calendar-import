@@ -72,7 +72,7 @@ public class PreviousImport {
     public Job(JobProgress jobProgress) {
       this.status = toStatusString(jobProgress.getStatus());
       this.message = jobProgress.getLastMessage();
-      if (RUNNING.equals(jobProgress.getStatus())) {
+      if (PROCESSING.equals(jobProgress.getStatus())) {
         this.progress = new Progress(jobProgress.getPercentage());
       }
       hasLog = jobProgress.getLogfile() != null;
