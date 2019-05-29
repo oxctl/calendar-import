@@ -86,9 +86,11 @@ public @interface WithMockLtiUser {
   String[] authorities() default {};
 
   /**
-   * The tool consumer to use. A {@link edu.ksu.lti.launch.service.ToolConsumer} will be created to match this.
+   * The tool consumer to use. A {@link edu.ksu.lti.launch.service.ToolConsumer} will be created to
+   * match this.
    *
-   * <p>If unset then a default tool consumer will be used.</p>
+   * <p>If unset then a default tool consumer will be used.
+   *
    * @return
    */
   WithMockToolConsumer toolConsumer() default @WithMockToolConsumer;

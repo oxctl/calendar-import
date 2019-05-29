@@ -75,7 +75,9 @@ final class WithMockLtiUserSecurityContextFactory
       throw new IllegalArgumentException(withUser + " cannot have null toolConsumer.");
     }
 
-    ToolConsumer toolConsumer = new SimpleToolConsumer(withToolConsumer.instance(), withToolConsumer.name(), withToolConsumer.url());
+    ToolConsumer toolConsumer =
+        new SimpleToolConsumer(
+            withToolConsumer.instance(), withToolConsumer.name(), withToolConsumer.url());
 
     ConsumerCredentials credentials =
         new ConsumerCredentials("key", "signature", "method", "base", "token");

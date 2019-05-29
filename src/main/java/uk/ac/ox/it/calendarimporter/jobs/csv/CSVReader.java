@@ -11,7 +11,6 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.*;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -72,8 +71,10 @@ public class CSVReader {
   }
 
   /**
-   * Check if we should ignore this record. Currently it looks for records that have all empty fields.
-   * It's easy in Excel to accidentally export a spreadsheet with lots of trailing empty rows.
+   * Check if we should ignore this record. Currently it looks for records that have all empty
+   * fields. It's easy in Excel to accidentally export a spreadsheet with lots of trailing empty
+   * rows.
+   *
    * @param record The record.
    * @return <code>true</code> if the record should be skipped.
    */

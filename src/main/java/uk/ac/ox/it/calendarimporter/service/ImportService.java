@@ -1,7 +1,7 @@
 package uk.ac.ox.it.calendarimporter.service;
 
-import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.QUEUED;
 import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.PROCESSING;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.QUEUED;
 
 import java.time.Instant;
 import java.util.Date;
