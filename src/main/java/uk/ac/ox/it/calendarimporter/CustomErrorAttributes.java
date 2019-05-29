@@ -5,6 +5,11 @@ import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.web.context.request.WebRequest;
 import uk.ac.ox.it.calendarimporter.controller.OAuth2AccessDeniedException;
 
+/**
+ * This is used so that when when we are displaying an error page if it's because the user didn't grant
+ * us access to their account we give them a second chance by putting the URL to go back and have
+ * another go in the page.
+ */
 public class CustomErrorAttributes extends DefaultErrorAttributes {
 
   public CustomErrorAttributes(boolean includeException) {
