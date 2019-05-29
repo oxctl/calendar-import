@@ -226,6 +226,10 @@
         <configuration>
           <to>
             <image>211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import</image>
+            <tags>
+              <tag>${project.version}</tag>
+              <tag>${git.commit.id}</tag>
+            </tags>
           </to>
           <container>
             <!-- As we're in docker we really don't want to be running as root -->
