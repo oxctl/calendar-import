@@ -229,6 +229,7 @@
             <tags>
               <tag>${project.version}</tag>
               <tag>${git.commit.id}</tag>
+              <tag>${env.BRANCH}.${env.BUILD_NUMBER}</tag>
             </tags>
           </to>
           <container>

@@ -19,4 +19,14 @@ integrations:
     - integrationName: AWS
       region: eu-west-1
       type: ecr
+  deploy:
+    - integrationName: AWS
+      type: aws
+      target: eb_docker
+      application_name: "calendar-import"
+      env_name: "calendar-import-dev"
+      bucket_name: "elasticbeanstalk-eu-west-1-211318693510"
+      region: "eu-west-1"
+      image_name: "211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import"
+      image_tag: "$BRANCH.$BUILD_NUMBER"
 
