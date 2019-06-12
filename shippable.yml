@@ -12,7 +12,7 @@ build:
     - mvn test
     - cp -r target/surefire-reports shippable/testresults
   post_ci:
-    - mvn jib:build
+    - mvn build-info jib:build
 
 integrations:
   hub:
