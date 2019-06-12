@@ -13,3 +13,10 @@ build:
     - cp -r target/surefire-reports shippable/testresults
   post_ci:
     - mvn jib:build
+
+integrations:
+  hub:
+    - integrationName: AWS
+      region: eu-west-1
+      type: ecr
+
