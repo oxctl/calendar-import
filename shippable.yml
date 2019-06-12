@@ -16,7 +16,7 @@ build:
 
 integrations:
   hub:
-    - integrationName: AWS IAM
+    - integrationName: AWS
       region: eu-west-1
       type: ecr
 
