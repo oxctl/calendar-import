@@ -11,3 +11,5 @@ build:
     - mkdir -p shippable/codecoverage
     - mvn test
     - cp -r target/surefire-reports shippable/testresults
+  post_ci:
+    - mvn jib:build
