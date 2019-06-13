@@ -19,14 +19,52 @@ integrations:
     - integrationName: AWS
       region: eu-west-1
       type: ecr
-  deploy:
-    - integrationName: AWS
-      type: aws
-      target: eb_docker
-      application_name: "calendar-import"
-      env_name: "calendar-import-dev"
-      bucket_name: "elasticbeanstalk-eu-west-1-211318693510"
-      region: "eu-west-1"
-      image_name: "211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import"
-      image_tag: "$BRANCH.$BUILD_NUMBER"
+
+resources:
+  - name: deploy-eb-image
+    type: image
+    pointer:
+      sourceName: "211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import"
+    seed:
+      versionName: "latest"
+  - name: deploy-eb-config
+    type: cliConfig
+    integration: AWS
+    pointer:
+      region: eu-west-1
+  - name: deploy-eb-params
+    type: params
+    version:
+      params:
+        ENVIRONMENT: "calendar-import-dev"
+        PORT: 8080
+        AWS_EB_ENVIRONMENT: "calendar-import-dev"
+        AWS_EB_APPLICATION: "calendar-import"
+
+  - name: deploy-eb-repo
+    type: gitRepo
+    integration: dr-github
+    pointer:
+      sourceName: oxctl/canvas-calendar-import
+      branch: master
+
+
+jobs:
+
+  - name: deploy-eb-deploy
+    type: runSh
+    steps:
+      - IN: deploy-eb-image
+      - IN: deploy-eb-config
+        switch: off
+      - IN: deploy-eb-env-params
+        switch: off
+      - IN: deploy-eb-repo
+        switch: off
+      - TASK:
+          - script: aws elasticbeanstalk describe-applications
+          - script: pushd $DEPLOYEBREPO_STATE/other && ls -al
+          - script: export IMAGE="${DEPLOYEBIMAGE_SOURCENAME}:${DEPLOYEBBASICIMAGE_VERSIONNAME}"
+          - script: shippable_replace Dockerrun.aws.json .elasticbeanstalk/config.yml
+          - script: eb deploy -v
 

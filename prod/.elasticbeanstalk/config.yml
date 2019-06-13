@@ -1,0 +1,22 @@
+branch-defaults:
+  default:
+    environment: calendar-import
+    group_suffix: null
+environment-defaults:
+  CalendarImport-env-1:
+    branch: null
+    repository: null
+global:
+  application_name: calendar-import
+  branch: null
+  default_ec2_keyname: acit-ouit
+  default_platform: docker
+  default_region: eu-west-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: ouit
+  repository: null
+  sc: null
+  workspace_type: Application

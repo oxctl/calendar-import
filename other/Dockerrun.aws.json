@@ -1,0 +1,22 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "${IMAGE}",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "${PORT}"
+    }
+  ],
+    "Volumes": [
+    {
+      "HostDirectory": "/opt/calendar-import/config",
+      "ContainerDirectory": "/config"
+    },
+    {
+      "HostDirectory": "/efs",
+      "ContainerDirectory": "/efs"
+    }
+  ]
+}
