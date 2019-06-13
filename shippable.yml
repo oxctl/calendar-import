@@ -34,7 +34,7 @@ resources:
     integration: AWS
     pointer:
       region: eu-west-1
-  - name: deploy-eb-params
+  - name: deploy-eb-env-params
     type: params
     version:
       params:
