@@ -72,7 +72,7 @@ jobs:
       - TASK:
           - script: aws elasticbeanstalk describe-applications
           - script: pushd $DEPLOYEBREPO_STATE/other && ls -al
-          - script: export IMAGE="${DEPLOYEBIMAGE_SOURCENAME}:${DEPLOYEBBASICIMAGE_VERSIONNAME}"
+          - script: export IMAGE="${DEPLOYEBIMAGE_SOURCENAME}:${DEPLOYEBIMAGE_VERSIONNAME}"
           - script: shippable_replace Dockerrun.aws.json .elasticbeanstalk/config.yml
           - script: eb deploy -v
 
