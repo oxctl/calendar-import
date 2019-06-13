@@ -34,7 +34,9 @@ public class PreviousImport {
     this.when = TimeAgo.using(calendarImport.getCreated().toEpochMilli());
     this.filename = calendarImport.getFilename();
     this.canDelete = canDelete(calendarImport);
-    this.load = new Job(calendarImport.getLoad());
+    if (calendarImport.getLoad() != null) {
+      this.load = new Job(calendarImport.getLoad());
+    }
     this.dest = calendarImport.getDestinationName();
     if (calendarImport.getDelete() != null) {
       this.delete = new Job(calendarImport.getDelete());
@@ -51,6 +53,9 @@ public class PreviousImport {
   }
 
   private boolean canDelete(CalendarImport calendarImport) {
+    if (calendarImport.getLoad() == null) {
+      return false;
+    }
     JobProgress.Status status = calendarImport.getLoad().getStatus();
     return (calendarImport.getDelete() == null
             || FAILED.equals(calendarImport.getDelete().getStatus()))
