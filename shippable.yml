@@ -50,6 +50,12 @@ resources:
 
 
 jobs:
+  - name: deploy-beanstalk-runCI
+    type: runCI
+    flags:
+      - deploy-eb
+    steps:
+      - OUT: deploy-eb-image
 
   - name: deploy-eb-deploy
     type: runSh
