@@ -45,7 +45,7 @@ resources:
 
   - name: deploy-eb-repo
     type: gitRepo
-    integration: dr-github
+    integration: github
     pointer:
       sourceName: oxctl/canvas-calendar-import
       branch: master
