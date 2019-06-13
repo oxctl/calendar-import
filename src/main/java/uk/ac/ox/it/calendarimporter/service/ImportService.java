@@ -54,7 +54,12 @@ public class ImportService {
   // TODO Handling of SchedulerException
   // Should we just pass in a User object?
   // Should url be an actual URL?
+
   public ImportJob importNow(ImportConfig importConfig) throws SchedulerException {
+    // This method shouldn't be transactional as we want each repository call to be in it's own transaction.
+    // This is so that all the data is in the DB before we trigger the job, otherwise the job can end up getting
+    // run before the data is setup.
+
     // Job ID should come from config.
     JobDetail detail =
         scheduler.getJobDetail(JobKey.jobKey(importConfig.getType().name(), "import"));
@@ -120,7 +125,6 @@ public class ImportService {
             .forJob(detail)
             .build();
 
-    Date date = scheduler.scheduleJob(trigger);
     ContextJob contextJob = new ContextJob();
     contextJob.setCalendarImport(calendarImport);
     contextJob.setContext(importConfig.getContext());
@@ -132,6 +136,7 @@ public class ImportService {
     calendarImport.setLoad(jobProgress);
     calendarImportRepository.save(calendarImport);
 
+    Date date = scheduler.scheduleJob(trigger);
     ImportJob job = new ImportJob();
     job.setStarted(date.toInstant());
     job.setProgressUrl("/api/v1/import/progress/" + uuid.toString());
