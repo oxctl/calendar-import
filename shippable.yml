@@ -73,5 +73,6 @@ jobs:
           - script: pushd $CANVASCALENDARIMPORTREPO_STATE/other && ls -al
           - script: export IMAGE="${CANVASCALENDARIMPORTIMAGE_SOURCENAME}:${CANVASCALENDARIMPORTIMAGE_VERSIONNAME}"
           - script: shippable_replace Dockerrun.aws.json .elasticbeanstalk/config.yml
+          - script: cat Dockerrun.aws.json
           - script: eb deploy -v
 
