@@ -13,7 +13,7 @@ build:
     - cp -r target/surefire-reports shippable/testresults
   post_ci:
     - mvn git-commit-id:revision jib:build
-    - shipctl post_resource_state "deploy-eb-image" "latest" "sha=$COMMIT"
+    - shipctl post_resource_state "deploy-eb-image" "latest" sha=$COMMIT
 
 
 integrations:
