@@ -13,7 +13,7 @@ build:
     - cp -r target/surefire-reports shippable/testresults
   post_ci:
     - if [ "$IS_PULL_REQUEST" != true ]; then mvn git-commit-id:revision jib:build; fi
-    - if [ "$IS_PULL_REQUEST" != true ]; then shipctl post_resource_state "deploy-eb-image" "latest" "sha=$COMMIT"; fi
+    - if [ "$IS_PULL_REQUEST" != true ]; then shipctl post_resource_state "calendar-import-image" "latest" "sha=$COMMIT"; fi
 
 
 integrations:
@@ -23,18 +23,18 @@ integrations:
       type: ecr
 
 resources:
-  - name: deploy-eb-image
+  - name: calendar-import-image
     type: image
     pointer:
       sourceName: "211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import"
     seed:
       versionName: "latest"
-  - name: deploy-eb-config
+  - name: calendar-import-config
     type: cliConfig
     integration: AWS
     pointer:
       region: eu-west-1
-  - name: deploy-eb-env-params
+  - name: calendar-import-env-params
     type: params
     version:
       params:
@@ -43,7 +43,7 @@ resources:
         AWS_EB_ENVIRONMENT: "calendar-import-dev"
         AWS_EB_APPLICATION: "calendar-import"
 
-  - name: deploy-eb-repo
+  - name: calendar-import-repo
     type: gitRepo
     integration: github
     pointer:
@@ -55,19 +55,19 @@ jobs:
   - name: canvas-calendar-import_runCI
     type: runCI
     flags:
-      - deploy-eb
+      - calendar-import
     steps:
-      - OUT: deploy-eb-image
+      - OUT: calendar-import-image
 
-  - name: deploy-eb-deploy
+  - name: calendar-import-deploy
     type: runSh
     steps:
-      - IN: deploy-eb-image
-      - IN: deploy-eb-config
+      - IN: calendar-import-image
+      - IN: calendar-import-config
         switch: off
-      - IN: deploy-eb-env-params
+      - IN: calendar-import-env-params
         switch: off
-      - IN: deploy-eb-repo
+      - IN: calendar-import-repo
         switch: off
       - TASK:
           - script: aws elasticbeanstalk describe-applications
