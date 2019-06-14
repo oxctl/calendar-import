@@ -12,8 +12,8 @@ build:
     - mvn test
     - cp -r target/surefire-reports shippable/testresults
   post_ci:
-    - if [ "$IS_PULL_REQUEST" != true ]; then mvn git-commit-id:revision jib:build
-    - if [ "$IS_PULL_REQUEST" != true ]; then shipctl post_resource_state "deploy-eb-image" "latest" sha=$COMMIT
+    - if [ "$IS_PULL_REQUEST" != true ]; then mvn git-commit-id:revision jib:build; fi
+    - if [ "$IS_PULL_REQUEST" != true ]; then shipctl post_resource_state "deploy-eb-image" "latest" "sha=$COMMIT"; fi
 
 
 integrations:
