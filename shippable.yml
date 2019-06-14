@@ -22,6 +22,8 @@ integrations:
       type: ecr
 
 resources:
+  - name: canvas-calendar-import-image
+    type: image
   - name: canvas-calendar-import-config
     type: cliConfig
     integration: AWS
