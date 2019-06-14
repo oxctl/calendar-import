@@ -27,7 +27,6 @@ resources:
     pointer:
     versionTemplate:
       sourceName: "211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import"
-      versionName: "latest"
   - name: canvas-calendar-import-config
     type: cliConfig
     integration: AWS
