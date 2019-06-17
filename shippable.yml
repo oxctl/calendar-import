@@ -80,7 +80,7 @@ jobs:
           - script: shippable_replace Dockerrun.aws.json .elasticbeanstalk/config.yml
           - script: eb deploy -v -l "shippable.canvas-calendar-import.${CANVASCALENDARIMPORTIMAGE_VERSIONNAME}" -m "${CANVASCALENDARIMPORTREPO_COMMIT_MESSAGE}"
           # Save the image that we are currently running
-          - script: echo "image=${IMAGE}" >> $JOB_STATE/$JOB_NAME.env
+          - script: echo "version=shippable.canvas-calendar-import.${CANVASCALENDARIMPORTIMAGE_VERSIONNAME}" >> $JOB_STATE/$JOB_NAME.env
 
 # This just takes the image that is currently on the dev instance and deploys it to the production environment
   - name: canvas-calendar-import-deploy-prod
@@ -99,6 +99,5 @@ jobs:
       - TASK:
           - script: aws elasticbeanstalk describe-applications
           - script: pushd $CANVASCALENDARIMPORTREPO_STATE/other && ls -al
-          - script: export IMAGE="${CANVASCALENDARIMPORTDEPLOY_IMAGE}"
-          - script: shippable_replace Dockerrun.aws.json .elasticbeanstalk/config.yml
-          - script: eb deploy -v -l "shippable.canvas-calendar-import.${CANVASCALENDARIMPORTIMAGE_VERSIONNAME}" -m "${CANVASCALENDARIMPORTREPO_COMMIT_MESSAGE}"
+          - script: shippable_replace .elasticbeanstalk/config.yml
+          - script: eb deploy -v -l "${CANVASCALENDARIMPORTDEPLOY_VERSION}"
