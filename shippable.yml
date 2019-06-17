@@ -100,4 +100,5 @@ jobs:
           - script: aws elasticbeanstalk describe-applications
           - script: pushd $CANVASCALENDARIMPORTREPO_STATE/other && ls -al
           - script: shippable_replace .elasticbeanstalk/config.yml
-          - script: eb deploy -v -l "${CANVASCALENDARIMPORTDEPLOY_VERSION}"
+          - script: version="$(shipctl get_resource_version_key canvas-calendar-import-deploy version)"
+          - script: eb deploy -v -l "${version}"
