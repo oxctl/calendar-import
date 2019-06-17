@@ -16,3 +16,13 @@ input[type=file] {
      */
     height: auto;
 }
+
+/** Trim down the version */
+.version {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 10em;
+    font-size: x-small;
+}
