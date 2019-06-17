@@ -75,7 +75,7 @@ jobs:
         switch: off
       - TASK:
           - script: aws elasticbeanstalk describe-applications
-          - script: pushd $CANVASCALENDARIMPORTREPO_STATE/other && ls -al
+          - script: pushd $CANVASCALENDARIMPORTREPO_STATE/elasticbeanstalk && ls -al
           - script: export IMAGE="${CANVASCALENDARIMPORTIMAGE_SOURCENAME}:${CANVASCALENDARIMPORTIMAGE_VERSIONNAME}"
           - script: shippable_replace Dockerrun.aws.json .elasticbeanstalk/config.yml
           - script: eb deploy -v -l "shippable.canvas-calendar-import.${CANVASCALENDARIMPORTIMAGE_VERSIONNAME}" -m "${CANVASCALENDARIMPORTREPO_COMMIT_MESSAGE}"
@@ -98,7 +98,7 @@ jobs:
         switch: off
       - TASK:
           - script: aws elasticbeanstalk describe-applications
-          - script: pushd $CANVASCALENDARIMPORTREPO_STATE/other && ls -al
+          - script: pushd $CANVASCALENDARIMPORTREPO_STATE/elasticbeanstalk && ls -al
           - script: shippable_replace .elasticbeanstalk/config.yml
           - script: version="$(shipctl get_resource_version_key canvas-calendar-import-deploy version)"
           - script: eb deploy -v -l "${version}"
