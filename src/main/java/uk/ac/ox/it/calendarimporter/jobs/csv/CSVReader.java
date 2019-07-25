@@ -111,7 +111,7 @@ public class CSVReader {
         LocalTime endTime = DateTimeParser.parseTime(endTimeStr.trim());
         LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
         ends = endDateTime.atZone(timeZone.toZoneId()).toInstant();
-        if (!starts.isBefore(ends)) {
+        if (starts.isAfter(ends)) {
           throw new RowException(record.getRecordNumber(), "Start time cannot be after end time.");
         }
       }
