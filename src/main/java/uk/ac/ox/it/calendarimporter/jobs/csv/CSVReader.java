@@ -95,7 +95,7 @@ public class CSVReader {
       LocalDate date = DateTimeParser.parseDate(get(record, DATE).trim());
       LocalDateTime dateTime = LocalDateTime.of(date, time);
       Instant starts = dateTime.atZone(timeZone.toZoneId()).toInstant();
-      Instant ends = null;
+      Instant ends = starts;
       String durationStr = get(record, DURATION);
       if (durationStr != null && !durationStr.isBlank()) {
         Duration duration = DateTimeParser.parseDuration(durationStr.trim());
@@ -168,10 +168,6 @@ public class CSVReader {
           }
         }
       }
-    }
-    if (!knowEnd) {
-      throw new RowException(
-          record.getRecordNumber(), "You must have either end time or duration set.");
     }
   }
 
