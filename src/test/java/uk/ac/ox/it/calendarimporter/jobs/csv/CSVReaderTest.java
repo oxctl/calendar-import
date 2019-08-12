@@ -178,4 +178,28 @@ public class CSVReaderTest {
     assertTrue(hasErrors);
     assertTrue(calendarEvents.isEmpty());
   }
+
+  @Test
+  public void testSameStartAndEnd() throws IOException, HeaderException {
+    // Has all the required headers, but is missing essential data on each row.
+    List<CalendarEvent> calendarEvents = parse("/same-start-end.csv");
+    assertFalse(hasErrors);
+    assertEquals(1, calendarEvents.size());
+    CalendarEvent event = calendarEvents.get(0);
+    assertEquals("Event Title", event.getTitle());
+    assertEquals(0, event.getStartAt().getEpochSecond());
+    assertEquals(0, event.getEndAt().getEpochSecond());
+  }
+
+  @Test
+  public void testZeroDuration() throws IOException, HeaderException {
+    // Has all the required headers, but is missing essential data on each row.
+    List<CalendarEvent> calendarEvents = parse("/zero-length-event.csv");
+    assertFalse(hasErrors);
+    assertEquals(1, calendarEvents.size());
+    CalendarEvent event = calendarEvents.get(0);
+    assertEquals("Event Title", event.getTitle());
+    assertEquals(0, event.getStartAt().getEpochSecond());
+    assertEquals(0, event.getEndAt().getEpochSecond());
+  }
 }
