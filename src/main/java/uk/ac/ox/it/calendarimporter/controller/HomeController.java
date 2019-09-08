@@ -91,7 +91,9 @@ public class HomeController {
   }
 
   /**
-   * This is used to always have a different value when we deploy so that CSS/JS invalidation happens.
+   * This is used to always have a different value when we deploy so that CSS/JS invalidation
+   * happens.
+   *
    * @return A unique ID for this build.
    */
   @ModelAttribute("commitId")
@@ -100,12 +102,12 @@ public class HomeController {
     return (id != null && id.length() > 6) ? id.substring(0, 6) : "";
   }
 
-  /**
-   * A version string to display in the page to aid with debugging.
-   */
+  /** A version string to display in the page to aid with debugging. */
   @ModelAttribute("version")
   public String version() {
-    return (buildProperties != null) ? buildProperties.get("git.commit.id") : buildProperties.getVersion();
+    return (buildProperties != null)
+        ? buildProperties.get("git.commit.id")
+        : "unknown" ;
   }
 
   @PostMapping
