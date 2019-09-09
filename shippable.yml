@@ -23,6 +23,16 @@ integrations:
     - integrationName: AWS
       region: eu-west-1
       type: ecr
+  notifications:
+    - integrationName: email
+      type: email
+      recipients:
+        - acit-sys-apps@maillist.ox.ac.uk
+      on_success: change
+      on_failure: change
+      on_cancel: change
+      on_start: never
+      on_pull_request: never
 
 resources:
   - name: canvas-calendar-import-image
