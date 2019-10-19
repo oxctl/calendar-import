@@ -71,7 +71,7 @@ public abstract class LoggingJob implements Job {
   public void log(Progress progress, String message, Object... args) {
     String formatted = (args.length > 0) ? String.format(message, args) : message;
     try {
-      logWriter.append(formatted).append('\n');
+      logWriter.append(Instant.now().toString()).append(" - ").append(formatted).append('\n');
     } catch (IOException e) {
       log.warn("Failed to write to logger {}", logWriter);
     }
