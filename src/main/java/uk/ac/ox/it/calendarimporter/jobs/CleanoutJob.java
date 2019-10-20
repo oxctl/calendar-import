@@ -51,12 +51,13 @@ public class CleanoutJob implements Job {
 
   public void execute(JobExecutionContext jobContext) throws JobExecutionException {
     JobDataMap config = jobContext.getMergedJobDataMap();
+    boolean all = config.getBoolean(ALL);
     Tenant tenant =
         tenantRepository
             .findByName(config.getString(TENANT_NAME))
             .orElseThrow(JobExecutionException::new);
     String context = config.getString(CONTEXT);
-    log.info("Cleaning out all events in {} of {}", context, tenant);
+    log.info("Cleaning out all events in {} of {}, all: {}", context, tenant, all);
 
     String tenantUser = config.getString(TENANT_NAME) + ":" + config.getString(USERNAME);
     UserTokens userTokens =
@@ -80,7 +81,6 @@ public class CleanoutJob implements Job {
     options.includeAllEvents(true);
     // This just excludes attributes we don't need.
     options.excludes(Arrays.asList(CHILD_EVENTS, ASSIGNMENT));
-    boolean all = config.getBoolean(ALL);
     try {
       List<CalendarEvent> calendarEvents = calendarReader.listCurrentUserCalendarEvents(options);
       int removed = 0;
