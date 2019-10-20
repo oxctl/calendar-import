@@ -2,6 +2,7 @@ package uk.ac.ox.it.calendarimporter.persistence.model;
 
 import static org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType.BEARER;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,6 +11,8 @@ import java.util.Set;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import edu.ksu.lti.launch.oauth.LtiPrincipal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,8 +43,8 @@ public class UserTokens {
 
   @Embedded @Valid private RefreshToken refreshToken;
 
-  public UserTokens(Authentication authentication, OAuth2AuthorizedClient oauth2AuthorizedClient) {
-    this.principal = authentication.getPrincipal().toString();
+  public UserTokens(String principal, OAuth2AuthorizedClient oauth2AuthorizedClient) {
+    this.principal = principal;
     this.accessToken = new AccessToken(oauth2AuthorizedClient.getAccessToken());
     if (oauth2AuthorizedClient.getRefreshToken() != null) {
       this.refreshToken = new RefreshToken(oauth2AuthorizedClient.getRefreshToken());
