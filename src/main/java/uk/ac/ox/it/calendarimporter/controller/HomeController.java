@@ -1,16 +1,8 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
-
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +30,15 @@ import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.DepositService.Type;
 import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
 
 @Controller
 @RequestMapping("/app/")
@@ -146,7 +147,6 @@ public class HomeController {
   public ModelAndView runJob(
       @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
       RedirectAttributes redirectAttributes,
-      @RequestParam(defaultValue = "CSV") ImportType type,
       @RequestParam(name = "destination", required = false) CourseSection dest,
       @RequestParam(name = "file") MultipartFile upload,
       LtiSession ltiSession,
@@ -160,7 +160,12 @@ public class HomeController {
     if (upload.isEmpty()) {
       addAlert(
           redirectAttributes, new Alert(Alert.Type.ERROR, "You must supply a file to import."));
-    } else {
+    }
+    ImportType importType = toImportType(upload);
+    if (importType == null) {
+      addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "File type is not supported."));
+    }
+    if (!hasAlert(redirectAttributes)) {
       try {
         String originalFilename = upload.getOriginalFilename();
         File tempFile = File.createTempFile("upload", null);
@@ -178,7 +183,7 @@ public class HomeController {
         }
         importService.importNow(
             new ImportConfig(
-                type,
+                importType,
                 deposit.toString(),
                 originalFilename,
                 client,
@@ -246,5 +251,44 @@ public class HomeController {
       alerts.add(alert);
       attributes.addFlashAttribute(ALERT, alerts);
     }
+  }
+
+  protected boolean hasAlert(RedirectAttributes attributes) {
+    Object alerts = attributes.getFlashAttributes().get(ALERT);
+    return alerts instanceof List && !((List)alerts).isEmpty();
+  }
+
+  /**
+   * Attempts to work out the import type based on the upload.
+   * @param upload The upload being submitted.
+   * @return The type or null if it cannot be determined.
+   */
+  protected ImportType toImportType(MultipartFile upload) {
+    String contentType = upload.getContentType();
+    if (contentType != null) {
+      switch (contentType) {
+        case "text/calendar":
+          return ImportType.ICAL;
+        case "text/csv":
+          return ImportType.CSV;
+      }
+    }
+    String filename = upload.getOriginalFilename();
+    if (filename != null) {
+        filename = filename.toLowerCase();
+        if (filename.endsWith(".csv")) {
+          return ImportType.CSV;
+        }
+        if (filename.endsWith(".ical")) {
+          return ImportType.ICAL;
+        }
+        if (filename.endsWith(".ics")) {
+          return ImportType.ICAL;
+        }
+        if (filename.endsWith(".icalendar")) {
+          return ImportType.ICAL;
+        }
+    }
+    return null;
   }
 }

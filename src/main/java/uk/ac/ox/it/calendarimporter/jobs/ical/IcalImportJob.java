@@ -2,23 +2,16 @@ package uk.ac.ox.it.calendarimporter.jobs.ical;
 
 import static net.fortuna.ical4j.model.Component.VEVENT;
 
-import edu.ksu.canvas.interfaces.CalendarReader;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
-import edu.ksu.canvas.requestOptions.ListCalendarEventsOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
@@ -26,50 +19,35 @@ import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Description;
-import net.fortuna.ical4j.model.property.DtEnd;
-import net.fortuna.ical4j.model.property.DtStart;
-import net.fortuna.ical4j.model.property.Location;
-import net.fortuna.ical4j.model.property.Summary;
-import net.fortuna.ical4j.model.property.Uid;
+import net.fortuna.ical4j.model.property.*;
 import net.fortuna.ical4j.validate.ValidationException;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
+import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
+import uk.ac.ox.it.calendarimporter.service.ImportEventService;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
-
-// There's no place to store a UUID in Canvas which is required on a iCal event.
-// Just have a simple map that takes a canvas ID and iCal UUID
-// How far in advance to calculate re-occurance rules?
-// Limits on event numbers?
-// Different sync algorithms?
-
-// Errors when validating aren't tied to line numbers in the source document.
-
-// The calendar API returns date/times for all day events
-
-// TODO Switch to interruptable job.
 
 public class IcalImportJob extends CanvasCalendarJob {
 
-  public static final int PAGINATION_PAGE_SIZE = 100;
   private static Logger logger = LoggerFactory.getLogger(IcalImportJob.class);
-  private String file = "data.properties";
+  private static final String HIDDEN_DATA_PREFIX = "ical-import:";
 
   // Number of days either side of today to sync.
-  private int dayRange = 10;
   private int iCalEventLimit = 1000;
   private long inputLimit = 1048576 * 10;
+
+  @Autowired private ImportedEventRepository importedEventRepository;
+
+  @Autowired private ImportEventService importEventService;
 
   public IcalImportJob() {}
 
   public IcalImportJob(String url) {
     this.url = url;
-  }
-
-  public void setDayRange(int dayRange) {
-    this.dayRange = dayRange;
   }
 
   public void setiCalEventLimit(int iCalEventLimit) {
@@ -80,128 +58,70 @@ public class IcalImportJob extends CanvasCalendarJob {
     this.inputLimit = inputLimit;
   }
 
-  public void run() throws IOException {
+  public void run() throws IOException, JobExecutionException {
 
     URL url = new URL(this.url);
-
-    CalendarReader reader =
-        canvasApiFactory.getReader(CalendarReader.class, oauthToken, PAGINATION_PAGE_SIZE);
     CalendarWriter writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
 
-    ListCalendarEventsOptions listCalendarEventsOptions = new ListCalendarEventsOptions();
-    listCalendarEventsOptions.contextCodes(Collections.singletonList(context));
-    listCalendarEventsOptions.includeAllEvents(true);
+    AtomicInteger created = new AtomicInteger(0);
 
-    List<CalendarEvent> calendarEvents =
-        reader.listCurrentUserCalendarEvents(listCalendarEventsOptions);
-    Map<Integer, CalendarEvent> canvasEvents = new HashMap<>();
-    for (CalendarEvent event : calendarEvents) {
-      canvasEvents.put(event.getId(), event);
-    }
+    log("Import started.");
 
-    // If we expand events then there may be multiple events
-    Map<String, Set<CalendarEvent>> canvasEventsByUuid = new HashMap<>();
-    // Look for iCal UUIDs
-    for (CalendarEvent event : calendarEvents) {
-      String uuid = HiddenData.fromHidden(HiddenData.extractHidden(event.getDescription()));
-      if (uuid != null) {
-        if (!canvasEventsByUuid.containsKey(uuid)) {
-          canvasEventsByUuid.put(uuid, new HashSet<>());
-        }
-        canvasEventsByUuid.get(uuid).add(event);
-      }
-    }
-
-    CalendarIDLookupFile idLookup = new CalendarIDLookupFile(file);
-    idLookup.load();
-
-    int seen = 0, newEvents = 0, updatedEvents = 0;
-
-    // TODO timeout on the URL request
     CalendarBuilder builder = new CalendarBuilder();
+
+    String hiddenData =
+        HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
+
+    URLConnection urlConnection = url.openConnection();
+    urlConnection.setReadTimeout(10000);
+    urlConnection.setConnectTimeout(10000);
+    Progress progress;
     try (InputStream in = new TerminatingInputStream(url.openStream(), inputLimit)) {
+      log("Reading in file.");
       Calendar calendar = builder.build(in);
       ComponentList<VEvent> events = calendar.getComponents(VEVENT);
+      if (events.isEmpty()) {
+        problem("No events found in file");
+        return;
+      }
+      progress = new Progress(events.size());
+      log("Creating events in Canvas.");
       for (VEvent event : events) {
-        seen++;
-        if (seen > iCalEventLimit) {
-          logger.error("Stopping processing after " + seen + " iCal events");
+        if (isInterrupted()) {
+          log("Interrupted after %d of %d events", progress.getSeen(), progress.getTotal());
+          throw new JobExecutionException("Job interrupted");
+        }
+        progress.increment();
+        if (progress.getSeen() > iCalEventLimit) {
+          logger.error("Stopping processing after " + progress.getSeen() + " iCal events");
           break;
         }
-        Uid uid = event.getUid();
-        if (uid != null) {
-          // Do we have it in our mapping table?
-          // Set<Integer> canvasIDs = idLookup.getCanvasIDs(uid.getValue());
-          Set<CalendarEvent> canvasEvenets = canvasEventsByUuid.get(uid.getValue());
-          Set<Integer> canvasIDs =
-              (canvasEvenets != null)
-                  ? canvasEvenets.stream().map(CalendarEvent::getId).collect(Collectors.toSet())
-                  : null;
-          if (canvasIDs != null) {
-            for (Integer id : canvasIDs) {
-              CalendarEvent calendarEvent = canvasEvents.get(id);
-              if (calendarEvent == null) {
-                calendarEvent = new CalendarEvent();
-                calendarEvent.setContextCode(context);
-                newEvents++;
-              }
-              int oldHash = calendarEvent.hashCode();
-              // Because Canvas doesn't fully persist our data some events always look to change.
-              // We should improve the update so that it takes into account the Canvas crap
-              update(event, calendarEvent);
-              if (oldHash != calendarEvent.hashCode()) {
-                Optional<CalendarEvent> returned;
-                if (calendarEvent.getId() != null) {
-                  returned = writer.editCalendarEvent(calendarEvent);
-                } else {
-                  returned = writer.createCalendarEvent(calendarEvent);
-                }
-                if (returned.isPresent()) {
-                  updatedEvents++;
-                }
-                returned.ifPresent(
-                    calendarEvent1 ->
-                        idLookup.set(
-                            uid.getValue(), Collections.singleton(calendarEvent1.getId())));
-              }
-            }
-          } else {
-            CalendarEvent calendarEvent = new CalendarEvent();
-            calendarEvent.setContextCode(context);
-            update(event, calendarEvent);
-            Optional<CalendarEvent> returned = writer.createCalendarEvent(calendarEvent);
-            if (returned.isPresent()) {
-              newEvents++;
-            }
-            returned.ifPresent(
-                calendarEvent1 ->
-                    idLookup.set(uid.getValue(), Collections.singleton(calendarEvent1.getId())));
-          }
-        } else {
-          logger.warn("Skipped event as it doesn't have a UUID.");
+        CalendarEvent calendarEvent = new CalendarEvent();
+        calendarEvent.setContextCode(context);
+        update(event, calendarEvent);
+        if (section != null) {
+          toSection(calendarEvent, section);
         }
+        // TODO Look for re-occurance rules.
+        writer
+            .createCalendarEvent(calendarEvent)
+            .ifPresent(
+                (createdEvent) -> {
+                  created.incrementAndGet();
+                  log(progress, "Created event %d of %d", progress.getSeen(), progress.getTotal());
+                  importEventService.eventCreated(tenant.getId(), calendarImport, createdEvent);
+                });
       }
+      log(
+          "Completed import, found %d events, imported %d events into calendar.",
+          progress.getTotal(), created.get());
     } catch (ValidationException ve) {
-      // TODO Handle invalid iCal.
-      throw ve;
+      failure("File is not valid iCal. " + ve.getLocalizedMessage());
     } catch (TerminatedIOException tioe) {
-      // TODO Formatting size
-      logger.warn("Can only read files of up to " + inputLimit + " bytes.");
+      failure("File it too large. It can only be up to %d bytes", inputLimit);
     } catch (ParserException e) {
-      // TODO
+      failure("Failed to read file. " + e.getLocalizedMessage());
     }
-    // Summary of run.
-    logger.info(
-        "Events in source: "
-            + calendarEvents.size()
-            + " seen: "
-            + seen
-            + " new: "
-            + newEvents
-            + " updated: "
-            + updatedEvents);
-
-    idLookup.save();
   }
 
   /**
@@ -268,5 +188,23 @@ public class IcalImportJob extends CanvasCalendarJob {
       instant = date.toInstant();
     }
     return instant;
+  }
+
+  /**
+   * This moves the data into a calendar event section.
+   *
+   * @param event The original event.
+   * @param section The section to import into.
+   * @return A new event which will import the event into the specified section.
+   */
+  private CalendarEvent toSection(CalendarEvent event, String section) {
+    CalendarEvent.ChildEvent childEvent = new CalendarEvent.ChildEvent();
+    childEvent.setStartAt(event.getStartAt());
+    childEvent.setEndAt(event.getEndAt());
+    childEvent.setContextCode(section);
+    event.setStartAt(null);
+    event.setEndAt(null);
+    event.setChildEventsData(Collections.singletonList(childEvent));
+    return event;
   }
 }
