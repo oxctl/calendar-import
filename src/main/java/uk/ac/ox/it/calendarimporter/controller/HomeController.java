@@ -105,9 +105,7 @@ public class HomeController {
   /** A version string to display in the page to aid with debugging. */
   @ModelAttribute("version")
   public String version() {
-    return (buildProperties != null)
-        ? buildProperties.get("git.commit.id")
-        : "unknown" ;
+    return (buildProperties != null) ? buildProperties.get("git.commit.id") : "unknown";
   }
 
   @PostMapping

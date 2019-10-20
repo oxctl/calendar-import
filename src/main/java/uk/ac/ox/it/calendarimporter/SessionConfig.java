@@ -65,10 +65,13 @@ public class SessionConfig extends AbstractHttpSessionApplicationInitializer {
   @Bean
   public CustomPathCookieSerializer cookieSerializer() {
     CustomPathCookieSerializer cookieSerializer = new CustomPathCookieSerializer();
-    // If we try to use the samesite value to protect from CSRF attacks then when we set the cookie in the redirect
-    // response to the POST lti launch it doesn't get sent with the following GET which makes it appear that cookies
+    // If we try to use the samesite value to protect from CSRF attacks then when we set the cookie
+    // in the redirect
+    // response to the POST lti launch it doesn't get sent with the following GET which makes it
+    // appear that cookies
     // are blocked.
-    // When all browser support "None" (safari doesn't at the moment) we will want to switch to that as Chrome is going
+    // When all browser support "None" (safari doesn't at the moment) we will want to switch to that
+    // as Chrome is going
     // to make Lax the default.
     cookieSerializer.setSameSite(null);
     if (this.servletContext != null) {
