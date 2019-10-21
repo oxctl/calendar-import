@@ -1,10 +1,9 @@
 package uk.ac.ox.it.calendarimporter.service;
 
+import edu.ksu.lti.launch.oauth.LtiPrincipal;
+import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import edu.ksu.lti.launch.oauth.LtiPrincipal;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -14,8 +13,6 @@ import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 
-import java.security.Principal;
-
 /**
  * This persists the OAuth2 tokens in the DB, this means we don't have to get the user to
  * authenticate each time they use the tool.
@@ -23,9 +20,16 @@ import java.security.Principal;
 @Service
 public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedClientRepository {
 
-  @Autowired private UserTokensRepository userTokensRepository;
+  private final UserTokensRepository userTokensRepository;
 
-  @Autowired private ClientRegistrationRepository clientRegistrationRepository;
+  private final ClientRegistrationRepository clientRegistrationRepository;
+
+  public UserOAuth2AuthorizedClientRepository(
+      UserTokensRepository userTokensRepository,
+      ClientRegistrationRepository clientRegistrationRepository) {
+    this.userTokensRepository = userTokensRepository;
+    this.clientRegistrationRepository = clientRegistrationRepository;
+  }
 
   @Override
   public <T extends OAuth2AuthorizedClient> T loadAuthorizedClient(
@@ -68,10 +72,10 @@ public class UserOAuth2AuthorizedClientRepository implements OAuth2AuthorizedCli
     Object principal = authentication.getPrincipal();
     String name = authentication.toString();
     if ((principal instanceof Principal)) {
-      Principal authPrincipal = (Principal)principal;
+      Principal authPrincipal = (Principal) principal;
       name = authPrincipal.getName();
       if (authPrincipal instanceof LtiPrincipal) {
-        name = ((LtiPrincipal)authPrincipal).getTenant() + ":" + name;
+        name = ((LtiPrincipal) authPrincipal).getTenant() + ":" + name;
       }
     }
     return name;

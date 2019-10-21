@@ -1,29 +1,26 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import static org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType.BEARER;
-
-import java.security.Principal;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import javax.persistence.*;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import edu.ksu.lti.launch.oauth.LtiPrincipal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
+
+import javax.persistence.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType.BEARER;
 
 /**
  * This holds the tokens for a user. Each token can be null, but if not null then they have to be
@@ -57,7 +54,7 @@ public class UserTokens {
         client,
         principal,
         getAccessToken().toOAuth2AccessToken(),
-        getRefreshToken().toOAuth2RefreshToken());
+        getRefreshToken() == null?null:getRefreshToken().toOAuth2RefreshToken());
   }
 
   /**
