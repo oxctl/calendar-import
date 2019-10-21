@@ -1,10 +1,9 @@
 package uk.ac.ox.it.calendarimporter;
 
+import java.util.Map;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.web.context.request.WebRequest;
 import uk.ac.ox.it.calendarimporter.controller.OAuth2AccessDeniedException;
-
-import java.util.Map;
 
 /**
  * This is used so that when when we are displaying an error page if it's because the user didn't

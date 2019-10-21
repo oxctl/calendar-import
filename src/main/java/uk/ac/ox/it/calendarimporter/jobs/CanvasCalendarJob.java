@@ -4,7 +4,6 @@ import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.oauth.OauthToken;
 import java.io.IOException;
-import java.util.Optional;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -20,8 +19,8 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
 import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 
 /**
- * This wrapper Job sets up the API Factory with OAuth tokens, works out what context the import should
- * be against and that the tenant and calendar import can be found in the DB.
+ * This wrapper Job sets up the API Factory with OAuth tokens, works out what context the import
+ * should be against and that the tenant and calendar import can be found in the DB.
  */
 public abstract class CanvasCalendarJob extends LoggingJob implements InterruptableJob {
 
@@ -116,22 +115,26 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     setSection(config.getString(SECTION));
 
     String tenantName = config.getString(TENANT_NAME);
-    this.tenant = tenantRepository.findByName(tenantName)
-            .orElseThrow(() -> new JobExecutionException("Failed to find tenant: "+ tenantName));
+    this.tenant =
+        tenantRepository
+            .findByName(tenantName)
+            .orElseThrow(() -> new JobExecutionException("Failed to find tenant: " + tenantName));
 
     setCanvasUrl(this.tenant.getUrl());
 
     long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
-    this.calendarImport = calendarImportRespository.findById(calendarImportId)
-            .orElseThrow(() -> new JobExecutionException("Failed to find calendar import: "+ calendarImportId));
+    this.calendarImport =
+        calendarImportRespository
+            .findById(calendarImportId)
+            .orElseThrow(
+                () ->
+                    new JobExecutionException(
+                        "Failed to find calendar import: " + calendarImportId));
 
     canvasApiFactory = new CanvasApiFactory(canvasUrl);
     oauthToken =
         canvasApiCreator.getToken(
-            this.tenant,
-            tenantName + ":" + config.getString(USERNAME),
-            accessToken,
-            refreshToken);
+            this.tenant, tenantName + ":" + config.getString(USERNAME), accessToken, refreshToken);
 
     try {
       run();
