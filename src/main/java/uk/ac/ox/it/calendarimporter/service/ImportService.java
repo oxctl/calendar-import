@@ -56,8 +56,10 @@ public class ImportService {
   // Should url be an actual URL?
 
   public ImportJob importNow(ImportConfig importConfig) throws SchedulerException {
-    // This method shouldn't be transactional as we want each repository call to be in it's own transaction.
-    // This is so that all the data is in the DB before we trigger the job, otherwise the job can end up getting
+    // This method shouldn't be transactional as we want each repository call to be in it's own
+    // transaction.
+    // This is so that all the data is in the DB before we trigger the job, otherwise the job can
+    // end up getting
     // run before the data is setup.
 
     // Job ID should come from config.

@@ -94,12 +94,12 @@ public class DeleteJob extends LoggingJob implements Job {
             if (calendarEvent.isPresent()) {
               event.setStatus(DELETED);
               deleted++;
-              log("Removed event %d of %d", current, total);
+              log("Removed event %d of %d (id=%d)", current, total, event.getId());
             }
           } catch (UnauthorizedException ue) {
             event.setStatus(MISSING);
             missing++;
-            log("Failed to remove event %d of %d", current, total);
+            log("Failed to remove event %d of %d (id=%d)", current, total, event.getId());
           }
           importedEventRepository.save(event);
         } else {
