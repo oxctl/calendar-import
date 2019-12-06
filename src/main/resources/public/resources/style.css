@@ -26,3 +26,7 @@ input[type=file] {
     max-width: 10em;
     font-size: x-small;
 }
+
+.status-complete, .status-failed {
+    vertical-align: top;
+}

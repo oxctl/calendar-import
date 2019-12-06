@@ -127,6 +127,12 @@
                                         <div class="ig-info">
                                         <span href="#" class="ig-title">
                                             Import: {{status}}
+                                            {{#isComplete}}
+                                                <i class="icon-complete status-complete text-success"></i>
+                                            {{/isComplete}}
+                                            {{#isFailed}}
+                                                <i class="icon-warning status-failed text-error"></i>
+                                            {{/isFailed}}
                                         </span>
                                             <div class="ig-details">
                                                 {{#progress}}

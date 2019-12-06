@@ -73,6 +73,8 @@ public class PreviousImport {
     Progress progress;
     boolean hasLog;
     String logId;
+    boolean isComplete;
+    boolean isFailed;
 
     public Job(JobProgress jobProgress) {
       this.status = toStatusString(jobProgress.getStatus());
@@ -82,7 +84,10 @@ public class PreviousImport {
       }
       hasLog = jobProgress.getLogfile() != null;
       this.logId = jobProgress.getId();
+      this.isComplete = jobProgress.getStatus().equals(COMPLETED);
+      this.isFailed = jobProgress.getStatus().equals(FAILED);
     }
+
 
     @Data
     public class Progress {
