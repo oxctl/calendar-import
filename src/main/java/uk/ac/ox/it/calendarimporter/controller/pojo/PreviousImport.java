@@ -75,6 +75,7 @@ public class PreviousImport {
     String logId;
     boolean isComplete;
     boolean isFailed;
+    boolean isProblem;
 
     public Job(JobProgress jobProgress) {
       this.status = toStatusString(jobProgress.getStatus());
@@ -86,6 +87,7 @@ public class PreviousImport {
       this.logId = jobProgress.getId();
       this.isComplete = jobProgress.getStatus().equals(COMPLETED);
       this.isFailed = jobProgress.getStatus().equals(FAILED);
+      this.isProblem = jobProgress.getStatus().equals(PROBLEMS);
     }
 
 

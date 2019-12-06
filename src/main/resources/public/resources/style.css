@@ -27,6 +27,6 @@ input[type=file] {
     font-size: x-small;
 }
 
-.status-complete, .status-failed {
+.status-complete, .status-failed, .status-problem {
     vertical-align: top;
 }
