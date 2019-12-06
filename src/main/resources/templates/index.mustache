@@ -35,7 +35,7 @@
               enctype="multipart/form-data">
             <div class="ic-Form-control">
                 <label class="ic-Label" for="file-upload-input">File:</label>
-                <input type="file" name="file" accept=".csv,text/csv"/>
+                <input type="file" name="file" accept=".csv,text/csv,.ical,.ics,.icalendar,text/calendar"/>
             </div>
             {{#sectionImport}}
             <div class="ic-Form-control">
@@ -45,23 +45,6 @@
                 </select>
             </div>
             {{/sectionImport}}
-            {{#beta}}
-            <fieldset class="ic-Fieldset ic-Fieldset--radio-checkbox">
-                <legend class="ic-Legend">
-                    Upload Type
-                </legend>
-                <div class="ic-Form-control ic-Form-control--radio ic-Form-control--radio-inline">
-                    <div class="ic-Radio">
-                        <input id="csv" type="radio" name="type" value="CSV" checked>
-                        <label for="csv" class="ic-Label">CSV</label>
-                    </div>
-                    <div class="ic-Radio">
-                        <input id="ical" type="radio" name="type" value="ICAL">
-                        <label for="ical" class="ic-Label">iCal</label>
-                    </div>
-                </div>
-            </fieldset>
-            {{/beta}}
             <div class="ic-Form-actions">
                 <input class="Button" type="reset" value="Cancel"/>
                 <input class="Button Button--primary" type="submit" value="Import"/>
