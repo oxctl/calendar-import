@@ -120,19 +120,13 @@
     <dependency>
       <groupId>edu.ksu.canvas</groupId>
       <artifactId>canvas-api</artifactId>
-      <version>1.0.19</version>
+      <version>1.0.21</version>
     </dependency>
 
     <dependency>
       <groupId>uk.ac.ox.it.lti</groupId>
       <artifactId>lti-launch</artifactId>
       <version>1.6.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
     </dependency>
 
     <dependency>
