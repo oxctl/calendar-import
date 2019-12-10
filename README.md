@@ -131,12 +131,8 @@ You can't have HTML in raw descriptions, but you can put it in another property,
 
 The simplest way to enable SSL for development is to install [mkcert](https://github.com/FiloSottile/mkcert) and the create a test SSL cert.
 
-    mkcert calendar.local
+    mkcert -pkcs12 -p12-file config/keystore.p12 calendar.local
    
-then merge the files into a keystore (stored in config folder):
-
-    openssl pkcs12 -export -inkey calendar.local-key.pem -in calendar.local.pem -name tomcat -out config/keystore.p12
-
 On macOS you can add this additional hostname to the DNS:
 
     dns-sd -P calendar _http._tcp local 8080 calendar.local 127.0.0.1
