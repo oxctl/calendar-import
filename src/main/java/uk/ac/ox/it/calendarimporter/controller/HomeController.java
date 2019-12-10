@@ -1,8 +1,16 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
+import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
+
 import edu.ksu.lti.launch.model.LtiSession;
 import edu.ksu.lti.launch.oauth.LtiAuthenticationToken;
 import edu.ksu.lti.launch.oauth.LtiPrincipal;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +38,6 @@ import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.DepositService.Type;
 import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toCourse;
-import static uk.ac.ox.it.calendarimporter.controller.Utils.toTenant;
 
 @Controller
 @RequestMapping("/app/")
@@ -253,11 +252,12 @@ public class HomeController {
 
   protected boolean hasAlert(RedirectAttributes attributes) {
     Object alerts = attributes.getFlashAttributes().get(ALERT);
-    return alerts instanceof List && !((List)alerts).isEmpty();
+    return alerts instanceof List && !((List) alerts).isEmpty();
   }
 
   /**
    * Attempts to work out the import type based on the upload.
+   *
    * @param upload The upload being submitted.
    * @return The type or null if it cannot be determined.
    */
@@ -273,19 +273,19 @@ public class HomeController {
     }
     String filename = upload.getOriginalFilename();
     if (filename != null) {
-        filename = filename.toLowerCase();
-        if (filename.endsWith(".csv")) {
-          return ImportType.CSV;
-        }
-        if (filename.endsWith(".ical")) {
-          return ImportType.ICAL;
-        }
-        if (filename.endsWith(".ics")) {
-          return ImportType.ICAL;
-        }
-        if (filename.endsWith(".icalendar")) {
-          return ImportType.ICAL;
-        }
+      filename = filename.toLowerCase();
+      if (filename.endsWith(".csv")) {
+        return ImportType.CSV;
+      }
+      if (filename.endsWith(".ical")) {
+        return ImportType.ICAL;
+      }
+      if (filename.endsWith(".ics")) {
+        return ImportType.ICAL;
+      }
+      if (filename.endsWith(".icalendar")) {
+        return ImportType.ICAL;
+      }
     }
     return null;
   }

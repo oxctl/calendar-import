@@ -90,7 +90,6 @@ public class PreviousImport {
       this.isProblem = jobProgress.getStatus().equals(PROBLEMS);
     }
 
-
     @Data
     public class Progress {
 
