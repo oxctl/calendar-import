@@ -168,21 +168,11 @@ Need to switch to path based session cookie and that way we don't have to manage
 
 We might be able todo this with a threadlocal and a custom [SessionCookieConfig](https://docs.oracle.com/javaee/6/api/javax/servlet/SessionCookieConfig.html). Spring Session also allows this, however the problem is going to be that the initial launch is to a URL that doesn't already include the path and the session setup is done early in the request.
 
-
-# Second Login
-
-OAuth2ClientAuthenticationProcessingFilter should have a `successfulAuthentication()` method which doesn't set the security context, but updates the existing context. Then instead it leaves the existing authentication and adds another role.
-
-Maybe we can but the LTI_USER role as a requirement for the oauth filters so that you can't get sent for OAuth2 authentication when your LTI session has expired.
-
-This doesn't work because https://github.com/spring-projects/spring-security/issues/373 caused any previous authentication information to be removed from the securityContext as soon as the user doesn't have enough permission to access a resource. It's the ExceptionTranslationFilter that does this.
-
-    
 # OAuth2Client
 
-Instead of using a second login we can just use the OAuth2Client support. This keeps LTI being the primary principal/authentication but allow a method resolver to make sure that the user has a OAuth token before invoking a method that needs the token.
+We use the Spring Security OAuth2Client support. This keeps LTI being the primary principal/authentication but allow a method resolver to make sure that the user has a OAuth token before invoking a method that needs the token (and passing the token in to the method).
 
-It doesn't appear to allow us to only get the token just in time as the request saving just does a redirect after successful authentication rather than replaying the request/response objects which means that if we capture a POST it will get converted to a GET after the authentication is done.    
+It doesn't appear to allow us to only get the token just in time as the request saving just does a redirect after successful authentication rather than replaying the request/response objects which means that if we capture a POST it will get converted to a GET after the authentication is done. 
 
 # S3 for file uploads
 
