@@ -87,7 +87,7 @@ public class SectionsControllerTest {
         .perform(MockMvcRequestBuilders.get("/app/sections").accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().json("[{'sectionId': 'course_section_1', 'name': 'Example Section'}]"))
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
   }
 
   @Test
@@ -134,7 +134,7 @@ public class SectionsControllerTest {
         .andExpect(status().isOk())
         .andExpect(
             content().json("[{'sectionId': 'course_section_1'},{'sectionId': 'course_section_2'}]"))
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
   }
 
   @Test
@@ -167,7 +167,7 @@ public class SectionsControllerTest {
         .perform(MockMvcRequestBuilders.get("/app/sections").accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().json("[]"))
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8));
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON));
   }
 
   @Test
