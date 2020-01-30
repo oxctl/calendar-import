@@ -73,7 +73,7 @@ public class SessionConfig extends AbstractHttpSessionApplicationInitializer {
     // When all browser support "None" (safari doesn't at the moment) we will want to switch to that
     // as Chrome is going
     // to make Lax the default.
-    cookieSerializer.setSameSite(null);
+    cookieSerializer.setSameSite("None");
     if (this.servletContext != null) {
       SessionCookieConfig sessionCookieConfig = null;
       try {

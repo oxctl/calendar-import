@@ -37,7 +37,9 @@ import org.springframework.session.web.http.CookieSerializer;
 /**
  * This cookie serializer checks to see if it should be appending a custom path onto the cookie
  * path. This class is mostly copied from the Spring Session DefaultCookieSerializer, but has
- * additional parts added to append the path
+ * additional parts added to append the path.
+ *
+ * <p>It also sets a second cookie when
  */
 public class CustomPathCookieSerializer implements CookieSerializer {
 
@@ -83,6 +85,10 @@ public class CustomPathCookieSerializer implements CookieSerializer {
 
   private String sameSite = "Lax";
 
+  private String legacySuffix = "-legacy";
+
+  private boolean sameSiteWorkaround = true;
+
   /*
    * (non-Javadoc)
    *
@@ -95,7 +101,8 @@ public class CustomPathCookieSerializer implements CookieSerializer {
     List<String> matchingCookieValues = new ArrayList<>();
     if (cookies != null) {
       for (Cookie cookie : cookies) {
-        if (this.cookieName.equals(cookie.getName())) {
+        if (this.cookieName.equals(cookie.getName())
+            || (isLegacyCookie() && (this.cookieName + legacySuffix).equals(cookie.getName()))) {
           String sessionId =
               (this.useBase64Encoding ? base64Decode(cookie.getValue()) : cookie.getValue());
           if (sessionId == null) {
@@ -157,8 +164,15 @@ public class CustomPathCookieSerializer implements CookieSerializer {
     if (this.sameSite != null) {
       sb.append("; SameSite=").append(this.sameSite);
     }
-
     response.addHeader("Set-Cookie", sb.toString());
+    if (isLegacyCookie()) {
+      String legacyCookie = sb.toString().replaceAll("; SameSite=None", "");
+      // Check if they are not the same
+      if (!legacyCookie.equals(sb.toString())) {
+        legacyCookie = legacyCookie.replaceFirst("=", legacySuffix + "=");
+        response.addHeader("Set-Cookie", legacyCookie);
+      }
+    }
   }
 
   /**
@@ -413,6 +427,16 @@ public class CustomPathCookieSerializer implements CookieSerializer {
     this.sameSite = sameSite;
   }
 
+  /**
+   * If true and we're outputting a SameSite=None cookie then also return a second cookie so that clients
+   * that don't like SameSite=None continue to work.
+   *
+   * @param sameSiteWorkaround
+   */
+  public void setSameSiteWorkaround(boolean sameSiteWorkaround) {
+    this.sameSiteWorkaround = sameSiteWorkaround;
+  }
+
   private String getDomainName(HttpServletRequest request) {
     if (this.domainName != null) {
       return this.domainName;
@@ -443,5 +467,9 @@ public class CustomPathCookieSerializer implements CookieSerializer {
       return request.getContextPath() + additionalPath;
     }
     return this.cookiePath + additionalPath;
+  }
+
+  private boolean isLegacyCookie() {
+    return "None".equalsIgnoreCase(sameSite) && sameSiteWorkaround;
   }
 }
