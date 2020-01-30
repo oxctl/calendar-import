@@ -437,6 +437,14 @@ public class CustomPathCookieSerializer implements CookieSerializer {
     this.sameSiteWorkaround = sameSiteWorkaround;
   }
 
+  public String getLegacySuffix() {
+    return legacySuffix;
+  }
+
+  public void setLegacySuffix(String legacySuffix) {
+    this.legacySuffix = legacySuffix;
+  }
+
   private String getDomainName(HttpServletRequest request) {
     if (this.domainName != null) {
       return this.domainName;
