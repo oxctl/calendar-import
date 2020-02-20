@@ -18,6 +18,7 @@ import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.*;
 import net.fortuna.ical4j.validate.ValidationException;
@@ -180,9 +181,14 @@ public class IcalImportJob extends CanvasCalendarJob {
     if (date instanceof DateTime) {
       // Need to convert to UTC, don't want to adjust the existing value.
       DateTime dateTime = (DateTime) date;
-      int offset = dateTime.getTimeZone().getOffset(dateTime.getTime());
-      Instant utcInstant = dateTime.toInstant().plus(offset, ChronoUnit.MILLIS);
-      instant = utcInstant;
+      TimeZone timeZone = dateTime.getTimeZone();
+      if (timeZone != null) {
+        int offset = timeZone.getOffset(dateTime.getTime());
+        instant = dateTime.toInstant().plus(offset, ChronoUnit.MILLIS);
+      } else {
+        // Some don't have a timezone
+        instant = date.toInstant();
+      }
     } else {
       // iCal4j zeros everything after the days when it's a date.
       instant = date.toInstant();
