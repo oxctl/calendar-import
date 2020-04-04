@@ -67,8 +67,8 @@
         </div>
     </div>
 
-    <div class="item-group-container">
-        <div class="item-group-condensed">
+    <div>
+        <div class="item-group">
             <div class="ic-Action-header">
                 <div class="ic-Action-header__Primary">
                     <h3 class="ic-Action-header__Heading">Previous Imports</h3>
@@ -78,7 +78,6 @@
                 </div>
             </div>
             {{#imports}}
-                <div class="item-group-condensed">
                     <ul class="ig-list" id="group_1">
                         <li>
                             <div class="ig-row">
@@ -179,10 +178,9 @@
                             </li>
                         {{/delete}}
                     </ul>
-                </div>
             {{/imports}}
             {{#hasMore}}
-            <div class="item-group-condensed">
+            <div class="item-group">
                 <ul class="ig-list">
                     <li>
                         <div class="ig-row ig-row-empty">
@@ -194,7 +192,7 @@
                 </ul>
             {{/hasMore}}
             {{^imports}}
-                <div class="item-group-condensed">
+                <div class="item-group">
                     <ul class="ig-list">
                         <li>
                             <div class="ig-row ig-row-empty">
