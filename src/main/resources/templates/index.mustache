@@ -12,14 +12,14 @@
 
 <div class="content-box">
     {{#alert}}
-    <p>
-    <div class="ic-flash-{{type.css}}">
-        <div class="ic-flash__icon" aria-hidden="true">
-            <i class="icon-{{type.icon}}"></i>
+        <p>
+        <div class="ic-flash-{{type.css}}">
+            <div class="ic-flash__icon" aria-hidden="true">
+                <i class="icon-{{type.icon}}"></i>
+            </div>
+            {{message}}
         </div>
-        {{message}}
-    </div>
-    </p>
+        </p>
     {{/alert}}
     <div class="header-bar">
         <h3 class="ic-Action-header__Heading">Import File</h3>
@@ -38,12 +38,12 @@
                 <input type="file" name="file" accept=".csv,text/csv,.ical,.ics,.icalendar,text/calendar"/>
             </div>
             {{#sectionImport}}
-            <div class="ic-Form-control">
-                <label class="ic-Label" for="dest-input">Into:</label>
-                <select class="ic-Input" id="dest-input" name="destination" size="1">
-                    <option value="">Course: {{course}}</option>
-                </select>
-            </div>
+                <div class="ic-Form-control">
+                    <label class="ic-Label" for="dest-input">Into:</label>
+                    <select class="ic-Input" id="dest-input" name="destination" size="1">
+                        <option value="">Course: {{course}}</option>
+                    </select>
+                </div>
             {{/sectionImport}}
             <div class="ic-Form-actions">
                 <input class="Button" type="reset" value="Cancel"/>
@@ -53,15 +53,18 @@
         </form>
         <div class="ic-Form-actions debug" style="display: none">
             <form class="ic-Form-group inline-form" id="purge" action="./purge" method="post">
-                <input class="Button" type="submit" value="Purge Imported Events" onclick="return confirm('This will remove all events created by this tool in the calendar.');"/>
+                <input class="Button" type="submit" value="Purge Imported Events"
+                       onclick="return confirm('This will remove all events created by this tool in the calendar.');"/>
                 <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
             </form>
             <form class="ic-Form-group inline-form" id="delete-all" action="./hide" method="post">
-                <input class="Button" type="submit" value="Delete All" onclick="return confirm('This will remove all events from this import.');"/>
+                <input class="Button" type="submit" value="Delete All"
+                       onclick="return confirm('This will remove all events from this import.');"/>
                 <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
             </form>
             <form class="ic-Form-group inline-form" id="relogin" action="./relogin" method="post">
-                <input class="Button" type="submit" value="Relogin" onclick="return confirm('This will ask you to re-authenticate the application.');"/>
+                <input class="Button" type="submit" value="Relogin"
+                       onclick="return confirm('This will ask you to re-authenticate the application.');"/>
                 <input type="hidden" name="{{_csrf.parameterName}}" value="{{_csrf.token}}"/>
             </form>
         </div>
@@ -78,35 +81,36 @@
                 </div>
             </div>
             {{#imports}}
-                    <ul class="ig-list" id="group_1">
-                        <li>
-                            <div class="ig-row">
-                                <div class="ig-row__layout">
-                                    <div class="ig-type-icon" aria-hidden="true">
-                                        <!-- TODO Type -->
-                                        <i class="icon-ms-excel" aria-hidden="true"></i>
-                                    </div>
-                                    <div class="ig-info">
+                <ul class="ig-list" id="group_1">
+                    <li>
+                        <div class="ig-row">
+                            <div class="ig-row__layout">
+                                <div class="ig-type-icon" aria-hidden="true">
+                                    <!-- TODO Type -->
+                                    <i class="icon-ms-excel" aria-hidden="true"></i>
+                                </div>
+                                <div class="ig-info">
                                     <span class="ig-title">
-                                        {{user}} imported <a href="./download/{{contextJobId}}" title="Download file originally imported.">{{filename}}</a>
+                                        {{user}} imported <a href="./download/{{contextJobId}}"
+                                                             title="Download file originally imported.">{{filename}}</a>
                                         into {{#dest}} the section: {{dest}}{{/dest}}{{^dest}}the course{{/dest}}
                                     </span>
-                                        <div class="ig-details">
-                                            <div class="ig-details__item"><b>Created</b> {{when}}</div>
-                                        </div>
+                                    <div class="ig-details">
+                                        <div class="ig-details__item"><b>Created</b> {{when}}</div>
                                     </div>
                                 </div>
                             </div>
-                        </li>
+                        </div>
+                    </li>
 
-                        {{#load}}
-                            <li>
-                                <div class="ig-row ig-indent1">
-                                    <div class="ig-row__layout">
-                                        <div class="ig-type-icon" aria-hidden="true">
-                                            <i class="icon-import"></i>
-                                        </div>
-                                        <div class="ig-info">
+                    {{#load}}
+                        <li>
+                            <div class="ig-row ig-indent1">
+                                <div class="ig-row__layout">
+                                    <div class="ig-type-icon" aria-hidden="true">
+                                        <i class="icon-import"></i>
+                                    </div>
+                                    <div class="ig-info">
                                         <span href="#" class="ig-title">
                                             Import: {{status}}
                                             {{#isComplete}}
@@ -120,38 +124,42 @@
                                             {{/isProblem}}
 
                                         </span>
-                                            <div class="ig-details">
-                                                {{#progress}}
-                                                    <div class="ig-details__item"><b>Progress</b> {{complete}}/100%</div>
-                                                {{/progress}}
-                                                <div><b>Last Message</b> {{message}}</div>
-                                                <br>
-                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{contextJobId}}/load" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
-                                            </div>
-                                        </div>
-                                        <div class="ig-admin">
-                                            {{#canDelete}}
-                                                <form class="ic-Form-group" method="post" action="delete">
-                                                    <input type="hidden" name="calendarImportId" value="{{id}}"/>
-                                                    <input type="hidden" name="{{_csrf.parameterName}}"
-                                                           value="{{_csrf.token}}"/>
-                                                    <button class="Button Button--danger" onclick="return confirm('This will remove all events in the calendar created by this import, continue?');"><i class="icon-trash"></i>
-                                                    </button>
-                                                </form>
-                                            {{/canDelete}}
+                                        <div class="ig-details">
+                                            {{#progress}}
+                                                <div class="ig-details__item"><b>Progress</b> {{complete}}/100%</div>
+                                            {{/progress}}
+                                            <div><b>Last Message</b> {{message}}</div>
+                                            <br>
+                                            <div><b>Logfile</b> {{#hasLog}}<a href="log/{{contextJobId}}/load"
+                                                                              target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}
+                                                Logfile not yet available.{{/hasLog}}</div>
                                         </div>
                                     </div>
+                                    <div class="ig-admin">
+                                        {{#canDelete}}
+                                            <form class="ic-Form-group" method="post" action="delete">
+                                                <input type="hidden" name="calendarImportId" value="{{id}}"/>
+                                                <input type="hidden" name="{{_csrf.parameterName}}"
+                                                       value="{{_csrf.token}}"/>
+                                                <button class="Button Button--danger"
+                                                        onclick="return confirm('This will remove all events in the calendar created by this import, continue?');">
+                                                    <i class="icon-trash"></i>
+                                                </button>
+                                            </form>
+                                        {{/canDelete}}
+                                    </div>
                                 </div>
-                            </li>
-                        {{/load}}
-                        {{#delete}}
-                            <li>
-                                <div class="ig-row ig-indent1">
-                                    <div class="ig-row__layout">
-                                        <div class="ig-type-icon" aria-hidden="true">
-                                            <i class="icon-trash"></i>
-                                        </div>
-                                        <div class="ig-info">
+                            </div>
+                        </li>
+                    {{/load}}
+                    {{#delete}}
+                        <li>
+                            <div class="ig-row ig-indent1">
+                                <div class="ig-row__layout">
+                                    <div class="ig-type-icon" aria-hidden="true">
+                                        <i class="icon-trash"></i>
+                                    </div>
+                                    <div class="ig-info">
                                         <span class="ig-title">
                                             Delete: {{status}}
                                             {{#isComplete}}
@@ -164,20 +172,22 @@
                                                 <i class="icon-trouble status-problem text-warning"></i>
                                             {{/isProblem}}
                                         </span>
-                                            <div class="ig-details">
-                                                {{#progress}}
-                                                    <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
-                                                {{/progress}}
-                                                <div><b>Last Message</b> {{message}}</div>
-                                                <br>
-                                                <div><b>Logfile</b> {{#hasLog}}<a href="log/{{contextJobId}}/delete" target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}Logfile not yet available.{{/hasLog}}</div>
-                                            </div>
+                                        <div class="ig-details">
+                                            {{#progress}}
+                                                <div class="ig-details__item"><b>Progrss</b> {{complete}}/100%</div>
+                                            {{/progress}}
+                                            <div><b>Last Message</b> {{message}}</div>
+                                            <br>
+                                            <div><b>Logfile</b> {{#hasLog}}<a href="log/{{contextJobId}}/delete"
+                                                                              target="_blank">Logfile</a>{{/hasLog}}{{^hasLog}}
+                                                Logfile not yet available.{{/hasLog}}</div>
                                         </div>
                                     </div>
                                 </div>
-                            </li>
-                        {{/delete}}
-                    </ul>
+                            </div>
+                        </li>
+                    {{/delete}}
+                </ul>
             {{/imports}}
             {{#hasMore}}
             <div class="item-group">
@@ -204,11 +214,13 @@
                     </ul>
                 </div>
             {{/imports}}
-            </div>
-    </div>
+        </div>
+        </div>
     </div>
     <footer class="ic-app-footer">
-        <div class="text-right row-fluid"><div class="version" title="{{version}}">Version: {{version}}</div></div>
+        <div class="text-right row-fluid">
+            <div class="version" title="{{version}}">Version: {{version}}</div>
+        </div>
     </footer>
 </div>
 </body>
