@@ -56,6 +56,19 @@ Currently this service requires manual SSL regeneration and setup. The certifica
 
 There are some elements that aren't shown to the user (`class="debug"`) in the UI, these are mainly for debugging, to get these to show, focus on the LTI tool and they type "debug" and they should appear. They are present in the UI so that we don't have page reflow when shown and there is some JS to watch for the keystrokes.
 
+## Development H2 DB
+
+By default we have a H2 SQL DB setup, however the DB gets thrown away when the JVM is restarted. The simplest way to have it persist is to write out the contents to a file with these configuration settings in `config/application.properties`
+
+    spring.datasource.driver-class-name=org.h2.Driver
+    # You must have the DB_CLOSE_ON_EXIT otherwise there's a lock failure when restarting the application
+    spring.datasource.url=jdbc:h2:file:./import;DB_CLOSE_ON_EXIT=FALSE
+    spring.datasource.username=sa
+    spring.datasource.password=sa
+    spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+    # This is needed otherwise the tables get re-created
+    spring.jpa.hibernate.ddl-auto=update
+
 # Could maybe get away without LTI and just use OAuth
 
 We need OAuth anyway for updating the calendar entries so what does LTI get us apart from details of the tenant that the user is coming from? Could just embed this in the link on the page and then be able to add an import link to the Calendar page without needing LTI.
