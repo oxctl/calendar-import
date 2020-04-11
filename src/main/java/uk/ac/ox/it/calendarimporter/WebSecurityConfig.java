@@ -95,9 +95,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     DelegatingAuthenticationEntryPoint authenticationEntryPoint =
         new DelegatingAuthenticationEntryPoint(entryPointMap);
-    LtiHandlerImpl defaultEntryPoint = new LtiHandlerImpl();
-    defaultEntryPoint.setErrorPage("/error");
-    authenticationEntryPoint.setDefaultEntryPoint(defaultEntryPoint);
+    LtiEntryPointImpl ltiEntryPoint = new LtiEntryPointImpl();
+    ltiEntryPoint.setErrorPage("/error");
+    authenticationEntryPoint.setDefaultEntryPoint(ltiEntryPoint);
     http.authorizeRequests()
         .antMatchers(
             "/", "/resources/**", "/config.xml", "/favicon.ico", "/icon.png", "/webjars/**")

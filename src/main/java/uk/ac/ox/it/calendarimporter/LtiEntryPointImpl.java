@@ -21,8 +21,8 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -32,11 +32,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  * the error page with the exception and the status. It does however attempt to detect when the user
  * is blocking cookies.
  */
-public class LtiHandlerImpl implements AuthenticationEntryPoint {
+public class LtiEntryPointImpl implements AuthenticationEntryPoint {
   // ~ Static fields/initializers
   // =====================================================================================
 
-  protected static final Log logger = LogFactory.getLog(LtiHandlerImpl.class);
+  protected static final Logger logger = LoggerFactory.getLogger(LtiEntryPointImpl.class);
 
   // ~ Instance fields
   // ================================================================================================
@@ -56,23 +56,27 @@ public class LtiHandlerImpl implements AuthenticationEntryPoint {
       if (errorPage != null) {
         if (request.getParameter("login") != null) {
           request.setAttribute(
-              "javax.servlet.error.exception",
+              RequestDispatcher.ERROR_EXCEPTION,
               new NoCookiesException(
                   "You are blocking cookies, please allow cookies. If you are using Safari on macOS please use a different browser as this browser isn't supported.",
                   authException));
         } else {
           // Put exception into request scope (perhaps of use to a view)
-          request.setAttribute("javax.servlet.error.exception", authException);
+          request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, authException);
         }
 
         // forward to error page.
         RequestDispatcher dispatcher = request.getRequestDispatcher(errorPage);
+        logger.debug("Forwarding to error handling {}", errorPage);
         // If we don't do this then Spring continues to lookup all the controller and
-        // @ModelAttributes for the orignial
-        // URL
+        // @ModelAttributes for the original URL
         request.setAttribute(MultiTenancyFilter.REVERT, "true");
 
         // When there isn't a error controller we want to have a good status.
+        request.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, HttpStatus.FORBIDDEN.value());
+
+        // This makes it easier to handle in tests as forwarding doesn't work with MockMvc, but
+        // isn't necessary
         response.setStatus(HttpStatus.FORBIDDEN.value());
 
         // Allow the error handling to display a nicer page.
