@@ -79,7 +79,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.setSharedObject(RequestCache.class, new HttpSessionRequestCache());
     http.setSharedObject(LtiLoginService.class, ltiLoginService);
     LtiConfigurer ltiConfigurer =
-        new LtiConfigurer(toolConsumerService, ltiLaunchPath, true, "/error");
+        new LtiConfigurer(toolConsumerService, ltiLaunchPath, false, true, "/error");
     http.apply(ltiConfigurer);
     http.csrf()
         .requireCsrfProtectionMatcher(
