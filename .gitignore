@@ -34,3 +34,5 @@
 
 # H2 DB test files.
 *.db
+calendar-import-dev.canvas.ox.ac.uk-client.properties
+calendar-import.canvas.ox.ac.uk-client.properties
