@@ -428,8 +428,8 @@ public class CustomPathCookieSerializer implements CookieSerializer {
   }
 
   /**
-   * If true and we're outputting a SameSite=None cookie then also return a second cookie so that clients
-   * that don't like SameSite=None continue to work.
+   * If true and we're outputting a SameSite=None cookie then also return a second cookie so that
+   * clients that don't like SameSite=None continue to work.
    *
    * @param sameSiteWorkaround
    */
