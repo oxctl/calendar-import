@@ -15,7 +15,7 @@ build:
     - mvn test
     - cp -r target/surefire-reports shippable/testresults
   post_ci:
-    - if [ "$IS_PULL_REQUEST" != true ]; then mvn git-commit-id:revision jib:build; fi
+    - if [ "$IS_PULL_REQUEST" != true ]; then mvn -Dimage.tag=$BRANCH.$BUILD_NUMBER git-commit-id:revision jib:build; fi
     - if [ "$IS_PULL_REQUEST" != true ]; then shipctl post_resource_state_multi "canvas-calendar-import-image" "sourceName=211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import versionName=$BRANCH.$BUILD_NUMBER"; fi
 
 integrations:
