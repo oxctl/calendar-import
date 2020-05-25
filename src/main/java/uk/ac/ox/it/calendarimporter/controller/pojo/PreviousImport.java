@@ -4,6 +4,7 @@ import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.
 
 import com.github.marlonlom.utilities.timeago.TimeAgo;
 import lombok.Data;
+import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
@@ -19,6 +20,7 @@ public class PreviousImport {
   String filename;
   String dest;
   boolean canDelete;
+  String icon;
   Job load;
   Job delete;
 
@@ -37,6 +39,7 @@ public class PreviousImport {
     if (calendarImport.getLoad() != null) {
       this.load = new Job(calendarImport.getLoad());
     }
+    this.icon = (calendarImport.getType().equals(ImportType.CSV))?"icon-ms-excel":"icon-calendar-month";
     this.dest = calendarImport.getDestinationName();
     if (calendarImport.getDelete() != null) {
       this.delete = new Job(calendarImport.getDelete());
