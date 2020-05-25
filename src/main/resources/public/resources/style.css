@@ -17,6 +17,10 @@ input[type=file] {
     height: auto;
 }
 
+.ig-row-pagination {
+    text-align: center;
+}
+
 /** Trim down the version */
 .version {
     display: inline-block;
