@@ -2,11 +2,15 @@ package uk.ac.ox.it.calendarimporter.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class DepostServiceTest {
 
@@ -34,17 +38,21 @@ public class DepostServiceTest {
   public void testSimpleUpload() throws IOException {
     Path upload = Files.createTempFile("upload", ".txt");
     Files.write(upload, "Hello World".getBytes());
-    depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+    URL deposit = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+    assertNotNull(deposit);
   }
 
   @Test
   public void testSameFileUpload() throws IOException {
     Path upload = Files.createTempFile("upload", ".txt");
     Files.write(upload, "Hello World".getBytes());
-    depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+    URL d1 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
     Files.write(upload, "Hello World".getBytes());
-    depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+    URL d2 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
     Files.write(upload, "Hello World".getBytes());
-    depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+    URL d3 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+
+    assertNotEquals(d1,d2);
+    assertNotEquals(d2,d3);
   }
 }
