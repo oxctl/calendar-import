@@ -196,7 +196,7 @@ public class HomeController {
                 Alert.Type.INFO,
                 "Calendar import started, click update button to follow its progress."));
       } catch (IOException e) {
-        log.error("Failed to deposit file: {}", e.getMessage());
+        log.error("Failed to deposit file: {}", e.getMessage(), e);
         addAlert(redirectAttributes, new Alert(Alert.Type.ERROR, "Failed to upload file."));
       }
     }
