@@ -2,7 +2,6 @@ package uk.ac.ox.it.calendarimporter.service;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.base.Supplier;
 import java.time.Instant;
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -51,9 +50,7 @@ public class ProgressService {
         "Percentage must be from 0 to 100");
 
     JobProgress progress =
-        progressRepository
-            .findById(triggerId)
-            .orElseGet((Supplier<JobProgress>) () -> createJobProgress(triggerId));
+        progressRepository.findById(triggerId).orElseGet(() -> createJobProgress(triggerId));
     if (progress.getCompleted() != null) {
       throw new IllegalStateException("Can't update a job that's complete: " + triggerId);
     }
