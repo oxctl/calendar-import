@@ -126,17 +126,14 @@
             <li>
                 <div class="ig-row ig-row-pagination">
                         {{#page.first}}
-                            <a href="?page={{page}}&size={{size}}" class="icon-move-start"><span class="screenreader-only">First</span></a>
+                            <a {{^slice.first}}href="?page={{page}}&size={{size}}"{{/slice.first}} class="icon-move-start {{#slice.first}}muted{{/slice.first}}"><span class="screenreader-only">First</span></a>
                         {{/page.first}}
                         {{#page.previous}}
-                            <a href="?page={{page}}&size={{size}}" class="icon-arrow-start"><span class="screenreader-only">Previous</span></a>
+                            <a {{#slice.hasPrevious}}href="?page={{page}}&size={{size}}"{{/slice.hasPrevious}} class="icon-arrow-start {{^slice.hasPrevious}}muted{{/slice.hasPrevious}}"><span class="screenreader-only">Previous</span></a>
                         {{/page.previous}}
                         {{#page.next}}
-                            <a href="?page={{page}}&size={{size}}" class="icon-arrow-end"><span class="screenreader-only">Next</span></a>
+                        <a {{#slice.hasNext}}href="?page={{page}}&size={{size}}"{{/slice.hasNext}} class="icon-arrow-end {{^slice.hasNext}}muted{{/slice.hasNext}}"><span class="screenreader-only">Next</span></a>
                         {{/page.next}}
-                        {{#page.last}}
-                            <a href="?page={{page}}&size={{size}}" class="icon-move-end"><span class="screenreader-only">Last</span></a>
-                        {{/page.last}}
                 </div>
             </li>
         </ul>

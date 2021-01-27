@@ -75,6 +75,7 @@ public class HomeController {
     List<PreviousImport> imports = jobs.get().map(PreviousImport::new).collect(Collectors.toList());
     model.put("imports", imports);
     model.put("page", jobs.getPageable());
+    model.put("slice", jobs);
     model.put("course", ltiSession.getLtiLaunchData().getContextTitle());
     model.put("sectionImport", sectionImport);
     model.put("beta", beta);
