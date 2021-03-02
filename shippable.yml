@@ -50,9 +50,9 @@ resources:
     type: params
     version:
       params:
-        ENVIRONMENT: "calendar-import-dev"
+        ENVIRONMENT: "calendar-import-dev-env"
         PORT: 8080
-        AWS_EB_ENVIRONMENT: "calendar-import-dev"
+        AWS_EB_ENVIRONMENT: "calendar-import-dev-env"
         AWS_EB_APPLICATION: "calendar-import"
   - name: canvas-calendar-import-env-params-prod
     type: params
