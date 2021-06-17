@@ -1,21 +1,11 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import edu.ksu.lti.launch.model.LtiSession;
-import edu.ksu.lti.launch.service.LtiLoginService;
-import edu.ksu.lti.launch.service.ToolConsumerService;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,22 +17,20 @@ import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 
+import java.util.Optional;
+
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @RunWith(SpringRunner.class)
-@WebMvcTest(DownloadController.class)
+@WebMvcTest(ApiDownloadController.class)
 @TestPropertySource(locations = "classpath:test.properties")
-public class DownloadControllerTest {
+public class ApiDownloadControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
   @MockBean private ContextJobRepository contextJobRepository;
-
-  @MockBean private OAuth2AuthorizedClientRepository oauth2Repository;
-
-  @MockBean private ClientRegistrationRepository clientRepository;
-
-  @MockBean private LtiLoginService ltiLoginService;
-
-  @MockBean private ToolConsumerService toolConsumerService;
 
   @Test
   @WithMockUser(username = "canvas", roles = "LTI_USER")
@@ -63,10 +51,6 @@ public class DownloadControllerTest {
     job.setTenant(tenant);
     job.setCalendarImport(calendarImport);
 
-    LtiSession session = new LtiSession();
-    session.setApplicationName("test.instructure.com");
-    session.setCanvasCourseId("1");
-    when(ltiLoginService.getLtiSession()).thenReturn(session);
 
     when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
     mockMvc
@@ -95,10 +79,6 @@ public class DownloadControllerTest {
     job.setTenant(tenant);
     job.setCalendarImport(calendarImport);
 
-    LtiSession session = new LtiSession();
-    session.setApplicationName("test.instructure.com");
-    session.setCanvasCourseId("1");
-    when(ltiLoginService.getLtiSession()).thenReturn(session);
 
     when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
     mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
@@ -121,11 +101,6 @@ public class DownloadControllerTest {
     job.setContext("course_1");
     job.setTenant(tenant);
     job.setCalendarImport(calendarImport);
-
-    LtiSession session = new LtiSession();
-    session.setApplicationName("test.instructure.com");
-    session.setCanvasCourseId("1");
-    when(ltiLoginService.getLtiSession()).thenReturn(session);
 
     when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
     mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
@@ -150,11 +125,6 @@ public class DownloadControllerTest {
     job.setTenant(tenant);
     job.setCalendarImport(calendarImport);
 
-    LtiSession session = new LtiSession();
-    session.setApplicationName("test.instructure.com");
-    session.setCanvasCourseId("2");
-    when(ltiLoginService.getLtiSession()).thenReturn(session);
-
     when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
     mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
   }
@@ -177,11 +147,6 @@ public class DownloadControllerTest {
     job.setContext("course_1");
     job.setTenant(tenant);
     job.setCalendarImport(calendarImport);
-
-    LtiSession session = new LtiSession();
-    session.setApplicationName("other.instructure.com");
-    session.setCanvasCourseId("2");
-    when(ltiLoginService.getLtiSession()).thenReturn(session);
 
     when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
     mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
@@ -211,11 +176,6 @@ public class DownloadControllerTest {
     job.setContext("course_1");
     job.setTenant(tenant);
     job.setCalendarImport(calendarImport);
-
-    LtiSession session = new LtiSession();
-    session.setApplicationName("test.instructure.com");
-    session.setCanvasCourseId("1");
-    when(ltiLoginService.getLtiSession()).thenReturn(session);
 
     when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
     mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));

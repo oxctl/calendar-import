@@ -89,7 +89,9 @@ public class ProgressService {
         progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
     if (error != null) {
       jobProgress.setStatus(JobProgress.Status.ERRORED);
-      jobProgress.setLastMessage(error);
+      // This is to make sure that we don't overflow the column and always store the error.
+      int end = Math.min(error.length(), 255);
+      jobProgress.setLastMessage(error.substring(0,end));
     } else {
       jobProgress.setStatus(JobProgress.Status.COMPLETED);
     }

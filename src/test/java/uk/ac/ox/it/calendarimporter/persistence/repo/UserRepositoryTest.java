@@ -14,7 +14,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
@@ -75,20 +74,6 @@ public class UserRepositoryTest {
       assertEquals("other", user.getTenant().getName());
       assertEquals("username", user.getUsername());
     }
-  }
-
-  @Test
-  public void testFindByOAuth2AuthenticationToken() throws Exception {
-    entityManager.persist(new User(tenant, "username"));
-    entityManager.flush();
-    OAuth2AuthenticationToken token = mock(OAuth2AuthenticationToken.class);
-    when(token.getAuthorizedClientRegistrationId()).thenReturn("tenant");
-    when(token.getName()).thenReturn("username");
-    User user =
-        repository.findByOAuth2AuthenticationToken(token).orElseThrow(AssertionFailedError::new);
-    assertEquals("tenant", user.getTenant().getName());
-    assertEquals("username", user.getUsername());
-    assertNotNull(user.getId());
   }
 
   @Test

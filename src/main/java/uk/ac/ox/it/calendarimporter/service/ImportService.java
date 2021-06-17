@@ -1,12 +1,5 @@
 package uk.ac.ox.it.calendarimporter.service;
 
-import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.PROCESSING;
-import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.QUEUED;
-
-import java.time.Instant;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -18,10 +11,10 @@ import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
+import uk.ac.ox.it.calendarimporter.jobs.CleanoutJob;
 import uk.ac.ox.it.calendarimporter.jobs.DeleteJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
@@ -34,6 +27,14 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
+
+import java.time.Instant;
+import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
+
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.PROCESSING;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.QUEUED;
 
 @Service
 @Slf4j
@@ -113,12 +114,6 @@ public class ImportService {
             .usingJobData(CanvasCalendarJob.SOURCE_URL, importConfig.getUrl())
             .usingJobData(CanvasCalendarJob.CONTEXT, importConfig.getContext())
             .usingJobData(CanvasCalendarJob.SECTION, section)
-            .usingJobData(
-                CanvasCalendarJob.ACCESS_TOKEN,
-                importConfig.getClient().getAccessToken().getTokenValue())
-            .usingJobData(
-                CanvasCalendarJob.REFRESH_TOKEN,
-                importConfig.getClient().getRefreshToken().getTokenValue())
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
             // This is in the trigger key but it's better to be explicit about this.
             .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
@@ -149,12 +144,13 @@ public class ImportService {
    * @throws SchedulerException If we failed to schedule the job.
    * @throws IllegalStateException If the import is in a state that it can't be deleted.
    */
-  public void deleteImport(Long calendarImportId, OAuth2AuthorizedClient client, User user)
+  public void deleteImport(Long calendarImportId, User user, Long courseId)
       throws SchedulerException {
 
     // TODO Permission check
     CalendarImport calendarImport =
         calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
+    
     JobProgress load = calendarImport.getLoad();
     if (QUEUED.equals(load.getStatus()) || PROCESSING.equals(load.getStatus())) {
       throw new IllegalStateException("Cannot delete an import that is running or queued.");
@@ -180,8 +176,6 @@ public class ImportService {
                     uuid.toString(), user.getTenant().getName(), user.getUsername()))
             .usingJobData(CanvasCalendarJob.TENANT_NAME, user.getTenant().getName())
             .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
-            .usingJobData(CanvasCalendarJob.ACCESS_TOKEN, client.getAccessToken().getTokenValue())
-            .usingJobData(CanvasCalendarJob.REFRESH_TOKEN, client.getRefreshToken().getTokenValue())
             .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImportId)
             .forJob(detail)
             .build();
@@ -190,6 +184,22 @@ public class ImportService {
     JobProgress jobProgress = progressService.updateJobCreated(uuid.toString());
     calendarImport.setDelete(jobProgress);
     calendarImportRepository.save(calendarImport);
+  }
+  
+  public void purgeImports(String courseContext, String tenantName, String username, boolean all) throws SchedulerException {
+
+    JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
+    Trigger trigger =
+            TriggerBuilder.newTrigger()
+                    .startNow()
+                    .usingJobData(CanvasCalendarJob.CONTEXT, courseContext)
+                    .usingJobData(CanvasCalendarJob.TENANT_NAME, tenantName)
+                    .usingJobData(CanvasCalendarJob.USERNAME, username)
+                    .usingJobData(CleanoutJob.ALL, all)
+                    .forJob(job)
+                    .build();
+
+    scheduler.scheduleJob(job, trigger);
   }
 
   public Page<JobProgress> getJobs(User user, Pageable pageable) {

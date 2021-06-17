@@ -1,4 +1,4 @@
-package uk.ac.ox.it.calendarimporter.controller.pojo;
+package uk.ac.ox.it.calendarimporter.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

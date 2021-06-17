@@ -43,6 +43,9 @@ public abstract class LoggingJob implements Job {
       executeLogged(context);
     } catch (IOException e) {
       throw new JobExecutionException("Failed to open logfile for writing: " + logfile);
+    } catch (Exception e) {
+        log.warn("Failed to run job.", e);
+        throw e;
     } finally {
       // Make sure to flush the last message.
       if (unsavedMessage != null) {

@@ -3,6 +3,7 @@ package uk.ac.ox.it.calendarimporter.jobs;
 import static edu.ksu.canvas.requestOptions.ListCalendarEventsOptions.Exclude.*;
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.*;
 
+import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.interfaces.CalendarReader;
@@ -23,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
-import uk.ac.ox.it.calendarimporter.persistence.model.UserTokens;
+import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
-import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
@@ -47,7 +48,7 @@ public class CleanoutJob implements Job {
 
   @Autowired private TenantRepository tenantRepository;
   @Autowired private CanvasApiCreator canvasApiCreator;
-  @Autowired private UserTokensRepository userTokensRepository;
+  @Autowired private UserRepository userRepository;
 
   public void execute(JobExecutionContext jobContext) throws JobExecutionException {
     JobDataMap config = jobContext.getMergedJobDataMap();
@@ -60,17 +61,14 @@ public class CleanoutJob implements Job {
     log.info("Cleaning out all events in {} of {}, all: {}", context, tenant, all);
 
     String tenantUser = config.getString(TENANT_NAME) + ":" + config.getString(USERNAME);
-    UserTokens userTokens =
-        userTokensRepository
-            .findById(tenantUser)
-            .orElseThrow(
-                () -> new JobExecutionException("Couldn't find tokens for: " + tenantUser));
-    OauthToken oauthToken =
-        canvasApiCreator.getToken(
-            tenant,
-            tenantUser,
-            userTokens.getAccessToken().getTokenValue(),
-            userTokens.getRefreshToken().getTokenValue());
+    User user = userRepository.findByUsernameAndTenant_Name(config.getString(USERNAME), tenant.getName())
+            .orElseThrow(() -> new JobExecutionException("Failed to find user: "+ config.getLong(USERNAME)));
+    OauthToken oauthToken = null;
+    try {
+      oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
+    } catch (JOSEException e) {
+      throw new RuntimeException("Failed to create JWT.", e);
+    }
     CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
 
     CalendarReader calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);

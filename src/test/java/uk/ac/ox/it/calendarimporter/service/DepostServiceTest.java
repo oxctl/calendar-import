@@ -1,5 +1,8 @@
 package uk.ac.ox.it.calendarimporter.service;
 
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -8,9 +11,6 @@ import java.nio.file.Path;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class DepostServiceTest {
 
@@ -52,7 +52,7 @@ public class DepostServiceTest {
     Files.write(upload, "Hello World".getBytes());
     URL d3 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
 
-    assertNotEquals(d1,d2);
-    assertNotEquals(d2,d3);
+    assertNotEquals(d1, d2);
+    assertNotEquals(d2, d3);
   }
 }

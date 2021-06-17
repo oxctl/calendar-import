@@ -3,8 +3,11 @@ package uk.ac.ox.it.calendarimporter.persistence.model;
 import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.ac.ox.it.calendarimporter.Views;
 
 /**
  * Holds the progress of a job that means that we don't have to query quartz to find out what's
@@ -16,12 +19,18 @@ import lombok.NoArgsConstructor;
 public class JobProgress {
 
   /** This is the trigger ID. */
+  @JsonView(Views.Public.class)
   @Id private String id;
 
+  @JsonView(Views.Public.class)
   private Instant started;
+  @JsonView(Views.Public.class)
   private Instant completed;
+  @JsonView(Views.Public.class)
   private String lastMessage;
+  @JsonView(Views.Public.class)
   private Status status;
+  @JsonView(Views.Public.class)
   private int percentage;
   /** URL to logfile. */
   private String logfile;

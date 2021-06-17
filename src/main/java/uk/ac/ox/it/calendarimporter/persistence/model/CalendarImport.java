@@ -2,7 +2,10 @@ package uk.ac.ox.it.calendarimporter.persistence.model;
 
 import java.time.Instant;
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
+import uk.ac.ox.it.calendarimporter.Views;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 
 /**
@@ -15,6 +18,7 @@ public class CalendarImport {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
+  @JsonView(Views.Public.class)
   private long id;
 
   /**
@@ -24,26 +28,34 @@ public class CalendarImport {
   private String context;
 
   /** The user who created this import. */
+  @JsonView(Views.Public.class)
   @ManyToOne private User user;
   /** When this was created. */
+  @JsonView(Views.Public.class)
   private Instant created;
   /** The URL of the import. */
   private String url;
 
   /** The name of the course/section into which this import was done. */
+  @JsonView(Views.Public.class)
   private String destinationName;
   /** The ID the of the course/section into which this import was done. */
+  @JsonView(Views.Public.class)
   private String destinationId;
 
   /** The filename of the file uploaded */
+  @JsonView(Views.Public.class)
   private String filename;
 
   /** The type of importer used. */
+  @JsonView(Views.Public.class)
   private ImportType type;
 
   /** The job used to load the data. */
+  @JsonView(Views.Public.class)
   @OneToOne() private JobProgress load;
 
   /** The job used to remove the data. */
+  @JsonView(Views.Public.class)
   @OneToOne() private JobProgress delete;
 }

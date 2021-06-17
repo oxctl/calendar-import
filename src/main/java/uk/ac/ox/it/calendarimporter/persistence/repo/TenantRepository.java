@@ -12,4 +12,7 @@ public interface TenantRepository extends CrudRepository<Tenant, Long> {
 
   @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
   Optional<Tenant> findByName(String name);
+
+  @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
+  Optional<Tenant> findByLtiClientId(String ltiClientId);
 }

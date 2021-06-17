@@ -4,9 +4,7 @@ import java.util.TimeZone;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
-import uk.ac.ox.it.calendarimporter.controller.pojo.CourseSection;
 
 @AllArgsConstructor
 @Builder
@@ -16,7 +14,6 @@ public class ImportConfig {
   private final ImportType type;
   private final String url;
   private final String filename;
-  private final OAuth2AuthorizedClient client;
   private final Long userId;
   /**
    * The context in which the import is to be done. Typically this is the course although in the

@@ -1,9 +1,10 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
+import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
-import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.oauth.OauthToken;
 import java.io.IOException;
+
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -13,9 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
-import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 
 /**
@@ -29,8 +31,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
   public static final String SOURCE_URL = "url";
   public static final String CONTEXT = "context";
   public static final String SECTION = "section";
-  public static final String ACCESS_TOKEN = "access_token";
-  public static final String REFRESH_TOKEN = "refresh_token";
   public static final String TENANT_NAME = "tenant_name";
   public static final String USERNAME = "user_id";
   public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
@@ -54,16 +54,13 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
   // We need to always pass this in so that on beta/test we take the URL of the launch rather than
   // the URL that we registered the tool with initially.
-  private String canvasUrl;
-  private String accessToken;
-  private String refreshToken;
   private boolean run = true;
 
   @Autowired private TenantRepository tenantRepository;
 
   @Autowired private CalendarImportRepository calendarImportRespository;
 
-  @Autowired private UserTokensRepository userTokensRepository;
+  @Autowired private UserRepository userRepository;
 
   @Autowired private CanvasApiCreator canvasApiCreator;
 
@@ -71,17 +68,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     this.context = context;
   }
 
-  public void setCanvasUrl(String canvasUrl) {
-    this.canvasUrl = canvasUrl;
-  }
-
-  public void setAccessToken(String accessToken) {
-    this.accessToken = accessToken;
-  }
-
-  public void setRefreshToken(String refreshToken) {
-    this.refreshToken = refreshToken;
-  }
 
   public void setUrl(String url) {
     this.url = url;
@@ -108,8 +94,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     JobDataMap config = context.getMergedJobDataMap();
     setUrl(config.getString(SOURCE_URL));
-    setAccessToken(config.getString(ACCESS_TOKEN));
-    setRefreshToken(config.getString(REFRESH_TOKEN));
     setContext(config.getString(CONTEXT));
     setTimeZone(config.getString(TIME_ZONE));
     setSection(config.getString(SECTION));
@@ -120,31 +104,24 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
             .findByName(tenantName)
             .orElseThrow(() -> new JobExecutionException("Failed to find tenant: " + tenantName));
 
-    setCanvasUrl(this.tenant.getUrl());
+    User user = userRepository.findByUsernameAndTenant_Name(config.getString(USERNAME), tenantName)
+            .orElseThrow(() -> new JobExecutionException("Failed to find user: "+ config.getLong(USERNAME)));
 
     long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
     this.calendarImport =
         calendarImportRespository
             .findById(calendarImportId)
-            .orElseThrow(
-                () ->
-                    new JobExecutionException(
-                        "Failed to find calendar import: " + calendarImportId));
-
-    canvasApiFactory = new CanvasApiFactory(canvasUrl);
-    oauthToken =
-        canvasApiCreator.getToken(
-            this.tenant, tenantName + ":" + config.getString(USERNAME), accessToken, refreshToken);
+            .orElseThrow( () -> new JobExecutionException("Failed to find calendar import: " + calendarImportId));
+    
+    canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
     try {
+      oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
       run();
-    } catch (InvalidOauthTokenException e) {
-      // TODO This should be passed in rather than rebuilding the principal.
-      userTokensRepository.deleteById(tenantName + ":" + config.getString(USERNAME));
-      throw new JobExecutionException(
-          "Approved Integration has stopped working, please re-run the job.");
     } catch (IOException e) {
       throw new JobExecutionException(e);
+    } catch (JOSEException e) {
+      throw new JobExecutionException("Failed to get signed JWT", e);
     }
   }
 

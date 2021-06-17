@@ -5,6 +5,7 @@ import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Statu
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.DELETED;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.MISSING;
 
+import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.exception.UnauthorizedException;
@@ -25,10 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
-import uk.ac.ox.it.calendarimporter.persistence.repo.UserTokensRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 
 /** This will remove all events that an import job added to a calendar. */
@@ -42,7 +44,7 @@ public class DeleteJob extends LoggingJob implements Job {
   @Autowired private CalendarImportRepository calendarImportRepository;
   @Autowired private ImportedEventRepository importedEventRepository;
   @Autowired private CanvasApiCreator canvasApiCreator;
-  @Autowired private UserTokensRepository userTokensRepository;
+  @Autowired private UserRepository userRepository;
 
   public void executeLogged(JobExecutionContext jobContext) throws JobExecutionException {
     JobDataMap config = jobContext.getMergedJobDataMap();
@@ -63,15 +65,16 @@ public class DeleteJob extends LoggingJob implements Job {
     log.debug("Cleaning out events in {} of {}", context, tenant);
     // TODO This should come from the current LTI launch
     CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
-    String refreshToken = config.getString(CanvasCalendarJob.REFRESH_TOKEN);
-    String accessToken = config.getString(ACCESS_TOKEN);
-    OauthToken oauthToken =
-        canvasApiCreator.getToken(
-            tenant,
-            config.getString(TENANT_NAME) + ":" + config.getString(USERNAME),
-            accessToken,
-            refreshToken);
+    canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
+    User user = userRepository.findByUsernameAndTenant_Name(config.getString(USERNAME), tenant.getName())
+            .orElseThrow(() -> new JobExecutionException("Failed to find user: "+ config.getLong(USERNAME)));
+    OauthToken oauthToken = null;
+    try {
+      oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
+    } catch (JOSEException e) {
+      throw new RuntimeException("Failed to create JWT.", e);
+    }
     CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
 
     try {
@@ -114,7 +117,6 @@ public class DeleteJob extends LoggingJob implements Job {
           tenant);
       log("Removed %d events of total of %d.", deleted, total);
     } catch (InvalidOauthTokenException e) {
-      userTokensRepository.deleteById(tenant.getName() + ":" + config.getString(USERNAME));
       throw new JobExecutionException(
           "Approved Integration has stopped working, please re-run the job.");
     } catch (IOException e) {

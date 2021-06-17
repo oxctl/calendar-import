@@ -43,4 +43,13 @@ public class Tenant {
   private String oauth2Id;
 
   @ToString.Exclude private String oauth2Secret;
+
+  // The LTI 1.3 Client ID. This will be in the audence of the JWT.
+  @Column(unique = true)
+  private String ltiClientId;
+
+  @ToString.Exclude private String proxyHmacSecret;
+  
+  // The Host to use for proxying requests to Canvas.
+  private String proxyHost;
 }
