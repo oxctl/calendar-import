@@ -1,18 +1,16 @@
 package uk.ac.ox.it.calendarimporter.persistence.repo;
 
-import static org.junit.Assert.*;
-
-import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 
-@RunWith(SpringRunner.class)
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 @DataJpaTest
 public class ImportedEventRepositoryTest {
 
@@ -21,7 +19,7 @@ public class ImportedEventRepositoryTest {
   @Autowired private ImportedEventRepository repository;
 
   @Test
-  public void testSaveEvent() throws Exception {
+  public void testSaveEvent() {
     CalendarImport calendarImport = new CalendarImport();
     calendarImport = entityManager.persist(calendarImport);
     ImportedEvent event =

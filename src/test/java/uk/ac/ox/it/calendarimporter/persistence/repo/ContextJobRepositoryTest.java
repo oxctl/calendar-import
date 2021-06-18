@@ -1,114 +1,117 @@
 package uk.ac.ox.it.calendarimporter.persistence.repo;
 
-import static org.junit.Assert.*;
-
-import java.time.Instant;
-import java.util.Iterator;
-import javax.validation.ConstraintViolationException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
-@RunWith(SpringRunner.class)
+import java.time.Instant;
+import java.util.Iterator;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+//@ExtendWith(SpringExtension.class)
 @DataJpaTest
 public class ContextJobRepositoryTest {
 
-  @Autowired private TestEntityManager entityManager;
+    @Autowired
+    private TestEntityManager entityManager;
 
-  @Autowired private ContextJobRepository repository;
-  private Tenant tenant;
-  private CalendarImport calendarImport;
+    @Autowired
+    private ContextJobRepository repository;
+    private Tenant tenant;
+    private CalendarImport calendarImport;
 
-  @Before
-  public void setUp() {
-    tenant = new Tenant();
-    tenant.setName("test");
-    tenant.setUrl("http://example.com");
-    entityManager.persist(tenant);
+    @BeforeEach
+    public void setUp() {
+        tenant = new Tenant();
+        tenant.setName("test");
+        tenant.setUrl("http://example.com");
+        entityManager.persist(tenant);
 
-    CalendarImport calendarImport = new CalendarImport();
-    this.calendarImport = entityManager.persist(calendarImport);
-  }
-
-  @Test(expected = ConstraintViolationException.class)
-  public void testSaveMissingFields() {
-    ContextJob job = new ContextJob();
-    repository.save(job);
-    entityManager.flush();
-  }
-
-  @Test
-  public void testSaveLoad() throws Exception {
-    long id;
-    {
-      ContextJob job = new ContextJob();
-      job.setTenant(tenant);
-      job.setContext("context_1");
-      job.setCreated(Instant.now());
-      job.setCalendarImport(calendarImport);
-      id = repository.save(job).getId();
+        CalendarImport calendarImport = new CalendarImport();
+        this.calendarImport = entityManager.persist(calendarImport);
     }
-    {
-      ContextJob job = repository.findById(id).orElseThrow(AssertionError::new);
-      assertEquals(tenant, job.getTenant());
-      assertEquals("context_1", job.getContext());
-      assertNotNull(job.getCreated());
-      assertEquals(calendarImport, job.getCalendarImport());
-    }
-  }
 
-  @Test
-  public void testFindByTenentAndContext() {
-    long id;
-    {
-      ContextJob job = new ContextJob();
-      job.setTenant(tenant);
-      job.setContext("context_1");
-      job.setCreated(Instant.now());
-      job.setCalendarImport(calendarImport);
-      id = repository.save(job).getId();
+    @Test
+    public void testSaveMissingFields() {
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            ContextJob job = new ContextJob();
+            repository.save(job);
+            entityManager.flush();
+        });
     }
-    {
-      Page<ContextJob> jobs =
-          repository.findByTenantAndContextAndHiddenOrderByCreatedDesc(
-              tenant, "context_1", false, Pageable.unpaged());
-      assertFalse(jobs.isEmpty());
-      Iterator<ContextJob> iterator = jobs.iterator();
-      assertTrue(iterator.hasNext());
-      ContextJob job = iterator.next();
-      assertEquals(id, job.getId());
-    }
-  }
 
-  @Test
-  public void testFindByTenentNameAndContext() {
-    long id;
-    {
-      ContextJob job = new ContextJob();
-      job.setTenant(tenant);
-      job.setContext("context_1");
-      job.setCreated(Instant.now());
-      job.setCalendarImport(calendarImport);
-      id = repository.save(job).getId();
+    @Test
+    public void testSaveLoad() {
+        long id;
+        {
+            ContextJob job = new ContextJob();
+            job.setTenant(tenant);
+            job.setContext("context_1");
+            job.setCreated(Instant.now());
+            job.setCalendarImport(calendarImport);
+            id = repository.save(job).getId();
+        }
+        {
+            ContextJob job = repository.findById(id).orElseThrow(AssertionError::new);
+            assertEquals(tenant, job.getTenant());
+            assertEquals("context_1", job.getContext());
+            assertNotNull(job.getCreated());
+            assertEquals(calendarImport, job.getCalendarImport());
+        }
     }
-    {
-      Page<ContextJob> jobs =
-          repository.findByTenantNameAndContextAndHiddenOrderByCreatedDesc(
-              tenant.getName(), "context_1", false, Pageable.unpaged());
-      assertFalse(jobs.isEmpty());
-      Iterator<ContextJob> iterator = jobs.iterator();
-      assertTrue(iterator.hasNext());
-      ContextJob job = iterator.next();
-      assertEquals(id, job.getId());
+
+    @Test
+    public void testFindByTenentAndContext() {
+        long id;
+        {
+            ContextJob job = new ContextJob();
+            job.setTenant(tenant);
+            job.setContext("context_1");
+            job.setCreated(Instant.now());
+            job.setCalendarImport(calendarImport);
+            id = repository.save(job).getId();
+        }
+        {
+            Page<ContextJob> jobs =
+                    repository.findByTenantAndContextAndHiddenOrderByCreatedDesc(
+                            tenant, "context_1", false, Pageable.unpaged());
+            assertFalse(jobs.isEmpty());
+            Iterator<ContextJob> iterator = jobs.iterator();
+            assertTrue(iterator.hasNext());
+            ContextJob job = iterator.next();
+            assertEquals(id, job.getId());
+        }
     }
-  }
+
+    @Test
+    public void testFindByTenentNameAndContext() {
+        long id;
+        {
+            ContextJob job = new ContextJob();
+            job.setTenant(tenant);
+            job.setContext("context_1");
+            job.setCreated(Instant.now());
+            job.setCalendarImport(calendarImport);
+            id = repository.save(job).getId();
+        }
+        {
+            Page<ContextJob> jobs =
+                    repository.findByTenantNameAndContextAndHiddenOrderByCreatedDesc(
+                            tenant.getName(), "context_1", false, Pageable.unpaged());
+            assertFalse(jobs.isEmpty());
+            Iterator<ContextJob> iterator = jobs.iterator();
+            assertTrue(iterator.hasNext());
+            ContextJob job = iterator.next();
+            assertEquals(id, job.getId());
+        }
+    }
 }

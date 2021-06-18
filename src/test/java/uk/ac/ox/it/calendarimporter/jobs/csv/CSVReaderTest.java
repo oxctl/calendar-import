@@ -1,14 +1,15 @@
 package uk.ac.ox.it.calendarimporter.jobs.csv;
 
-import static org.junit.Assert.*;
-
 import edu.ksu.canvas.model.CalendarEvent;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.TimeZone;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CSVReaderTest {
 
@@ -23,7 +24,7 @@ public class CSVReaderTest {
         }
       };
 
-  @Before
+  @BeforeEach
   public void setUp() {
     csvReader = new CSVReader();
     hasErrors = false;
@@ -38,9 +39,9 @@ public class CSVReaderTest {
     return getClass().getResource(s);
   }
 
-  @Test(expected = HeaderException.class)
-  public void testEmptyImport() throws IOException, HeaderException {
-    parse("/empty.csv");
+  @Test
+  public void testEmptyImport() {
+      assertThrows(HeaderException.class, () -> parse("/empty.csv"));
   }
 
   @Test

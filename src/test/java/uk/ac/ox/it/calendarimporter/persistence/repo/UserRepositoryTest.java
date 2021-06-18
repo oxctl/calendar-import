@@ -1,24 +1,19 @@
 package uk.ac.ox.it.calendarimporter.persistence.repo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-
-import java.util.Optional;
-import javax.persistence.PersistenceException;
-import junit.framework.AssertionFailedError;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 
-@RunWith(SpringRunner.class)
+import javax.persistence.PersistenceException;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 @DataJpaTest
 public class UserRepositoryTest {
 
@@ -28,8 +23,8 @@ public class UserRepositoryTest {
 
   private Tenant tenant;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     tenant = new Tenant();
     tenant.setName("tenant");
     tenant.setUrl("http://example.com/");
@@ -37,7 +32,7 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testFindByTenantNameAndUsername() throws Exception {
+  public void testFindByTenantNameAndUsername() {
     entityManager.persist(new User(tenant, "username"));
     entityManager.flush();
     User user =
@@ -50,7 +45,7 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testTenentIsolation() throws Exception {
+  public void testTenentIsolation() {
     Tenant other = new Tenant();
     other.setName("other");
     other.setUrl("http://example.com");
@@ -77,21 +72,23 @@ public class UserRepositoryTest {
   }
 
   @Test
-  public void testNotFound() throws Exception {
+  public void testNotFound() {
     Optional<User> missing = this.repository.findByUsernameAndTenant_Name("noUser", "badTenant");
     assertFalse(missing.isPresent());
   }
 
-  @Test(expected = PersistenceException.class)
-  public void testNoDuplicates() throws Exception {
-    // Check index prevents duplicates
-    entityManager.persist(new User(tenant, "username"));
-    entityManager.persist(new User(tenant, "username"));
-    entityManager.flush();
+  @Test
+  public void testNoDuplicates() {
+     assertThrows(PersistenceException.class, () -> {
+       // Check index prevents duplicates
+       entityManager.persist(new User(tenant, "username"));
+       entityManager.persist(new User(tenant, "username"));
+       entityManager.flush();
+     });
   }
 
   @Test
-  public void testUpdateUser() throws Exception {
+  public void testUpdateUser() {
     entityManager.persist(new User(tenant, "username"));
     entityManager.flush();
     {

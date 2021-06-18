@@ -1,23 +1,24 @@
 package uk.ac.ox.it.calendarimporter.service;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DepostServiceTest {
 
   private DepositService depositService;
   private Path tempDirectory;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     depositService = new DepositService();
     depositService.setDateFormat("yyyy-MM");
@@ -26,7 +27,7 @@ public class DepostServiceTest {
     depositService.init();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws IOException {
     Files.walk(tempDirectory)
         .map(Path::toFile)

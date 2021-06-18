@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * This just serves up the log as a plain text response.
@@ -35,23 +33,15 @@ public class ApiDownloadController {
 
     @Autowired
     private ContextJobRepository contextJobRepository;
-    @Autowired
-    private TenantRepository tenantRepository;
 
     @GetMapping("/log/{contextJobId}/load")
-    public ResponseEntity load(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
+    public ResponseEntity<InputStreamResource> load(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
             expression =
                     "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
             Long courseId,
-                               @AuthenticationPrincipal(expression = "claims[aud]") List<String> audience)
+                              Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getLoad();
@@ -60,19 +50,13 @@ public class ApiDownloadController {
     }
 
     @GetMapping("/log/{contextJobId}/delete")
-    public ResponseEntity delete(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
+    public ResponseEntity<InputStreamResource> delete(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
             expression =
                     "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
             Long courseId,
-                                 @AuthenticationPrincipal(expression = "claims[aud]") List<String> audience)
+                                 Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getDelete();
@@ -81,27 +65,31 @@ public class ApiDownloadController {
     }
 
     @GetMapping("/download/{contextJobId}")
-    public ResponseEntity download(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
+    public ResponseEntity<InputStreamResource> download(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
             expression =
                     "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
             Long courseId,
-                                   @AuthenticationPrincipal(expression = "claims[aud]") List<String> audience)
+                                   Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         CalendarImport calendarImport = contextJob.getCalendarImport();
-        String logfile = calendarImport.getUrl();
+        String file = calendarImport.getUrl();
         // TODO Check it's a local file
-        ResponseEntity responseEntity =
-                streamUrl(logfile, MediaType.parseMediaType("text/css"), calendarImport.getFilename());
-        return responseEntity;
+        return streamUrl(file, toMediaType(calendarImport.getType()), calendarImport.getFilename());
+    }
+    
+    private MediaType toMediaType(ImportType importType) {
+        switch (importType) {
+            case ICAL:
+                return MediaType.parseMediaType("text/calendar");
+            case CSV:
+                return MediaType.parseMediaType("text/csv");
+            default:
+                return MediaType.parseMediaType("application/binary");
+        }
+        
     }
 
     /**
@@ -123,7 +111,7 @@ public class ApiDownloadController {
         return contextJob;
     }
 
-    private ResponseEntity streamUrl(String logfile, MediaType mediaType, String filename)
+    private ResponseEntity<InputStreamResource> streamUrl(String logfile, MediaType mediaType, String filename)
             throws IOException {
         if (logfile == null || logfile.isEmpty()) {
             throw new NotFoundException();

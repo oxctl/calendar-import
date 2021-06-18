@@ -1,8 +1,9 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import static org.junit.Assert.assertFalse;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TenantTest {
 

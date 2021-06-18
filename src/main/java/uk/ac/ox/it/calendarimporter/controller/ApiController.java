@@ -1,15 +1,9 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.nimbusds.jose.JOSEException;
-import edu.ksu.canvas.CanvasApiFactory;
-import edu.ksu.canvas.interfaces.SectionReader;
-import edu.ksu.canvas.model.Section;
-import edu.ksu.canvas.oauth.OauthToken;
 import org.quartz.SchedulerException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -24,15 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 import uk.ac.ox.it.calendarimporter.JsonPage;
 import uk.ac.ox.it.calendarimporter.Views;
 import uk.ac.ox.it.calendarimporter.beans.ImportJob;
-import uk.ac.ox.it.calendarimporter.service.CourseSection;
-import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
-import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
-import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
+import uk.ac.ox.it.calendarimporter.service.CourseSection;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
@@ -40,9 +31,6 @@ import uk.ac.ox.it.calendarimporter.service.ImportService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import java.util.TimeZone;
 
 @RestController()
@@ -50,24 +38,17 @@ import java.util.TimeZone;
 public class ApiController {
 
     private final ImportService importService;
-    private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final DepositService depositService;
-    private final CanvasApiCreator canvasApiCreator;
     private final CalendarImportRepository calendarImportRepository;
-
-
 
     public ApiController(
             ImportService importService,
-            TenantRepository tenantRepository,
             UserRepository userRepository,
-            DepositService depositService, CanvasApiCreator canvasApiCreator, CalendarImportRepository calendarImportRepository) {
+            DepositService depositService, CalendarImportRepository calendarImportRepository) {
         this.importService = importService;
-        this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
         this.depositService = depositService;
-        this.canvasApiCreator = canvasApiCreator;
         this.calendarImportRepository = calendarImportRepository;
     }
  
@@ -75,46 +56,31 @@ public class ApiController {
     @GetMapping("/imports")
     public JsonPage<ContextJob> getImports(
             Pageable pageable,
-            @AuthenticationPrincipal(expression = "claims[aud]") List<String> audience,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            Tenant tenant,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Long courseId) {
         if (courseId == null) {
             throw new IllegalArgumentException("course_id custom claim cannot be empty");
         }
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
         String courseContext = "course_" + courseId;
 
         return new JsonPage<>(importService.getJobs(tenant.getName(), courseContext, pageable), pageable);
     }
 
     @DeleteMapping("/imports/{id}")
-    public ResponseEntity deleteImport(
+    public ResponseEntity<Void> deleteImport(
             @PathVariable Long id,
             JwtAuthenticationToken authentication,
-            @AuthenticationPrincipal(expression = "claims[aud]") List<String> audience,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            Tenant tenant,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Long courseId) throws SchedulerException {
         if (courseId == null) {
             throw new IllegalArgumentException("course_id custom claim cannot be empty");
         }
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
+
         User user = getUser(authentication, tenant);
 
-        CalendarImport calendarImport = calendarImportRepository.findById(id).orElseThrow(RuntimeException::new);
+        calendarImportRepository.findById(id).orElseThrow(() -> new NotFoundException("Failed to fine: "+ id));
         importService.deleteImport(id, user, courseId);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
@@ -123,26 +89,15 @@ public class ApiController {
     @PostMapping("/run")
     public ResponseEntity<ImportJob> runJob(
             JwtAuthenticationToken authentication,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Long courseId,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['person_address_timezone']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['person_address_timezone']")
                     String addressTimezone,
-            @AuthenticationPrincipal(expression = "claims[aud]") List<String> audience,
+            Tenant tenant,
             @RequestParam(name = "sectionId") String sectionId,
             @RequestParam(name = "sectionName") String sectionName,
             @RequestParam(name = "file") MultipartFile upload)
             throws IOException, SchedulerException {
-
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
 
         User user = getUser(authentication, tenant);
 
@@ -153,7 +108,6 @@ public class ApiController {
                 (addressTimezone != null && !addressTimezone.isEmpty())
                         ? TimeZone.getTimeZone(addressTimezone)
                         : TimeZone.getDefault();
-        ;
 
         // Deposit the file.
         File tempFile = File.createTempFile("upload", null);
@@ -208,54 +162,17 @@ public class ApiController {
         return userRepository.save(user);
     }
 
-    @GetMapping(
-            path = "/sections",
-            produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<List<Section>> getSections(
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId,
-            JwtAuthenticationToken authentication)
-            throws IOException, JOSEException {
-
-        List<String> audience = authentication.getToken().getAudience();
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
-        // Generate token.
-        CanvasApiFactory factory = new CanvasApiFactory(tenant.getProxyHost());
-        // User principal
-        String subject = authentication.getToken().getSubject();
-        
-        OauthToken token = canvasApiCreator.getSignedJwt(tenant, subject);
-
-        SectionReader reader = factory.getReader(SectionReader.class, token);
-        List<Section> sections = reader.listCourseSections(String.valueOf(courseId), Collections.emptyList());
-        return ResponseEntity.ok(sections);
-    }
-
     @PostMapping("purge")
-    public ResponseEntity purge(
+    public ResponseEntity<Void> purge(
             @RequestParam(name = "all", required = false, defaultValue = "false") boolean all,
+            Tenant tenant,
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Long courseId,
-            @AuthenticationPrincipal(expression = "claims[aud]") List<String> audience,
             JwtAuthenticationToken authentication)
             throws SchedulerException {
         String courseContext = "course_" + courseId;
-        Tenant tenant =
-                audience.stream()
-                        .map(tenantRepository::findByLtiClientId)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .orElseThrow();
-
         User user = getUser(authentication, tenant);
 
         importService.purgeImports(courseContext, tenant.getName(), user.getUsername(), all);
