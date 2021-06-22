@@ -164,11 +164,11 @@ The CSR can then be uploaded to request the certificate.
 
 ### AWS
 
-This service is deployed to AWS using elastic beanstalk. This is managed by shippable which is able todo the deployments to the development instance and then if everything looks ok a build can be deployed to the production environment. The files for doing this are in the folder [elasticbeanstalk](elasticbeanstalk).
+This service is deployed to AWS using elastic beanstalk. This is managed by GitHub Actions which is able todo the deployments to the development instance and then if everything looks ok a build can be deployed to the production environment. The files for doing this are in the folder [elasticbeanstalk](elasticbeanstalk).
 
 ### CI/CD
 
-There is a file called [shippable.yml](shippable.yml) that has the configuration for the CI setup and then the CD pipeline. Any new commit on the master branch is automatically deployed to the development instance of the calendar import tool.
+There is a file called [build.yml](build.yml) that has the configuration for the CI setup and then the CD pipeline. Any new commit on the master branch is automatically deployed to the development instance of the calendar import tool.
 
 
 ## Cookies
