@@ -9,11 +9,11 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
 public interface ContextJobRepository extends CrudRepository<ContextJob, Long> {
 
-  @EntityGraph("contextJobWithCalendarImport")
-  Page<ContextJob> findByTenantAndContextAndHiddenOrderByCreatedDesc(
-      Tenant tenant, String context, boolean hidden, Pageable pageable);
+    @EntityGraph("contextJobWithCalendarImport")
+    Page<ContextJob> findByTenantAndContextAndHiddenOrderByCreatedDesc(
+            Tenant tenant, String context, boolean hidden, Pageable pageable);
 
-  @EntityGraph("contextJobWithCalendarImport")
-  Page<ContextJob> findByTenantNameAndContextAndHiddenOrderByCreatedDesc(
-      String tenantName, String context, boolean hidden, Pageable pageable);
+    @EntityGraph("contextJobWithCalendarImport")
+    Page<ContextJob> findByTenantNameAndContextAndHiddenOrderByCreatedDesc(
+            String tenantName, String context, boolean hidden, Pageable pageable);
 }

@@ -16,8 +16,11 @@ public class HiddenDataTest {
 
     @Test
     public void testInvalid() {
-        assertThrows(IllegalArgumentException.class, () -> HiddenData.fromHidden(
-                "<div class=\"calendar-data-1\" style=\"display: none;\" data-calendar=\"  \"></div>"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        HiddenData.fromHidden(
+                                "<div class=\"calendar-data-1\" style=\"display: none;\" data-calendar=\"  \"></div>"));
     }
 
     @Test

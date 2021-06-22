@@ -1,6 +1,5 @@
 package uk.ac.ox.it.calendarimporter;
 
-
 /**
  * Just a marker for Jackson views
  */

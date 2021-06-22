@@ -45,26 +45,30 @@ public class ApiController {
     public ApiController(
             ImportService importService,
             UserRepository userRepository,
-            DepositService depositService, CalendarImportRepository calendarImportRepository) {
+            DepositService depositService,
+            CalendarImportRepository calendarImportRepository) {
         this.importService = importService;
         this.userRepository = userRepository;
         this.depositService = depositService;
         this.calendarImportRepository = calendarImportRepository;
     }
- 
+
     @JsonView(Views.Public.class)
     @GetMapping("/imports")
     public JsonPage<ContextJob> getImports(
             Pageable pageable,
             Tenant tenant,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            @AuthenticationPrincipal(
+                    expression =
+                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Long courseId) {
         if (courseId == null) {
             throw new IllegalArgumentException("course_id custom claim cannot be empty");
         }
         String courseContext = "course_" + courseId;
 
-        return new JsonPage<>(importService.getJobs(tenant.getName(), courseContext, pageable), pageable);
+        return new JsonPage<>(
+                importService.getJobs(tenant.getName(), courseContext, pageable), pageable);
     }
 
     @DeleteMapping("/imports/{id}")
@@ -72,15 +76,20 @@ public class ApiController {
             @PathVariable Long id,
             JwtAuthenticationToken authentication,
             Tenant tenant,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId) throws SchedulerException {
+            @AuthenticationPrincipal(
+                    expression =
+                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+                    Long courseId)
+            throws SchedulerException {
         if (courseId == null) {
             throw new IllegalArgumentException("course_id custom claim cannot be empty");
         }
 
         User user = getUser(authentication, tenant);
 
-        calendarImportRepository.findById(id).orElseThrow(() -> new NotFoundException("Failed to fine: "+ id));
+        calendarImportRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException("Failed to fine: " + id));
         importService.deleteImport(id, user, courseId);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
@@ -89,9 +98,13 @@ public class ApiController {
     @PostMapping("/run")
     public ResponseEntity<ImportJob> runJob(
             JwtAuthenticationToken authentication,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            @AuthenticationPrincipal(
+                    expression =
+                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Long courseId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['person_address_timezone']")
+            @AuthenticationPrincipal(
+                    expression =
+                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['person_address_timezone']")
                     String addressTimezone,
             Tenant tenant,
             @RequestParam(name = "sectionId") String sectionId,
@@ -113,13 +126,13 @@ public class ApiController {
         File tempFile = File.createTempFile("upload", null);
         upload.transferTo(tempFile);
         URL deposit = depositService.deposit(tempFile, DepositService.Type.UPLOAD);
-        
+
         String originalFilename = upload.getOriginalFilename();
         if (originalFilename == null) {
             originalFilename = "file.csv";
         }
 
-        CourseSection into = (!sectionId.isEmpty())?new CourseSection(sectionId, sectionName): null;
+        CourseSection into = (!sectionId.isEmpty()) ? new CourseSection(sectionId, sectionName) : null;
         ImportJob importJob =
                 importService.importNow(
                         new ImportConfig(
@@ -141,7 +154,12 @@ public class ApiController {
                         .orElseGet(
                                 () -> {
                                     User newUser = new User();
-                                    newUser.setUsername(String.valueOf(authentication.getToken().getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/lis").get("personsourceid")));
+                                    newUser.setUsername(
+                                            String.valueOf(
+                                                    authentication
+                                                            .getToken()
+                                                            .getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/lis")
+                                                            .get("personsourceid")));
                                     newUser.setSubject(subject);
                                     newUser.setTenant(tenant);
                                     return newUser;
@@ -178,6 +196,4 @@ public class ApiController {
         importService.purgeImports(courseContext, tenant.getName(), user.getUsername(), all);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
-
-
 }

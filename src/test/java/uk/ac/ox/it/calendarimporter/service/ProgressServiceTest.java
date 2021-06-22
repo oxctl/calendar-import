@@ -64,27 +64,33 @@ public class ProgressServiceTest {
 
     @Test
     public void testOutPercentage() {
-        assertThrows(IllegalArgumentException.class, () -> progressService.updateJob("triggerId", "Status", -1));
+        assertThrows(
+                IllegalArgumentException.class, () -> progressService.updateJob("triggerId", "Status", -1));
     }
 
     @Test
     public void testUpdateCompleted() {
-        assertThrows(IllegalStateException.class, () -> {
-            progressService.updateJobStopped("triggerId", null, null);
-            progressService.updateJob("triggerId", "Status", 1);
-        });
+        assertThrows(
+                IllegalStateException.class,
+                () -> {
+                    progressService.updateJobStopped("triggerId", null, null);
+                    progressService.updateJob("triggerId", "Status", 1);
+                });
     }
 
     @Test
     public void testUpdateErrored() {
-        assertThrows(IllegalStateException.class, () -> {
-            progressService.updateJobStopped("triggerId", "Error", null);
-            progressService.updateJob("triggerId", "Status", 1);
-        });
+        assertThrows(
+                IllegalStateException.class,
+                () -> {
+                    progressService.updateJobStopped("triggerId", "Error", null);
+                    progressService.updateJob("triggerId", "Status", 1);
+                });
     }
 
     @Test
     public void testUpdateNoMessage() {
-        assertThrows(IllegalArgumentException.class, () -> progressService.updateJob("triggerId", null, 10));
+        assertThrows(
+                IllegalArgumentException.class, () -> progressService.updateJob("triggerId", null, 10));
     }
 }

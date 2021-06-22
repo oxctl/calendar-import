@@ -7,7 +7,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
@@ -26,156 +25,156 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(locations = "classpath:test.properties")
 public class ApiDownloadControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-  @MockBean private ContextJobRepository contextJobRepository;
+    @MockBean
+    private ContextJobRepository contextJobRepository;
 
-  @Test
-  @WithMockUser(username = "canvas", roles = "LTI_USER")
-  public void testDownloadLogfile() throws Exception {
-    Tenant tenant = new Tenant();
-    tenant.setName("test.instructure.com");
+    @Test
+    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    public void testDownloadLogfile() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("test.instructure.com");
 
-    JobProgress progress = new JobProgress();
-    String logfile = getClass().getResource("log.txt").toExternalForm();
-    progress.setLogfile(logfile);
+        JobProgress progress = new JobProgress();
+        String logfile = getClass().getResource("log.txt").toExternalForm();
+        progress.setLogfile(logfile);
 
-    CalendarImport calendarImport = new CalendarImport();
-    calendarImport.setLoad(progress);
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setLoad(progress);
 
-    ContextJob job = new ContextJob();
-    job.setId(1234);
-    job.setContext("course_1");
-    job.setTenant(tenant);
-    job.setCalendarImport(calendarImport);
+        ContextJob job = new ContextJob();
+        job.setId(1234);
+        job.setContext("course_1");
+        job.setTenant(tenant);
+        job.setCalendarImport(calendarImport);
 
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        mockMvc
+                .perform(MockMvcRequestBuilders.get("/app/log/1234/load"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Example Log"))
+                .andExpect(content().contentType(MediaType.TEXT_PLAIN));
+    }
 
-    when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-    mockMvc
-        .perform(MockMvcRequestBuilders.get("/app/log/1234/load"))
-        .andExpect(status().isOk())
-        .andExpect(content().string("Example Log"))
-        .andExpect(content().contentType(MediaType.TEXT_PLAIN));
-  }
+    @Test
+    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    public void testDownloadLogfileMissing() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("test.instructure.com");
 
-  @Test
-  @WithMockUser(username = "canvas", roles = "LTI_USER")
-  public void testDownloadLogfileMissing() throws Exception {
-    Tenant tenant = new Tenant();
-    tenant.setName("test.instructure.com");
+        JobProgress progress = new JobProgress();
+        String logfile = "file:///doesnotexist.txt";
+        progress.setLogfile(logfile);
 
-    JobProgress progress = new JobProgress();
-    String logfile = "file:///doesnotexist.txt";
-    progress.setLogfile(logfile);
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setLoad(progress);
 
-    CalendarImport calendarImport = new CalendarImport();
-    calendarImport.setLoad(progress);
+        ContextJob job = new ContextJob();
+        job.setId(1234);
+        job.setContext("course_1");
+        job.setTenant(tenant);
+        job.setCalendarImport(calendarImport);
 
-    ContextJob job = new ContextJob();
-    job.setId(1234);
-    job.setContext("course_1");
-    job.setTenant(tenant);
-    job.setCalendarImport(calendarImport);
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
+    }
 
+    @Test
+    public void testDownloadLogfileNotAuthenticated() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("test.instructure.com");
 
-    when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-    mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
-  }
+        JobProgress progress = new JobProgress();
+        String logfile = "file:///doesnotexist.txt";
+        progress.setLogfile(logfile);
 
-  @Test
-  public void testDownloadLogfileNotAuthenticated() throws Exception {
-    Tenant tenant = new Tenant();
-    tenant.setName("test.instructure.com");
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setLoad(progress);
 
-    JobProgress progress = new JobProgress();
-    String logfile = "file:///doesnotexist.txt";
-    progress.setLogfile(logfile);
+        ContextJob job = new ContextJob();
+        job.setId(1234);
+        job.setContext("course_1");
+        job.setTenant(tenant);
+        job.setCalendarImport(calendarImport);
 
-    CalendarImport calendarImport = new CalendarImport();
-    calendarImport.setLoad(progress);
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
+    }
 
-    ContextJob job = new ContextJob();
-    job.setId(1234);
-    job.setContext("course_1");
-    job.setTenant(tenant);
-    job.setCalendarImport(calendarImport);
+    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    @Test
+    public void testDownloadLogfileWrongContext() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("test.instructure.com");
 
-    when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-    mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
-  }
+        JobProgress progress = new JobProgress();
+        String logfile = getClass().getResource("log.txt").toExternalForm();
+        progress.setLogfile(logfile);
 
-  @WithMockUser(username = "canvas", roles = "LTI_USER")
-  @Test
-  public void testDownloadLogfileWrongContext() throws Exception {
-    Tenant tenant = new Tenant();
-    tenant.setName("test.instructure.com");
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setLoad(progress);
 
-    JobProgress progress = new JobProgress();
-    String logfile = getClass().getResource("log.txt").toExternalForm();
-    progress.setLogfile(logfile);
+        ContextJob job = new ContextJob();
+        job.setId(1234);
+        job.setContext("course_1");
+        job.setTenant(tenant);
+        job.setCalendarImport(calendarImport);
 
-    CalendarImport calendarImport = new CalendarImport();
-    calendarImport.setLoad(progress);
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
+    }
 
-    ContextJob job = new ContextJob();
-    job.setId(1234);
-    job.setContext("course_1");
-    job.setTenant(tenant);
-    job.setCalendarImport(calendarImport);
+    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    @Test
+    public void testDownloadLogfileWrongTenant() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("test.instructure.com");
 
-    when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-    mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
-  }
+        JobProgress progress = new JobProgress();
+        String logfile = getClass().getResource("log.txt").toExternalForm();
+        progress.setLogfile(logfile);
 
-  @WithMockUser(username = "canvas", roles = "LTI_USER")
-  @Test
-  public void testDownloadLogfileWrongTenant() throws Exception {
-    Tenant tenant = new Tenant();
-    tenant.setName("test.instructure.com");
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setLoad(progress);
 
-    JobProgress progress = new JobProgress();
-    String logfile = getClass().getResource("log.txt").toExternalForm();
-    progress.setLogfile(logfile);
+        ContextJob job = new ContextJob();
+        job.setId(1234);
+        job.setContext("course_1");
+        job.setTenant(tenant);
+        job.setCalendarImport(calendarImport);
 
-    CalendarImport calendarImport = new CalendarImport();
-    calendarImport.setLoad(progress);
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
+    }
 
-    ContextJob job = new ContextJob();
-    job.setId(1234);
-    job.setContext("course_1");
-    job.setTenant(tenant);
-    job.setCalendarImport(calendarImport);
+    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    @Test
+    public void testDownloadLogfileMissingContext() throws Exception {
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.empty());
+        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
+    }
 
-    when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-    mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
-  }
+    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    @Test
+    public void testDownloadLogfileStillRunning() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("test.instructure.com");
 
-  @WithMockUser(username = "canvas", roles = "LTI_USER")
-  @Test
-  public void testDownloadLogfileMissingContext() throws Exception {
-    when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.empty());
-    mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
-  }
+        JobProgress progress = new JobProgress();
+        // No log file yet.
 
-  @WithMockUser(username = "canvas", roles = "LTI_USER")
-  @Test
-  public void testDownloadLogfileStillRunning() throws Exception {
-    Tenant tenant = new Tenant();
-    tenant.setName("test.instructure.com");
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setLoad(progress);
 
-    JobProgress progress = new JobProgress();
-    // No log file yet.
+        ContextJob job = new ContextJob();
+        job.setId(1234);
+        job.setContext("course_1");
+        job.setTenant(tenant);
+        job.setCalendarImport(calendarImport);
 
-    CalendarImport calendarImport = new CalendarImport();
-    calendarImport.setLoad(progress);
-
-    ContextJob job = new ContextJob();
-    job.setId(1234);
-    job.setContext("course_1");
-    job.setTenant(tenant);
-    job.setCalendarImport(calendarImport);
-
-    when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-    mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
-  }
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
+    }
 }

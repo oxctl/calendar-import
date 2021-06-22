@@ -7,5 +7,5 @@ import uk.ac.ox.it.calendarimporter.persistence.model.UserJob;
 
 public interface UserJobRepository extends CrudRepository<UserJob, String> {
 
-  Page<UserJob> findByUserIdOrderByCreatedDesc(Long userId, Pageable pageable);
+    Page<UserJob> findByUserIdOrderByCreatedDesc(Long userId, Pageable pageable);
 }

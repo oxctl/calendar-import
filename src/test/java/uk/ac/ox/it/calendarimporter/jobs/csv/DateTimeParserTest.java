@@ -72,18 +72,22 @@ public class DateTimeParserTest {
 
     @Test
     public void testParseNoYear() {
-        assertThrows(RuntimeException.class, () -> {
-            LocalDate date = DateTimeParser.parseDate("15/01/");
-            assertEquals(LocalDate.of(2018, 1, 15), date);
-        });
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    LocalDate date = DateTimeParser.parseDate("15/01/");
+                    assertEquals(LocalDate.of(2018, 1, 15), date);
+                });
     }
 
     @Test
     public void testParseNoYearOrSlash() {
-        assertThrows(RuntimeException.class, () -> {
-            LocalDate date = DateTimeParser.parseDate("15/01");
-            assertEquals(LocalDate.of(2018, 1, 15), date);
-        });
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    LocalDate date = DateTimeParser.parseDate("15/01");
+                    assertEquals(LocalDate.of(2018, 1, 15), date);
+                });
     }
 
     @Test
@@ -138,22 +142,28 @@ public class DateTimeParserTest {
 
     @Test
     public void testParseTimeSingleHour() {
-        assertThrows(RuntimeException.class, () -> {
-            LocalTime time = DateTimeParser.parseTime("1:00");
-        });
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    LocalTime time = DateTimeParser.parseTime("1:00");
+                });
     }
 
     @Test
     public void testParseTimeSingleMinute() {
-        assertThrows(RuntimeException.class, () -> {
-            LocalTime time = DateTimeParser.parseTime("01:0");
-        });
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    LocalTime time = DateTimeParser.parseTime("01:0");
+                });
     }
 
     @Test
     public void testParseTimeSingleSecond() {
-        assertThrows(RuntimeException.class, () -> {
-            LocalTime time = DateTimeParser.parseTime("01:00:0");
-        });
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    LocalTime time = DateTimeParser.parseTime("01:00:0");
+                });
     }
 }

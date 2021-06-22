@@ -18,7 +18,7 @@ import java.util.Optional;
  * Attempts to resolve the tenant from the JWT Authentication associated with the request.
  */
 public class TenantArgumentResolver implements HandlerMethodArgumentResolver {
-    
+
     private final TenantRepository tenantRepository;
 
     public TenantArgumentResolver(TenantRepository tenantRepository) {
@@ -31,7 +31,11 @@ public class TenantArgumentResolver implements HandlerMethodArgumentResolver {
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+    public Object resolveArgument(
+            MethodParameter parameter,
+            ModelAndViewContainer mavContainer,
+            NativeWebRequest webRequest,
+            WebDataBinderFactory binderFactory) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof JwtAuthenticationToken) {
             JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
@@ -40,7 +44,10 @@ public class TenantArgumentResolver implements HandlerMethodArgumentResolver {
                     .map(tenantRepository::findByLtiClientId)
                     .flatMap(Optional::stream)
                     .findFirst()
-                    .orElseThrow(() -> new NotFoundException("Failed to find tenant for: "+ String.join(", ", audience)));
+                    .orElseThrow(
+                            () ->
+                                    new NotFoundException(
+                                            "Failed to find tenant for: " + String.join(", ", audience)));
         }
         throw new IllegalStateException("No JwtAuthenticationToken found");
     }

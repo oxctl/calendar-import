@@ -8,8 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @EnableCaching
 public class CalendarImporterForCanvasApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(CalendarImporterForCanvasApplication.class, args);
-  }
-
+    public static void main(String[] args) {
+        SpringApplication.run(CalendarImporterForCanvasApplication.class, args);
+    }
 }

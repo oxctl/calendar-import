@@ -13,19 +13,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 public class JobProgressRepositoryTest {
 
-  @Autowired private TestEntityManager entityManager;
+    @Autowired
+    private TestEntityManager entityManager;
 
-  @Autowired private JobProgressRepository repository;
+    @Autowired
+    private JobProgressRepository repository;
 
-  @Test
-  public void testSaveLoad() {
-    {
-      JobProgress jobProgress = new JobProgress("id");
-      repository.save(jobProgress);
+    @Test
+    public void testSaveLoad() {
+        {
+            JobProgress jobProgress = new JobProgress("id");
+            repository.save(jobProgress);
+        }
+        {
+            Optional<JobProgress> jobProgress = repository.findById("id");
+            assertTrue(jobProgress.isPresent());
+        }
     }
-    {
-      Optional<JobProgress> jobProgress = repository.findById("id");
-      assertTrue(jobProgress.isPresent());
-    }
-  }
 }

@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * This class is just used so that when limiting the attribues Jackson serialises it includes the
  * paging information.
+ *
  * @param <T> The type of objects in the page.
  */
 public class JsonPage<T> extends PageImpl<T> {

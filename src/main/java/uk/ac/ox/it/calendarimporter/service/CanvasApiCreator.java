@@ -8,7 +8,6 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
 import edu.ksu.canvas.oauth.OauthToken;
 import org.springframework.stereotype.Service;
@@ -50,17 +49,19 @@ public class CanvasApiCreator {
 
     public OauthToken getSignedJwt(Tenant tenant, String subject) throws JOSEException {
         String ltiClientId = tenant.getLtiClientId();
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer("https://localhost:8443") // TODO From config
-                .audience(ltiClientId)
-                .subject(subject)
-                .notBeforeTime(Date.from(Instant.now()))
-                .issueTime(Date.from(Instant.now()))
-                .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
-                // This is so that the proxy knows where to contact
-                .claim("https://purl.imsglobal.org/spec/lti/claim/custom",
-                        Map.of("canvas_api_base_url", tenant.getUrl()))
-                .build();
+        JWTClaimsSet claims =
+                new JWTClaimsSet.Builder()
+                        .issuer("https://localhost:8443") // TODO From config
+                        .audience(ltiClientId)
+                        .subject(subject)
+                        .notBeforeTime(Date.from(Instant.now()))
+                        .issueTime(Date.from(Instant.now()))
+                        .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                        // This is so that the proxy knows where to contact
+                        .claim(
+                                "https://purl.imsglobal.org/spec/lti/claim/custom",
+                                Map.of("canvas_api_base_url", tenant.getUrl()))
+                        .build();
         byte[] secret = Base64URL.from(tenant.getProxyHmacSecret()).decode();
         JWSSigner signer = new MACSigner(secret);
 
@@ -72,5 +73,4 @@ public class CanvasApiCreator {
         OauthToken token = new NonRefreshableOauthToken(jwt);
         return token;
     }
-
 }

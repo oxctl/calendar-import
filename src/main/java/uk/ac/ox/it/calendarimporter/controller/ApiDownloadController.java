@@ -16,7 +16,6 @@ import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
-import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,11 +34,13 @@ public class ApiDownloadController {
     private ContextJobRepository contextJobRepository;
 
     @GetMapping("/log/{contextJobId}/load")
-    public ResponseEntity<InputStreamResource> load(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
-            expression =
-                    "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-            Long courseId,
-                              Tenant tenant)
+    public ResponseEntity<InputStreamResource> load(
+            @PathVariable() Long contextJobId,
+            @AuthenticationPrincipal(
+                    expression =
+                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+                    Long courseId,
+            Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
@@ -50,11 +51,13 @@ public class ApiDownloadController {
     }
 
     @GetMapping("/log/{contextJobId}/delete")
-    public ResponseEntity<InputStreamResource> delete(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
-            expression =
-                    "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-            Long courseId,
-                                 Tenant tenant)
+    public ResponseEntity<InputStreamResource> delete(
+            @PathVariable() Long contextJobId,
+            @AuthenticationPrincipal(
+                    expression =
+                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+                    Long courseId,
+            Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
@@ -65,11 +68,13 @@ public class ApiDownloadController {
     }
 
     @GetMapping("/download/{contextJobId}")
-    public ResponseEntity<InputStreamResource> download(@PathVariable() Long contextJobId, @AuthenticationPrincipal(
-            expression =
-                    "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-            Long courseId,
-                                   Tenant tenant)
+    public ResponseEntity<InputStreamResource> download(
+            @PathVariable() Long contextJobId,
+            @AuthenticationPrincipal(
+                    expression =
+                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+                    Long courseId,
+            Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
@@ -79,7 +84,7 @@ public class ApiDownloadController {
         // TODO Check it's a local file
         return streamUrl(file, toMediaType(calendarImport.getType()), calendarImport.getFilename());
     }
-    
+
     private MediaType toMediaType(ImportType importType) {
         switch (importType) {
             case ICAL:
@@ -89,7 +94,6 @@ public class ApiDownloadController {
             default:
                 return MediaType.parseMediaType("application/binary");
         }
-        
     }
 
     /**
@@ -103,7 +107,7 @@ public class ApiDownloadController {
                 contextJobRepository
                         .findById(contextJobId)
                         .orElseThrow(() -> new NotFoundException(contextJobId.toString()));
-        
+
         if (!(tenantAndContext.getContext().equals(contextJob.getContext())
                 && tenantAndContext.getTenant().equals(contextJob.getTenant().getName()))) {
             throw new AccessDeniedException("You can't access this job.");
@@ -111,8 +115,8 @@ public class ApiDownloadController {
         return contextJob;
     }
 
-    private ResponseEntity<InputStreamResource> streamUrl(String logfile, MediaType mediaType, String filename)
-            throws IOException {
+    private ResponseEntity<InputStreamResource> streamUrl(
+            String logfile, MediaType mediaType, String filename) throws IOException {
         if (logfile == null || logfile.isEmpty()) {
             throw new NotFoundException();
         }

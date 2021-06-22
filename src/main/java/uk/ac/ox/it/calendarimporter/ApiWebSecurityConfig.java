@@ -43,91 +43,90 @@ import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSe
 @EnableConfigurationProperties(RoleMappingConfiguration.class)
 public class ApiWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-  private final Logger log = LoggerFactory.getLogger(ApiWebSecurityConfig.class);
+    private final Logger log = LoggerFactory.getLogger(ApiWebSecurityConfig.class);
 
-  @Value("${jwt.issuer}")
-  private String issuer;
+    @Value("${jwt.issuer}")
+    private String issuer;
 
-  @Value("${jwt.jwks.uri}")
-  private String jwksUri;
+    @Value("${jwt.jwks.uri}")
+    private String jwksUri;
 
-  @Value("${jwt.audience:}")
-  private String audience;
+    @Value("${jwt.audience:}")
+    private String audience;
 
-  @Value("${frontend.origins}")
-  private String[] origins;
+    @Value("${frontend.origins}")
+    private String[] origins;
 
-  @Autowired private RoleMappingConfiguration roleMappingConfiguration;
+    @Autowired
+    private RoleMappingConfiguration roleMappingConfiguration;
 
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        HttpSecurity api = http.antMatcher("/api/**");
+        api.cors();
+        api.csrf().disable();
+        api.headers().frameOptions().disable();
+        // No cookies
+        api.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    HttpSecurity api = http.antMatcher("/api/**");
-    api.cors();
-    api.csrf().disable();
-    api.headers().frameOptions().disable();
-    // No cookies
-    api.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        Converter<Jwt, Collection<GrantedAuthority>> grantedAuthoritiesConverter =
+                new CustomAuthorityMappingConverter(roleMappingConfiguration.getMapping());
+        jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
 
-    JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-    Converter<Jwt, Collection<GrantedAuthority>> grantedAuthoritiesConverter =
-        new CustomAuthorityMappingConverter(roleMappingConfiguration.getMapping());
-    jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-
-    api.oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtConverter);
-    api.authorizeRequests(authorize -> authorize.anyRequest().authenticated());
-  }
-  
-  @Bean
-  public BearerTokenResolver bearerTokenResolver() {
-    DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
-    // This is so that we can allow downloads to work.
-    resolver.setAllowUriQueryParameter(true);
-    return resolver;
-  }
-
-  @Bean
-  @Primary
-  public JwtDecoder jwtDecoder() {
-    // See org.springframework.security.oauth2.jwt.JwtValidators.createDefaultWithIssuer
-    // We should do some validation here that the configuration is good.
-    List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
-    validators.add(new JwtTimestampValidator());
-    if (audience != null && !audience.isEmpty()) {
-      validators.add(new JwtAudienceValidator(audience));
-    } else {
-      log.warn("No audience configured, accepting all JWTs");
+        api.oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtConverter);
+        api.authorizeRequests(authorize -> authorize.anyRequest().authenticated());
     }
-    validators.add(new JwtIssuerValidator(issuer));
-    DelegatingOAuth2TokenValidator<Jwt> jwtValidators =
-            new DelegatingOAuth2TokenValidator<>(validators);
-    NimbusJwtDecoder jwtDecoder = withJwkSetUri(jwksUri).build();
-    jwtDecoder.setJwtValidator(jwtValidators);
-    return jwtDecoder;
-  }
-  
 
-  @Bean("corsConfigurationSource")
-  public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration corsConfiguration = new CorsConfiguration();
-    for (String origin : origins) {
-      corsConfiguration.addAllowedOriginPattern(origin);
+    @Bean
+    public BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
+        // This is so that we can allow downloads to work.
+        resolver.setAllowUriQueryParameter(true);
+        return resolver;
     }
-    corsConfiguration.setAllowCredentials(true);
-    corsConfiguration.setAllowedMethods(
-        Arrays.asList(
-            HttpMethod.GET.name(),
-            HttpMethod.HEAD.name(),
-            HttpMethod.DELETE.name(),
-            HttpMethod.PUT.name(),
-            HttpMethod.PATCH.name(),
-            HttpMethod.POST.name()));
-    corsConfiguration.addAllowedHeader(CorsConfiguration.ALL);
-    // On simple requests we want to expose the Link header
-    corsConfiguration.addExposedHeader("Link");
-    corsConfiguration.addExposedHeader("Content-Disposition");
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/api/**", corsConfiguration);
-    return source;
-  }
+
+    @Bean
+    @Primary
+    public JwtDecoder jwtDecoder() {
+        // See org.springframework.security.oauth2.jwt.JwtValidators.createDefaultWithIssuer
+        // We should do some validation here that the configuration is good.
+        List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
+        validators.add(new JwtTimestampValidator());
+        if (audience != null && !audience.isEmpty()) {
+            validators.add(new JwtAudienceValidator(audience));
+        } else {
+            log.warn("No audience configured, accepting all JWTs");
+        }
+        validators.add(new JwtIssuerValidator(issuer));
+        DelegatingOAuth2TokenValidator<Jwt> jwtValidators =
+                new DelegatingOAuth2TokenValidator<>(validators);
+        NimbusJwtDecoder jwtDecoder = withJwkSetUri(jwksUri).build();
+        jwtDecoder.setJwtValidator(jwtValidators);
+        return jwtDecoder;
+    }
+
+    @Bean("corsConfigurationSource")
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        for (String origin : origins) {
+            corsConfiguration.addAllowedOriginPattern(origin);
+        }
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setAllowedMethods(
+                Arrays.asList(
+                        HttpMethod.GET.name(),
+                        HttpMethod.HEAD.name(),
+                        HttpMethod.DELETE.name(),
+                        HttpMethod.PUT.name(),
+                        HttpMethod.PATCH.name(),
+                        HttpMethod.POST.name()));
+        corsConfiguration.addAllowedHeader(CorsConfiguration.ALL);
+        // On simple requests we want to expose the Link header
+        corsConfiguration.addExposedHeader("Link");
+        corsConfiguration.addExposedHeader("Content-Disposition");
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", corsConfiguration);
+        return source;
+    }
 }

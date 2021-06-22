@@ -1,14 +1,15 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.io.Serializable;
 
 /**
  * This is an event that has been imported from an external source into Canvas successfully. We are
@@ -21,34 +22,45 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImportedEvent {
 
-  @EmbeddedId private ImportedEventIdentity identity;
-  /** The job which created this event. */
-  @ManyToOne(optional = false)
-  @NotNull
-  private CalendarImport calendarImport;
-  /** What we consider the status of the event in Canvas. */
-  private Status status;
+    @EmbeddedId
+    private ImportedEventIdentity identity;
+    /**
+     * The job which created this event.
+     */
+    @ManyToOne(optional = false)
+    @NotNull
+    private CalendarImport calendarImport;
+    /**
+     * What we consider the status of the event in Canvas.
+     */
+    private Status status;
 
-  public Integer getId() {
-    return identity.getId();
-  }
+    public Integer getId() {
+        return identity.getId();
+    }
 
-  public enum Status {
-    CREATED,
-    DELETED,
-    MISSING
-  }
+    public enum Status {
+        CREATED,
+        DELETED,
+        MISSING
+    }
 
-  @Embeddable
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @Data
-  public static class ImportedEventIdentity implements Serializable {
+    @Embeddable
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    public static class ImportedEventIdentity implements Serializable {
 
-    /** The tenant in which the event was created. We need this so that we can remove an event. */
-    @NotNull private Long tenant;
+        /**
+         * The tenant in which the event was created. We need this so that we can remove an event.
+         */
+        @NotNull
+        private Long tenant;
 
-    /** The ID of the Calendar event created in Canvas. This is just unique to a tenant. */
-    @NotNull private Integer id;
-  }
+        /**
+         * The ID of the Calendar event created in Canvas. This is just unique to a tenant.
+         */
+        @NotNull
+        private Integer id;
+    }
 }

@@ -17,7 +17,7 @@ import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-//@ExtendWith(SpringExtension.class)
+// @ExtendWith(SpringExtension.class)
 @DataJpaTest
 public class ContextJobRepositoryTest {
 
@@ -42,11 +42,13 @@ public class ContextJobRepositoryTest {
 
     @Test
     public void testSaveMissingFields() {
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            ContextJob job = new ContextJob();
-            repository.save(job);
-            entityManager.flush();
-        });
+        assertThrows(
+                DataIntegrityViolationException.class,
+                () -> {
+                    ContextJob job = new ContextJob();
+                    repository.save(job);
+                    entityManager.flush();
+                });
     }
 
     @Test

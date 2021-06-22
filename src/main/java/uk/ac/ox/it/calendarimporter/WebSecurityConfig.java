@@ -28,56 +28,56 @@ import java.util.LinkedHashMap;
 @EnableWebSecurity(debug = false)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-  @Autowired private ApplicationEventPublisher applicationEventPublisher;
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
-  @Value("${spring.data.rest.basePath:/}")
-  private String apiPath;
+    @Value("${spring.data.rest.basePath:/}")
+    private String apiPath;
 
-  @Override
-  public void configure(WebSecurity webSecurity) throws Exception {
-    super.configure(webSecurity);
-  }
+    @Override
+    public void configure(WebSecurity webSecurity) throws Exception {
+        super.configure(webSecurity);
+    }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  protected void configure(HttpSecurity http) throws Exception {
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void configure(HttpSecurity http) throws Exception {
 
-    LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPointMap = new LinkedHashMap<>();
-    BasicAuthenticationEntryPoint basicAuthenticationEntryPoint =
-        new BasicAuthenticationEntryPoint();
-    basicAuthenticationEntryPoint.setRealmName("API");
-    entryPointMap.put(new AntPathRequestMatcher(apiPath + "/**"), basicAuthenticationEntryPoint);
+        LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPointMap = new LinkedHashMap<>();
+        BasicAuthenticationEntryPoint basicAuthenticationEntryPoint =
+                new BasicAuthenticationEntryPoint();
+        basicAuthenticationEntryPoint.setRealmName("API");
+        entryPointMap.put(new AntPathRequestMatcher(apiPath + "/**"), basicAuthenticationEntryPoint);
 
-    http.authorizeRequests()
-        .antMatchers(
-            "/", "/resources/**", "/favicon.ico", "/icon.png" )
-        .permitAll()
-        .and()
-        // TODO Should prevent LTI from working here so that even if a user comes across with this
-        // role they can't access the APM
-        .authorizeRequests()
-        .antMatchers(apiPath + "/**")
-        .hasRole("API")
-        .and()
-        .authorizeRequests()
-        .anyRequest()
-        .authenticated()
-        .and()
-        // TODO Make better
-        .headers()
-        .frameOptions()
-        .disable();
-  }
+        http.authorizeRequests()
+                .antMatchers("/", "/resources/**", "/favicon.ico", "/icon.png")
+                .permitAll()
+                .and()
+                // TODO Should prevent LTI from working here so that even if a user comes across with this
+                // role they can't access the APM
+                .authorizeRequests()
+                .antMatchers(apiPath + "/**")
+                .hasRole("API")
+                .and()
+                .authorizeRequests()
+                .anyRequest()
+                .authenticated()
+                .and()
+                // TODO Make better
+                .headers()
+                .frameOptions()
+                .disable();
+    }
 
-  /**
-   * This just calls the autoconfigurer as it's skipped because we have OAuth configured. This sets
-   * up a user and if the password isn't specified creates one and writes it to the logs.
-   */
-  @Bean
-  @Lazy
-  public InMemoryUserDetailsManager inMemoryUserDetailsManager(
-      SecurityProperties properties, ObjectProvider<PasswordEncoder> passwordEncoder) {
-    return new UserDetailsServiceAutoConfiguration()
-        .inMemoryUserDetailsManager(properties, passwordEncoder);
-  }
+    /**
+     * This just calls the autoconfigurer as it's skipped because we have OAuth configured. This sets
+     * up a user and if the password isn't specified creates one and writes it to the logs.
+     */
+    @Bean
+    @Lazy
+    public InMemoryUserDetailsManager inMemoryUserDetailsManager(
+            SecurityProperties properties, ObjectProvider<PasswordEncoder> passwordEncoder) {
+        return new UserDetailsServiceAutoConfiguration()
+                .inMemoryUserDetailsManager(properties, passwordEncoder);
+    }
 }
