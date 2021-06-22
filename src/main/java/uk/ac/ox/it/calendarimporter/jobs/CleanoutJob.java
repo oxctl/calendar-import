@@ -65,18 +65,17 @@ public class CleanoutJob implements Job {
         String context = config.getString(CONTEXT);
         log.info("Cleaning out all events in {} of {}, all: {}", context, tenant, all);
 
-        String tenantUser = config.getString(TENANT_NAME) + ":" + config.getString(USERNAME);
         User user =
                 userRepository
                         .findByUsernameAndTenant_Name(config.getString(USERNAME), tenant.getName())
                         .orElseThrow(
                                 () ->
                                         new JobExecutionException("Failed to find user: " + config.getLong(USERNAME)));
-        OauthToken oauthToken = null;
+        OauthToken oauthToken;
         try {
             oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
         } catch (JOSEException e) {
-            throw new RuntimeException("Failed to create JWT.", e);
+            throw new JobExecutionException("Failed to create JWT.", e);
         }
         CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
 

@@ -1,11 +1,9 @@
 package uk.ac.ox.it.calendarimporter;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -27,9 +25,6 @@ import java.util.LinkedHashMap;
 @Configuration
 @EnableWebSecurity(debug = false)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${spring.data.rest.basePath:/}")
     private String apiPath;

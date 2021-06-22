@@ -70,9 +70,7 @@ public class DeleteJob extends LoggingJob implements Job {
         String context = calendarImport.getContext();
 
         log.debug("Cleaning out events in {} of {}", context, tenant);
-        // TODO This should come from the current LTI launch
-        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
-        canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
+        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
         User user =
                 userRepository
@@ -80,11 +78,11 @@ public class DeleteJob extends LoggingJob implements Job {
                         .orElseThrow(
                                 () ->
                                         new JobExecutionException("Failed to find user: " + config.getLong(USERNAME)));
-        OauthToken oauthToken = null;
+        OauthToken oauthToken;
         try {
             oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
         } catch (JOSEException e) {
-            throw new RuntimeException("Failed to create JWT.", e);
+            throw new JobExecutionException("Failed to create JWT.", e);
         }
         CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
 

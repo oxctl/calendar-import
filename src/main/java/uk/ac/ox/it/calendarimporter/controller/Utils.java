@@ -18,6 +18,8 @@ public class Utils {
                     return ImportType.ICAL;
                 case "text/csv":
                     return ImportType.CSV;
+                default:
+                    // Do nothing.
             }
         }
         String filename = upload.getOriginalFilename();

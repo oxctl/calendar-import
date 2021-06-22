@@ -49,6 +49,7 @@ public class JobProgressListener implements JobListener {
 
     @Override
     public void jobExecutionVetoed(JobExecutionContext context) {
+        // We don't need to veto any exceptions.
     }
 
     @Override

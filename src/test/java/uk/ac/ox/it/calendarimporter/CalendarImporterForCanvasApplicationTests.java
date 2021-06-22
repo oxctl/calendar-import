@@ -8,5 +8,6 @@ public class CalendarImporterForCanvasApplicationTests {
 
     @Test
     public void contextLoads() {
+        // Just check that the application starts up.
     }
 }

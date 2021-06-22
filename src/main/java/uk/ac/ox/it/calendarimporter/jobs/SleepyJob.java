@@ -12,7 +12,7 @@ public class SleepyJob implements Job {
     public static final int DEFAULT_TIME = 60 * 1000;
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    public void execute(JobExecutionContext context) {
         int time;
         try {
             time = context.getMergedJobDataMap().getInt("time");
@@ -23,7 +23,7 @@ public class SleepyJob implements Job {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-
+            // Ignore
         }
     }
 }
