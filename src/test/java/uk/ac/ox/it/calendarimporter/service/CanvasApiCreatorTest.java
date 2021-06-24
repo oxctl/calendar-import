@@ -1,23 +1,23 @@
 package uk.ac.ox.it.calendarimporter.service;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CanvasApiCreatorTest {
 
-  private CanvasApiCreator factory;
+    private CanvasApiCreator factory;
 
-  @Before
-  public void setUp() {
-    factory = new CanvasApiCreator();
-  }
+    @BeforeEach
+    public void setUp() {
+        factory = new CanvasApiCreator();
+    }
 
-  @Test
-  public void testExtractSimple() {
-    String url = "http://example.com/login/oauth/token";
-    String noLocal = factory.removeLocalPart(url);
-    assertEquals("http://example.com", noLocal);
-  }
+    @Test
+    public void testExtractSimple() {
+        String url = "http://example.com/login/oauth/token";
+        String noLocal = factory.removeLocalPart(url);
+        assertEquals("http://example.com", noLocal);
+    }
 }

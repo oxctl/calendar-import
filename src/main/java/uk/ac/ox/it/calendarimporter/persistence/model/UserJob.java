@@ -1,13 +1,14 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.time.Instant;
 
 /**
  * Allows the linking of a user to a job. We have this rather than encoding the data in the quartz
@@ -21,17 +22,17 @@ import lombok.NoArgsConstructor;
 @Entity
 public class UserJob {
 
-  @Id
-  // The trigger ID needs to be unique so we can just re-use it, this links to the JobProgress
-  private String triggerId;
+    @Id
+    // The trigger ID needs to be unique so we can just re-use it, this links to the JobProgress
+    private String triggerId;
 
-  @Column(name = "user_id")
-  private Long userId;
+    @Column(name = "user_id")
+    private Long userId;
 
-  // We need to be able to sort the jobs in the DB.
-  private Instant created;
+    // We need to be able to sort the jobs in the DB.
+    private Instant created;
 
-  public UserJob(String triggerId) {
-    setTriggerId(triggerId);
-  }
+    public UserJob(String triggerId) {
+        setTriggerId(triggerId);
+    }
 }

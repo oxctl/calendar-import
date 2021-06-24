@@ -5,17 +5,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "Failed to find resource.")
 public class NotFoundException extends RuntimeException {
-  private final String id;
+    private final String id;
 
-  public NotFoundException() {
-    this(null);
-  }
+    public NotFoundException() {
+        this(null);
+    }
 
-  public NotFoundException(String id) {
-    this.id = id;
-  }
+    public NotFoundException(String id) {
+        this.id = id;
+    }
 
-  public String getId() {
-    return id;
-  }
+    public String getId() {
+        return id;
+    }
 }

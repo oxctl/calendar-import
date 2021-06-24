@@ -14,13 +14,14 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 @Service
 public class ImportEventService {
 
-  @Autowired private ImportedEventRepository importedEventRepository;
+    @Autowired
+    private ImportedEventRepository importedEventRepository;
 
-  public void eventCreated(
-      Long tenantId, CalendarImport calendarImport, CalendarEvent calendarEvent) {
-    ImportedEvent.ImportedEventIdentity identity =
-        new ImportedEvent.ImportedEventIdentity(tenantId, calendarEvent.getId());
-    ImportedEvent event = new ImportedEvent(identity, calendarImport, ImportedEvent.Status.CREATED);
-    importedEventRepository.save(event);
-  }
+    public void eventCreated(
+            Long tenantId, CalendarImport calendarImport, CalendarEvent calendarEvent) {
+        ImportedEvent.ImportedEventIdentity identity =
+                new ImportedEvent.ImportedEventIdentity(tenantId, calendarEvent.getId());
+        ImportedEvent event = new ImportedEvent(identity, calendarImport, ImportedEvent.Status.CREATED);
+        importedEventRepository.save(event);
+    }
 }

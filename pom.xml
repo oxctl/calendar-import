@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.11.RELEASE</version>
+    <version>2.4.5</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
@@ -52,10 +52,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-quartz</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-mustache</artifactId>
-    </dependency>
     <!-- This gives us better visibility into the app in production -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -66,8 +62,8 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-oauth2-client</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -87,32 +83,12 @@
       <optional>true</optional>
     </dependency>
 
-    <dependency>
-        <groupId>org.springframework.session</groupId>
-        <artifactId>spring-session-core</artifactId>
-    </dependency>
-
-    <!-- Needed for building the config -->
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-    </dependency>
     <!-- Just using this so we have have better logging of stuff on the wire. -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcomponents-client</artifactId>
       <version>4.5.7</version>
       <type>pom</type>
-    </dependency>
-    <!-- Used to display historic date in a more human readable form -->
-    <dependency>
-      <groupId>com.github.marlonlom</groupId>
-      <artifactId>timeago</artifactId>
-      <version>3.0.2</version>
     </dependency>
 
     <dependency>
@@ -128,23 +104,11 @@
     </dependency>
 
     <dependency>
-      <groupId>uk.ac.ox.it.lti</groupId>
-      <artifactId>lti-launch</artifactId>
-      <version>1.7.2</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.mnode.ical4j</groupId>
       <artifactId>ical4j</artifactId>
       <version>2.2.0</version>
     </dependency>
 
-    <!-- TODO webjars locator should be used instead at some point -->
-    <dependency>
-      <groupId>org.webjars</groupId>
-      <artifactId>jquery</artifactId>
-      <version>3.1.1</version>
-    </dependency>
     <dependency>
     <groupId>org.hibernate</groupId>
     <artifactId>hibernate-jcache</artifactId>
@@ -190,6 +154,7 @@
       <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
+    
   </dependencies>
 
   <build>

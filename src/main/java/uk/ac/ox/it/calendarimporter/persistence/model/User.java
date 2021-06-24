@@ -1,5 +1,12 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import uk.ac.ox.it.calendarimporter.Views;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,45 +17,56 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"tenant", "username"}))
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"tenant", "username"}),
+                @UniqueConstraint(columnNames = {"tenant", "subject"})
+        })
 @Entity
 @Data
 @EqualsAndHashCode
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class User {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @JsonView(Views.Public.class)
+    private Long id;
 
-  // The username from Canvas
-  @NotNull
-  @Column(name = "username", nullable = false)
-  private String username;
+    // The username from Canvas
+    @NotNull
+    @Column(name = "username", nullable = false)
+    private String username;
 
-  // The name of the Canvas tenant
-  @NotNull
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "tenant", nullable = false)
-  private Tenant tenant;
+    // The subject from Canvas
+    @Column(name = "subject")
+    private String subject;
 
-  private String email;
+    // The name of the Canvas tenant
+    @NotNull
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "tenant", nullable = false)
+    private Tenant tenant;
 
-  /** We store the locale so that the background jobs can send errors in the correct locale. */
-  private String locale;
+    private String email;
 
-  /** The displayed name for the user. */
-  private String name;
+    /**
+     * We store the locale so that the background jobs can send errors in the correct locale.
+     */
+    private String locale;
 
-  public User() {}
+    /**
+     * The displayed name for the user.
+     */
+    @JsonView(Views.Public.class)
+    private String name;
 
-  public User(Tenant tenant, String username) {
-    this.tenant = tenant;
-    this.username = username;
-  }
+    public User() {
+    }
+
+    public User(Tenant tenant, String username) {
+        this.tenant = tenant;
+        this.username = username;
+    }
 }
