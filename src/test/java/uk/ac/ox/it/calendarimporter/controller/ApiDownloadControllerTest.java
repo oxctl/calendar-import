@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,6 +15,8 @@ import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
+import uk.ac.ox.it.calendarimporter.security.WithMockClaims;
 
 import java.util.Optional;
 
@@ -30,12 +33,23 @@ public class ApiDownloadControllerTest {
 
     @MockBean
     private ContextJobRepository contextJobRepository;
+    
+    @MockBean
+    private TenantRepository tenantRepository;
+    private Tenant tenant;
+
+    @BeforeEach
+    public void setUp() {
+
+        tenant = new Tenant();
+        tenant.setName("test.instructure.com");
+        tenant.setLtiClientId("5678");
+        when(tenantRepository.findByLtiClientId("5678")).thenReturn(Optional.of(tenant));
+    }
 
     @Test
-    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
     public void testDownloadLogfile() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("test.instructure.com");
 
         JobProgress progress = new JobProgress();
         String logfile = getClass().getResource("log.txt").toExternalForm();
@@ -52,18 +66,15 @@ public class ApiDownloadControllerTest {
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
         mockMvc
-                .perform(MockMvcRequestBuilders.get("/app/log/1234/load"))
+                .perform(MockMvcRequestBuilders.get("/api/log/1234/load"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Example Log"))
                 .andExpect(content().contentType(MediaType.TEXT_PLAIN));
     }
 
     @Test
-    @WithMockUser(username = "canvas", roles = "LTI_USER")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
     public void testDownloadLogfileMissing() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("test.instructure.com");
-
         JobProgress progress = new JobProgress();
         String logfile = "file:///doesnotexist.txt";
         progress.setLogfile(logfile);
@@ -78,14 +89,11 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 
     @Test
     public void testDownloadLogfileNotAuthenticated() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("test.instructure.com");
-
         JobProgress progress = new JobProgress();
         String logfile = "file:///doesnotexist.txt";
         progress.setLogfile(logfile);
@@ -100,15 +108,12 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(401));
     }
 
-    @WithMockUser(username = "canvas", roles = "LTI_USER")
     @Test
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 2} }")
     public void testDownloadLogfileWrongContext() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("test.instructure.com");
-
         JobProgress progress = new JobProgress();
         String logfile = getClass().getResource("log.txt").toExternalForm();
         progress.setLogfile(logfile);
@@ -123,15 +128,12 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(403));
     }
 
-    @WithMockUser(username = "canvas", roles = "LTI_USER")
     @Test
+    @WithMockClaims(claims = "{'aud': 'wrong', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
     public void testDownloadLogfileWrongTenant() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("test.instructure.com");
-
         JobProgress progress = new JobProgress();
         String logfile = getClass().getResource("log.txt").toExternalForm();
         progress.setLogfile(logfile);
@@ -146,21 +148,19 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(403));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 
-    @WithMockUser(username = "canvas", roles = "LTI_USER")
     @Test
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
     public void testDownloadLogfileMissingContext() throws Exception {
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.empty());
-        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 
-    @WithMockUser(username = "canvas", roles = "LTI_USER")
     @Test
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
     public void testDownloadLogfileStillRunning() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("test.instructure.com");
 
         JobProgress progress = new JobProgress();
         // No log file yet.
@@ -175,6 +175,6 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-        mockMvc.perform(MockMvcRequestBuilders.get("/app/log/1234/load")).andExpect(status().is(404));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 }

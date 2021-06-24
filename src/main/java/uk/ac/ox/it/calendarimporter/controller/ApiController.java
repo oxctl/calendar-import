@@ -61,7 +61,7 @@ public class ApiController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId) {
+                    Number courseId) {
         if (courseId == null) {
             throw new IllegalArgumentException("course_id custom claim cannot be empty");
         }
@@ -79,7 +79,7 @@ public class ApiController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId)
+                    Number courseId)
             throws SchedulerException {
         if (courseId == null) {
             throw new IllegalArgumentException("course_id custom claim cannot be empty");
@@ -90,7 +90,7 @@ public class ApiController {
         calendarImportRepository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Failed to fine: " + id));
-        importService.deleteImport(id, user, courseId);
+        importService.deleteImport(id, user, courseId.longValue());
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
@@ -101,7 +101,7 @@ public class ApiController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId,
+                    Number courseId,
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['person_address_timezone']")
@@ -187,7 +187,7 @@ public class ApiController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId,
+                    Number courseId,
             JwtAuthenticationToken authentication)
             throws SchedulerException {
         String courseContext = "course_" + courseId;
