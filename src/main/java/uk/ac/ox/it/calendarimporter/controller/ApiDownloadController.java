@@ -39,7 +39,7 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId,
+                    Number courseId,
             Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
@@ -56,7 +56,7 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId,
+                    Number courseId,
             Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
@@ -73,7 +73,7 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Long courseId,
+                    Number courseId,
             Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;

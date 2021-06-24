@@ -3,7 +3,7 @@ package uk.ac.ox.it.calendarimporter.controller;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.jwt.JwtClaimAccessor;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -37,17 +37,21 @@ public class TenantArgumentResolver implements HandlerMethodArgumentResolver {
             NativeWebRequest webRequest,
             WebDataBinderFactory binderFactory) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof JwtAuthenticationToken) {
-            JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
-            List<String> audience = jwtAuthenticationToken.getToken().getAudience();
-            return audience.stream()
-                    .map(tenantRepository::findByLtiClientId)
-                    .flatMap(Optional::stream)
-                    .findFirst()
-                    .orElseThrow(
-                            () ->
-                                    new NotFoundException(
-                                            "Failed to find tenant for: " + String.join(", ", audience)));
+        if (authentication.getPrincipal() instanceof JwtClaimAccessor) {
+            JwtClaimAccessor claimAccessor = (JwtClaimAccessor) authentication.getPrincipal();
+            List<String> audience = claimAccessor.getAudience();
+            if (audience != null) {
+                return audience.stream()
+                        .map(tenantRepository::findByLtiClientId)
+                        .flatMap(Optional::stream)
+                        .findFirst()
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                "Failed to find tenant for: " + String.join(", ", audience)));
+            } else {
+                throw new IllegalStateException("No audience found in claims");
+            }
         }
         throw new IllegalStateException("No JwtAuthenticationToken found");
     }
