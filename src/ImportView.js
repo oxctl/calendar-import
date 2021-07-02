@@ -1,52 +1,32 @@
 import React from "react"
 import {Flex} from "@instructure/ui-flex";
-import {IconButton, Button} from "@instructure/ui-buttons";
+import {Button, IconButton} from "@instructure/ui-buttons";
 import {View} from "@instructure/ui-view";
 import {Heading} from "@instructure/ui-heading";
 import {Text} from "@instructure/ui-text";
-import { IconResetLine,
-    IconTrashLine,
+import {
+    IconCalendarMonthLine,
     IconImportLine,
-    IconQuestionLine,
     IconMsExcelLine,
-    IconCalendarMonthLine
+    IconQuestionLine,
+    IconResetLine,
+    IconTrashLine
 } from "@instructure/ui-icons";
 import {getRelativeTime} from "./relativeTime";
 import {Link} from "@instructure/ui-link";
 import {Spinner} from "@instructure/ui-spinner";
+import {load, setPage} from "./actions/imports";
+import {connect} from "react-redux";
+import {Pagination} from "@instructure/ui-pagination";
 
-export default class ImportView extends React.Component {
-
-    state = {
-        imports: null,
-        loading: false
-    }
+class ImportView extends React.Component {
 
     componentDidMount() {
-        this.loadImports()
+        this.props.load()
     }
 
-    loadImports = async () => {
-        this.setState({loading: true})
-        try {
-            const response = await fetch(`${this.props.server}/api/imports`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + this.props.token
-                }
-            })
-            if (!response.ok) {
-                console.log(response)
-            }
-            const json = await response.json()
-            this.setState({imports: json})
-        } finally {
-            this.setState({loading: false})
-        }
-    }
-    
     reload = () => {
-        this.loadImports()
+        this.props.load()
     }
 
     handleDelete = async (id) => {
@@ -60,7 +40,7 @@ export default class ImportView extends React.Component {
             })
             if (response.ok) {
                 this.props.onMessage({type: 'info', text: 'Delete of imported started'})
-                this.reload()
+                this.props.load()
             }
         }
     }
@@ -94,12 +74,13 @@ export default class ImportView extends React.Component {
         const importEnded = importStatus === 'COMPLETED' || importStatus === 'FAILED' ||
             importStatus === 'ERRORED' || importStatus === 'PROBLEMS'
         if (deleteNotRun && importEnded) {
-            return <IconButton renderIcon={<IconTrashLine/>} onClick={() => this.handleDelete(calendarImport.id)}/>
+            return <IconButton screenReaderLabel='Delete' renderIcon={<IconTrashLine/>}
+                               onClick={() => this.handleDelete(calendarImport.id)}/>
         }
     }
 
     renderItems = () => {
-        return this.state.imports?.content.map(({id, calendarImport}) => {
+        return this.props.data?.content.map(({id, calendarImport}) => {
                 return <React.Fragment key={id}>
                     <View as='div' background='primary' margin='small' borderWidth='small' padding='small'>
                         {this.renderIcon(calendarImport.type)}
@@ -161,6 +142,31 @@ export default class ImportView extends React.Component {
             }
         )
     }
+    
+    handlePage = (page) => {
+        this.props.setPage(page)
+        // We want to scroll to the top when changing pages.
+        window.parent.postMessage({ subject: "lti.scrollToTop" }, "*")
+    }
+
+    renderPagination = () => {
+        const pages = Array.from(Array(this.props.page.total)).map((v, i) => <Pagination.Page
+            key={i}
+            onClick={() => this.handlePage(i)}
+            current={i === this.props.page.current}>
+            {i + 1}
+        </Pagination.Page>)
+        return <Pagination
+            as="nav"
+            margin="small"
+            variant="compact"
+            labelNext="Next Page"
+            labelPrev="Previous Page"
+        >
+            {pages}
+        </Pagination>
+    }
+
     renderSpinner = () => {
         return <Spinner as='div' renderTitle='Loading previous imports'/>
     }
@@ -169,13 +175,37 @@ export default class ImportView extends React.Component {
         return <View as='div' background='secondary' padding='small' borderWidth='small'>
             <Flex>
                 <Flex.Item shouldGrow>
-            <Heading>Previous Imports</Heading>
+                    <Heading>Previous Imports</Heading>
                 </Flex.Item>
                 <Flex.Item>
-            <Button renderIcon={<IconResetLine/>} onClick={this.reload}>Reload</Button>
+                    <Button renderIcon={<IconResetLine/>} onClick={this.reload}>Reload</Button>
                 </Flex.Item>
             </Flex>
-            {this.state.loading ? this.renderSpinner() : this.renderItems()}
+            {this.props.loading ? this.renderSpinner() : <>{this.renderItems()}{this.renderPagination()}</>}
         </View>
     }
 }
+
+const mapStateToProps = state => {
+    const {imports: {data, loading}} = state
+    return {
+        data,
+        loading,
+        page: {
+            current: state.imports.page,
+            total: state.imports.data?.totalPages || 0
+        }
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        load: () => dispatch(load()),
+        setPage: (page) => {
+            dispatch(setPage(page));
+            dispatch(load())
+        },
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ImportView)

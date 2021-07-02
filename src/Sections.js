@@ -4,13 +4,18 @@ import PropTypes from "prop-types"
 import {View} from "@instructure/ui-view";
 import {handleErrors, LoginError} from "./utils/fetch";
 
+/**
+ * Displays a list of sections in the course and allows the user to select the whole course
+ * or one of the sections.
+ */
 export default class Sections extends React.Component {
 
     state = {
         loading: false,
-        loadingFailed: false,
         section: '',
-        sections: null
+        sections: null,
+        // Used to display a message to the user if the loading failed
+        messages: []
     }
 
     static propType = {
@@ -26,7 +31,7 @@ export default class Sections extends React.Component {
 
     loadSections = () => {
         const {proxyServer, courseId, token} = this.props
-        this.setState({loading: true, loadingFailed: false})
+        this.setState({loading: true})
         fetch(`${proxyServer}/api/v1/courses/${courseId}/sections`, {
             headers: {
                 Authorization: 'Bearer ' + token,
@@ -35,7 +40,6 @@ export default class Sections extends React.Component {
         }).then(response => {
             return handleErrors(response)
         }).then((response) => {
-            // TODO Handle proxy errors.
             return response.json()
         }).then((json) => {
             this.setState({
@@ -46,7 +50,7 @@ export default class Sections extends React.Component {
                 this.props.handleProxyRefresh()
             } else {
                 this.setState({
-                    loadingFailed: true,
+                    messages: [{text: 'Failed to load sections: '+ reason.message, type: 'error'}]
                 })
             }
         }).finally(() => {
@@ -61,9 +65,10 @@ export default class Sections extends React.Component {
     }
 
     render() {
-        const {loading, section} = this.state
+        const {section} = this.state
         return <View as="div" margin='small none'>
             <SimpleSelect renderLabel='Section' label={''}
+                          messages={this.state.messages}
                           onChange={(e, {id, value}) => {
                               this.setState({section: value})
                               this.props.onChange({id: value, name: this.getSectionName(id)})
@@ -75,7 +80,7 @@ export default class Sections extends React.Component {
     } 
 
     renderOptions = () => {
-        const {loading, loadingFailed, sections} = this.state
+        const {loading, sections} = this.state
         const {courseName} = this.props
         if (loading) {
             return <SimpleSelect.Option id='loading' key='loading' value='' isDisabled>Loading....</SimpleSelect.Option>

@@ -8,8 +8,10 @@ import { FormField} from "@instructure/ui-form-field";
 import Sections from "./Sections";
 import {Flex} from "@instructure/ui-flex";
 import {Spinner} from "@instructure/ui-spinner";
+import {connect} from "react-redux";
+import {load} from "./actions/imports";
 
-export default class UploadJob extends React.Component {
+class UploadJob extends React.Component {
 
     changeHandler = (event) => {
         this.setState({
@@ -30,6 +32,7 @@ export default class UploadJob extends React.Component {
     submitHandler = () => {
         if (!this.state.file) {
             this.setState({messages: [{ text: 'You must provide a file', type: 'error' }]})
+            return
         }
         const formData = new FormData();
 
@@ -37,7 +40,11 @@ export default class UploadJob extends React.Component {
         formData.append('sectionId', this.state.section.id)
         formData.append('sectionName', this.state.section.name)
 
-        this.setState({uploading: true})
+        this.setState({
+            uploading: true,
+            file: null,
+            messages: []
+        })
         fetch(
             this.props.server+ '/api/run',
             {
@@ -50,6 +57,7 @@ export default class UploadJob extends React.Component {
         ).then((response) => {
             if (response.ok) {
                 this.props.onMessage({text: 'Calendar import started, click update button to follow its progress.', type: 'info'})
+                this.props.load()
             } else {
                 this.props.onMessage({text: 'Failed to start import, status: '+ response.status, type: 'error'})
             }
@@ -116,3 +124,16 @@ export default class UploadJob extends React.Component {
         return <Text size="small" as="div" lineHeight="double">No file selected</Text>;
     }
 }
+
+const mapStateToProps = state => {
+    return {
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        load: () => dispatch(load())
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(UploadJob)

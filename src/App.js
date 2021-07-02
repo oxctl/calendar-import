@@ -24,12 +24,11 @@
 
 import React from 'react'
 
-// import { theme } from '@instructure/canvas-theme'
 import jwtDecode from 'jwt-decode'
 import {View} from '@instructure/ui-view'
-import {Loading} from './components/loading/Loading'
-import Error from './components/error/Error'
-import {DEV, LOCAL, PROD, STAG} from './utils/constants'
+import {Loading} from './Loading'
+import Error from './Error'
+import {DEV, LOCAL, PROD} from './utils/constants'
 import {Heading} from '@instructure/ui-heading'
 import {LaunchOAuth, LtiHeightLimit, LtiTokenRetriever} from "@oxctl/ui-lti"
 import ImportView from "./ImportView";
@@ -37,7 +36,9 @@ import UploadJob from "./UploadJob";
 import {Link} from "@instructure/ui-link";
 import {Text} from "@instructure/ui-text";
 import Messages from "./Messages";
-// import { ScreenReaderContent } from '@instructure/ui-a11y-content'
+import {setServer, setToken} from "./actions/lti";
+import {connect} from "react-redux";
+import {addMessage} from "./actions/messages";
 
 
 const settings = {
@@ -69,13 +70,12 @@ class App extends React.Component {
         loading: true,
         error: null,
         prompt: false,
-        messages: []
     }
 
     constructor(props, context) {
         super(props, context)
         this.servers = settings[window.location.origin]
-
+        this.props.setServer(this.servers.calendarServer)
     }
 
     jwt = null
@@ -92,6 +92,7 @@ class App extends React.Component {
             token: token,
             loading: false
         })
+        this.props.setToken(token)
     }
 
     proxyGotToken = () => {
@@ -120,7 +121,7 @@ class App extends React.Component {
                         <View padding="small" as="div">
                             <Error message={error}>
                                 {(this.state.loading) ? <Loading/> : <>
-                                    <Messages messages={this.state.messages} onDismiss={this.handleDismiss}/>
+                                    <Messages onDismiss={this.handleDismiss}/>
                                     <Heading level="h1">Import File</Heading>
                                     <Text as='p'>
                                         This tool allows you to import a set of events contained in a CSV file into
@@ -135,9 +136,9 @@ class App extends React.Component {
                                     <UploadJob server={this.servers.calendarServer} token={this.token}
                                                handleProxyRefresh={() => this.setState({prompt: true})}
                                                courseId={courseId} courseName={courseName}
-                                               onMessage={this.handleMessage}/>
+                                               onMessage={this.props.addMessage}/>
                                     <ImportView server={this.servers.calendarServer} token={this.token}
-                                                onMessage={this.handleMessage}/>
+                                                onMessage={this.props.addMessage}/>
                                 </>}
                             </Error>
                         </View>
@@ -149,4 +150,16 @@ class App extends React.Component {
     }
 }
 
-export default App
+const mapStateToProps = state =>{
+    return {}
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        setToken: (token) => dispatch(setToken(token)),
+        setServer: (server) => dispatch(setServer(server)),
+        addMessage: (message) => dispatch(addMessage(message))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)

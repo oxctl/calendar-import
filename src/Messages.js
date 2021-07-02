@@ -3,6 +3,8 @@ import { Alert } from '@instructure/ui-alerts'
 import { Flex } from '@instructure/ui-flex'
 import PropTypes from 'prop-types'
 import { View } from '@instructure/ui-view'
+import {connect} from "react-redux";
+import {deleteMessage} from "./actions/messages";
 
 /**
  * Displays messages to the user.
@@ -52,4 +54,16 @@ class Messages extends React.Component {
   }
 }
 
-export default Messages
+const mapStateToProps = state => {
+  return {
+    messages: state.messages.data
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    onDismiss: (index) => dispatch(deleteMessage(index))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Messages)

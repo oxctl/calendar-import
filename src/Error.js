@@ -52,7 +52,7 @@ Error.propTypes = {
 
 
 Error.defaultProps = {
-  heading: "Error 2",
+  heading: "Error",
   message: null
 }
 

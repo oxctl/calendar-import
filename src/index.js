@@ -24,12 +24,16 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { Provider } from 'react-redux'
 import App from './App'
-import { canvas } from '@instructure/ui-themes'
-import { EmotionThemeProvider } from '@instructure/emotion'
+import {canvas} from '@instructure/ui-themes'
+import {EmotionThemeProvider} from '@instructure/emotion'
+import store from './store'
 
 ReactDOM.render(
-  <EmotionThemeProvider theme={canvas}>
-    <App />
-  </EmotionThemeProvider>,
-  document.getElementById('app'))
+    <Provider store={store}>
+        <EmotionThemeProvider theme={canvas}>
+            <App/>
+        </EmotionThemeProvider>
+    </Provider>,
+    document.getElementById('app'))
