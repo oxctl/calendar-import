@@ -60,8 +60,6 @@ const settings = {
     }
 }
 
-// theme.use()
-
 class App extends React.Component {
     state = {
         tryLoading: true,
@@ -103,16 +101,6 @@ class App extends React.Component {
         this.setState({prompt: false})
     }
 
-    handleMessage = (message) => {
-        this.setState({messages: [...this.state.messages, message]})
-    }
-
-    handleDismiss = (index) => {
-        const messages = [...this.state.messages]
-        messages.splice(index, 1)
-        this.setState({messages})
-    }
-
     render() {
         const {error, courseId, courseName, canvasBaseUrl, comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast} = this.state
         const {servers} = this
@@ -125,7 +113,7 @@ class App extends React.Component {
                             <View padding="small" as="div">
                                 <Error message={error}>
                                     {(this.state.loading) ? <Loading/> : <>
-                                        <Messages onDismiss={this.handleDismiss}/>
+                                        <Messages/>
                                         <Heading level="h1">Import File</Heading>
                                         <Text as='p'>
                                             This tool allows you to import a set of events contained in a CSV file into
