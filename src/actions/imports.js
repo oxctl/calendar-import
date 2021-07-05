@@ -19,7 +19,7 @@ export const load = () => {
             }
         }).then(response => {
             if (!response.ok) {
-                throw new Error('Problem loading valid terms (status: ' + response.status + ')')
+                throw new Error('Bad response. (status: ' + response.status + ')')
             }
             return response.json()
         }).then(json => {

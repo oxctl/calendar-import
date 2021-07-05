@@ -1,4 +1,5 @@
 import React from "react"
+import PropTypes from "prop-types"
 import {Button} from "@instructure/ui-buttons";
 import {FileDrop} from "@instructure/ui-file-drop";
 import {View} from "@instructure/ui-view";
@@ -12,6 +13,15 @@ import {connect} from "react-redux";
 import {load} from "./actions/imports";
 
 class UploadJob extends React.Component {
+    
+    static propTypes = {
+        courseId: PropTypes.number,
+        courseName: PropTypes.string,
+        token: PropTypes.string,
+        proxyServer: PropTypes.string,
+        calendarServer: PropTypes.string,
+        handleProxyRefresh: PropTypes.func
+    }
 
     changeHandler = (event) => {
         this.setState({
@@ -46,7 +56,7 @@ class UploadJob extends React.Component {
             messages: []
         })
         fetch(
-            this.props.server+ '/api/run',
+            this.props.calendarServer+ '/api/run',
             {
                 method: 'POST',
                 body: formData,
@@ -67,6 +77,7 @@ class UploadJob extends React.Component {
     }
     
     updateFile = ([file]) => {
+        // When we add a file remove any validation messages
         this.setState({
             file: file,
             messages: []
@@ -74,17 +85,16 @@ class UploadJob extends React.Component {
     }
     
     render() {
-        const {courseId, courseName, server, token} = this.props
+        const {courseId, courseName, proxyServer, token, handleProxyRefresh} = this.props
         
         return <View as="div" margin='small none'>
             <Sections 
-                server={server} 
                 token={token} 
-                proxyServer='https://localhost:18443' 
+                proxyServer={proxyServer}
                 courseId={courseId} 
                 courseName={courseName}
                 onChange={(section) => this.setState({section})}
-                handleProxyRefresh={this.props.handleProxyRefresh}
+                handleProxyRefresh={handleProxyRefresh}
             />
             <FormField id='upload' label='File'>
             <FileDrop

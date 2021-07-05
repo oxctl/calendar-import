@@ -44,16 +44,18 @@ import {addMessage} from "./actions/messages";
 const settings = {
     [LOCAL]: {
         'ltiServer': process.env.REACT_APP_SERVER_LTI,
-        'proxyServer': "https://proxy-dev.canvas.ox.ac.uk",
-        'calendarServer': "https://localhost:8443"
+        'proxyServer': process.env.REACT_APP_SERVER_PROXY,
+        'calendarServer': process.env.REACT_APP_SERVER_CALENDAR
     },
     [DEV]: {
-        'ltiServer': 'https://lti.canvas.ox.ac.uk',
-        'proxyServer': 'https://proxy.canvas.ox.ac.uk'
+        'ltiServer': 'https://lti-dev.canvas.ox.ac.uk',
+        'proxyServer': 'https://proxy-dev.canvas.ox.ac.uk',
+        'calendarServer': 'https://calendar-import-dev.canvas.ox.ac.uk'
     },
     [PROD]: {
         'ltiServer': 'https://lti.canvas.ox.ac.uk',
-        'proxyServer': 'https://proxy.canvas.ox.ac.uk'
+        'proxyServer': 'https://proxy.canvas.ox.ac.uk',
+        'calendarServer': 'https://calendar-import.canvas.ox.ac.uk'
     }
 }
 
@@ -133,7 +135,9 @@ class App extends React.Component {
                                         then uploaded again to import (You may delete extraneous columns in the example
                                         file, if necessary).
                                     </Text>
-                                    <UploadJob server={this.servers.calendarServer} token={this.token}
+                                    <UploadJob proxyServer={this.servers.proxyServer}
+                                               calendarServer={this.servers.calendarServer}
+                                               token={this.token}
                                                handleProxyRefresh={() => this.setState({prompt: true})}
                                                courseId={courseId} courseName={courseName}
                                                onMessage={this.props.addMessage}/>

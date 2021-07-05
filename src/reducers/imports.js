@@ -27,6 +27,7 @@ export default (state = initialState, action) => {
             const total = state.data?.totalPages || 0
             return {
                 ...state,
+                // Sanity check to make sure it never goes negative or beyond the last page.
                 page: Math.min(Math.max(action.value, 0), total)
             }
         default:
