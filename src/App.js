@@ -39,6 +39,7 @@ import Messages from "./Messages";
 import {setServer, setToken} from "./actions/lti";
 import {connect} from "react-redux";
 import {addMessage} from "./actions/messages";
+import LtiApplyTheme from "./LtiApplyTheme";
 
 
 const settings = {
@@ -88,6 +89,7 @@ class App extends React.Component {
         this.jwt = jwtDecode(token)
         this.setState({
             comInstructureBrandConfigJsonUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].com_instructure_brand_config_json_url,
+            canvasUserPrefersHighContrast: (this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_user_prefers_high_contrast === 'true'),
             courseId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_id),
             courseName: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_name,
             canvasBaseUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_api_base_url,
@@ -112,49 +114,50 @@ class App extends React.Component {
     }
 
     render() {
-        const {error, courseId, courseName, canvasBaseUrl} = this.state
+        const {error, courseId, courseName, canvasBaseUrl, comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast} = this.state
         const {servers} = this
         return (
             <LtiTokenRetriever ltiServer={servers.ltiServer} handleJwt={this.updateToken}>
-                {/*<LtiApplyTheme url={this.state.comInstructureBrandConfigJsonUrl}>*/}
-                <LtiHeightLimit>
-                    <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyGotToken}
-                                 promptLogin={this.state.prompt} server={{proxyServer: 'https://localhost:18443'}}>
-                        <View padding="small" as="div">
-                            <Error message={error}>
-                                {(this.state.loading) ? <Loading/> : <>
-                                    <Messages onDismiss={this.handleDismiss}/>
-                                    <Heading level="h1">Import File</Heading>
-                                    <Text as='p'>
-                                        This tool allows you to import a set of events contained in a CSV file into
-                                        the <Link target='_blank'
-                                                  href={`${canvasBaseUrl}/calendar?include_contexts=course_${courseId}`}>course
-                                        calendar</Link>.
-                                        The file has to be specifically formatted for the importer. An <Link
-                                        href='example.csv'>example file</Link> can be downloaded, edited locally and
-                                        then uploaded again to import (You may delete extraneous columns in the example
-                                        file, if necessary).
-                                    </Text>
-                                    <UploadJob proxyServer={this.servers.proxyServer}
-                                               calendarServer={this.servers.calendarServer}
-                                               token={this.token}
-                                               handleProxyRefresh={() => this.setState({prompt: true})}
-                                               courseId={courseId} courseName={courseName}
-                                               onMessage={this.props.addMessage}/>
-                                    <ImportView server={this.servers.calendarServer} token={this.token}
-                                                onMessage={this.props.addMessage}/>
-                                </>}
-                            </Error>
-                        </View>
-                        {/*</LtiApplyTheme>*/}
-                    </LaunchOAuth>
-                </LtiHeightLimit>
+                <LtiApplyTheme url={comInstructureBrandConfigJsonUrl} highContrast={canvasUserPrefersHighContrast}>
+                    <LtiHeightLimit>
+                        <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyGotToken}
+                                     promptLogin={this.state.prompt} server={{proxyServer: 'https://localhost:18443'}}>
+                            <View padding="small" as="div">
+                                <Error message={error}>
+                                    {(this.state.loading) ? <Loading/> : <>
+                                        <Messages onDismiss={this.handleDismiss}/>
+                                        <Heading level="h1">Import File</Heading>
+                                        <Text as='p'>
+                                            This tool allows you to import a set of events contained in a CSV file into
+                                            the <Link target='_blank'
+                                                      href={`${canvasBaseUrl}/calendar?include_contexts=course_${courseId}`}>course
+                                            calendar</Link>.
+                                            The file has to be specifically formatted for the importer. An <Link
+                                            href='example.csv'>example file</Link> can be downloaded, edited locally and
+                                            then uploaded again to import (You may delete extraneous columns in the
+                                            example
+                                            file, if necessary).
+                                        </Text>
+                                        <UploadJob proxyServer={this.servers.proxyServer}
+                                                   calendarServer={this.servers.calendarServer}
+                                                   token={this.token}
+                                                   handleProxyRefresh={() => this.setState({prompt: true})}
+                                                   courseId={courseId} courseName={courseName}
+                                                   onMessage={this.props.addMessage}/>
+                                        <ImportView server={this.servers.calendarServer} token={this.token}
+                                                    onMessage={this.props.addMessage}/>
+                                    </>}
+                                </Error>
+                            </View>
+                        </LaunchOAuth>
+                    </LtiHeightLimit>
+                </LtiApplyTheme>
             </LtiTokenRetriever>
         )
     }
 }
 
-const mapStateToProps = state =>{
+const mapStateToProps = state => {
     return {}
 }
 

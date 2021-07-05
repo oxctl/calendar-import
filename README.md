@@ -54,6 +54,7 @@ Both a LTI developer key and an API developer key need to be created for this to
     canvas_api_base_url=$Canvas.api.baseUrl
     person_address_timezone=$Person.address.timezone
     com_instructure_brand_config_json_url=$com.instructure.brandConfigJSON.url
+    canvas_user_prefers_high_contrast=$Canvas.user.prefersHighContrast
     ```
 * Privacy Level: Public
 * Placements: Course Home Sub Navigation
