@@ -60,8 +60,8 @@ jobs:
     timeout-minutes: 5
     needs: build
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
       ARCHIVE: ${{ needs.build.outputs.artifact }}
     steps:
       - name: Start deployment
@@ -95,8 +95,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs: build
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Delete old versions from S3 bucket
         run: aws s3 ls s3://${S3_ARTIFACT_BUCKET}/ | sort -rn | awk -v s3_url="s3://${S3_ARTIFACT_BUCKET}/" '$4 ~ /github-/ {print s3_url $4;}' | tee /dev/stderr | tail -n +21 | xargs -r -n 1 aws s3 rm
