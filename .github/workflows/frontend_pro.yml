@@ -1,0 +1,55 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Frontend PRO
+
+env:
+  S3_ARTIFACT_BUCKET: ${{ github.repository_owner }}-${{ github.event.repository.name }}-dist
+  S3_PROD_BUCKET: ${{ github.repository_owner }}-${{ github.event.repository.name }}-prod
+  AWS_DEFAULT_REGION: "eu-west-1"
+  NODE_VERSION: 14.13.0
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
+        required: true
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+      TAG: ${{ github.event.inputs.tag }}
+    steps:
+      - name: Start deployment
+        uses: bobheadxi/deployments@v0.4.3
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: prod
+          desc: Production deploy of ${{ env.TAG }}
+          ref: refs/tags/${{ env.TAG }}
+      - name: Download release with tag ${{ env.TAG }}
+        run: aws s3 cp s3://${S3_ARTIFACT_BUCKET}/release-${TAG}.tgz build.tgz
+      - run: mkdir files
+      - name: Unzip files
+        run: tar -zxvf build.tgz -C files
+      - name: Upload to bucket ${{ env.S3_PROD_BUCKET }}
+      # This is so that if the upload was done after a newer build was completed we still upload all the files.
+        run: aws s3 cp files "s3://${S3_PROD_BUCKET}/" --recursive --no-progress
+      - name: Remove old files
+      # This removes the old files.
+        run: aws s3 sync files "s3://${S3_PROD_BUCKET}/" --delete --no-progress
+      - name: Update deployment status
+        uses: bobheadxi/deployments@v0.4.3
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}

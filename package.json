@@ -1,0 +1,70 @@
+{
+  "name": "calendar-import-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test jest --passWithNoTests",
+    "eject": "react-scripts eject",
+    "lint:fix": "ui-test --lint --fix",
+    "clean": "ui-build --clean",
+    "open:sandbox": "ui-scripts open-sandbox"
+  },
+  "dependencies": {
+    "@instructure/canvas-theme": "^8.6.0",
+    "@instructure/console": "^8.6.0",
+    "@instructure/emotion": "^8.6.0",
+    "@instructure/ui-alerts": "^8.6.0",
+    "@instructure/ui-billboard": "^8.6.0",
+    "@instructure/ui-buttons": "^8.6.0",
+    "@instructure/ui-file-drop": "^8.6.0",
+    "@instructure/ui-flex": "^8.6.0",
+    "@instructure/ui-form-field": "^8.6.0",
+    "@instructure/ui-heading": "^8.6.0",
+    "@instructure/ui-icons": "^8.6.0",
+    "@instructure/ui-link": "^8.6.0",
+    "@instructure/ui-modal": "^8.6.0",
+    "@instructure/ui-pagination": "^8.6.0",
+    "@instructure/ui-simple-select": "^8.6.0",
+    "@instructure/ui-spinner": "^8.6.0",
+    "@instructure/ui-svg-images": "^8.6.0",
+    "@instructure/ui-text": "^8.6.0",
+    "@instructure/ui-themes": "^8.6.0",
+    "@instructure/ui-view": "^8.6.0",
+    "@oxctl/ui-lti": "^1.1.0",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "env": "0.0.2",
+    "jwt-decode": "^3.1.2",
+    "parse-link-header": "^1.0.1",
+    "promise.prototype.finally": "^3.1.1",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-redux": "^7.2.4",
+    "react-scripts": "4.0.3",
+    "redux": "^4.1.0",
+    "redux-thunk": "^2.3.0",
+    "uuid": "^8.0.0"
+  },
+  "devDependencies": {
+    "@instructure/ui-eslint-config": "^8.6.0",
+    "@instructure/ui-scripts": "^8.6.0",
+    "@instructure/ui-stylelint-config": "^8.6.0",
+    "@instructure/ui-webpack-config": "^8.6.0",
+    "html-webpack-plugin": "^4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
