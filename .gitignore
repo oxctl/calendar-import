@@ -1,5 +1,4 @@
 node_modules/
-__build__/
 npm-debug.log
 yarn-error.log
 .yarnclean
@@ -10,3 +9,4 @@ yarn-error.log
 localhost-key.pem
 localhost.pem
 .env.development.local
+build
