@@ -4,8 +4,8 @@
 name: Frontend PRO
 
 env:
-  S3_ARTIFACT_BUCKET: ${{ github.repository_owner }}-${{ github.event.repository.name }}-dist
-  S3_PROD_BUCKET: ${{ github.repository_owner }}-${{ github.event.repository.name }}-prod
+  S3_ARTIFACT_BUCKET: ${{ github.repository_owner }}-calendar-import-dist
+  S3_PROD_BUCKET: ${{ github.repository_owner }}-calendar-import-prod
   AWS_DEFAULT_REGION: "eu-west-1"
   NODE_VERSION: 14.13.0
 
