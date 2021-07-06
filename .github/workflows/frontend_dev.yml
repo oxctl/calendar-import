@@ -46,8 +46,8 @@ jobs:
       - name: Upload to AWS S3 Bucket - ${{ env.S3_ARTIFACT_BUCKET }}
         id: upload
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
         # The name of the archive must include the build number to allow us to cleanup older versions
         run: |
           echo "$ARCHIVE"
