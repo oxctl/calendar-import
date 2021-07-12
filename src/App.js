@@ -28,7 +28,6 @@ import jwtDecode from 'jwt-decode'
 import {View} from '@instructure/ui-view'
 import {Loading} from './Loading'
 import Error from './Error'
-import {DEV, LOCAL, PROD} from './utils/constants'
 import {Heading} from '@instructure/ui-heading'
 import {LaunchOAuth, LtiHeightLimit, LtiTokenRetriever} from "@oxctl/ui-lti"
 import ImportView from "./ImportView";
@@ -40,25 +39,9 @@ import {setServer, setToken} from "./actions/lti";
 import {connect} from "react-redux";
 import {addMessage} from "./actions/messages";
 import LtiApplyTheme from "./LtiApplyTheme";
+import {settings} from "./utils/settings";
 
 
-const settings = {
-    [LOCAL]: {
-        'ltiServer': process.env.REACT_APP_SERVER_LTI,
-        'proxyServer': process.env.REACT_APP_SERVER_PROXY,
-        'calendarServer': process.env.REACT_APP_SERVER_CALENDAR
-    },
-    [DEV]: {
-        'ltiServer': 'https://lti-dev.canvas.ox.ac.uk',
-        'proxyServer': 'https://proxy-dev.canvas.ox.ac.uk',
-        'calendarServer': 'https://calendar-import-dev.canvas.ox.ac.uk'
-    },
-    [PROD]: {
-        'ltiServer': 'https://lti.canvas.ox.ac.uk',
-        'proxyServer': 'https://proxy.canvas.ox.ac.uk',
-        'calendarServer': 'https://calendar-import.canvas.ox.ac.uk'
-    }
-}
 
 class App extends React.Component {
     state = {
@@ -75,7 +58,7 @@ class App extends React.Component {
 
     constructor(props, context) {
         super(props, context)
-        this.servers = settings[window.location.origin]
+        this.servers = settings
         this.props.setServer(this.servers.calendarServer)
     }
 
