@@ -85,3 +85,7 @@ When in development it is easier to disable the enforced scopes, however in prod
 - Click "+ App", Select "By client ID" from configuration type and add your developer key ID  (it must have been created from if your lti    creation key was successful)
 - Click Add, then install, and you should have a (course management) tool - with the same name as the LTI key
 - This should now appear on the left hand side of the list 
+
+## Sentry
+
+Application errors are reported using https://sentry.io for this application. There are 2 DSNs, one for development and one for production. There's no DSN for local development. Sentry is setup as early as possible in the application to capture as many errors as possible.
