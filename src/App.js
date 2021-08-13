@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import React from 'react'
+import React, { Fragment } from 'react'
 
 import jwtDecode from 'jwt-decode'
 import {View} from '@instructure/ui-view'
@@ -50,6 +50,7 @@ class App extends React.Component {
         accountId: null,
         accountName: null,
         canvasUrl: null,
+        placement: false,
         needsToken: false,
         loading: true,
         error: null,
@@ -74,6 +75,7 @@ class App extends React.Component {
             courseId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_id),
             courseName: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_name,
             canvasBaseUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_api_base_url,
+            placement: this.jwt['https://www.instructure.com/placement'],
             token: token,
             loading: false
         })
@@ -84,9 +86,55 @@ class App extends React.Component {
         this.setState({prompt: false})
     }
 
+    calendarImportRender = () => {
+
+        const {placement} = this.state
+        
+        if(placement === "user_navigation") {
+            return (<Fragment>
+                <Text>Templace for react front end for user navigation</Text>
+            </Fragment>)
+        }
+ 
+
+        return(<Fragment>
+                {(this.state.loading) ? <Loading/> : <>
+                    <Messages/>
+                    <Heading level="h1">Import File</Heading>
+                    <Text as='p'>
+                        This tool allows you to import a set of events contained in a CSV file into
+                        the <Link target='_blank'
+                                href={`${canvasBaseUrl}/calendar?include_contexts=course_${courseId}`}>course
+                        calendar</Link>.
+                        The file has to be specifically formatted for the importer. An <Link
+                        href='example.csv'>example file</Link> can be downloaded, edited locally and
+                        then uploaded again to import (You may delete extraneous columns in the
+                        example
+                        file, if necessary).
+                    </Text>
+                    <UploadJob proxyServer={this.servers.proxyServer}
+                            calendarServer={this.servers.calendarServer}
+                            token={this.token}
+                            handleProxyRefresh={() => this.setState({prompt: true})}
+                            courseId={courseId} courseName={courseName}
+                            onMessage={this.props.addMessage}/>
+                    <ImportView server={this.servers.calendarServer} token={this.token}
+                                onMessage={this.props.addMessage}/>
+                </>}
+            </Fragment>)
+    }
+
+    
     render() {
-        const {error, courseId, courseName, canvasBaseUrl, comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast} = this.state
+        const {error, courseId, courseName, canvasBaseUrl, comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast, placement} = this.state
         const {servers} = this
+
+        
+        if(placement === "user_navigation") {
+
+
+        }
+
         return (
             <LtiTokenRetriever ltiServer={servers.ltiServer} handleJwt={this.updateToken}>
                 <LtiApplyTheme url={comInstructureBrandConfigJsonUrl} highContrast={canvasUserPrefersHighContrast}>
@@ -95,29 +143,7 @@ class App extends React.Component {
                                      promptLogin={this.state.prompt} server={{proxyServer: 'https://localhost:18443'}}>
                             <View padding="small" as="div">
                                 <Error message={error}>
-                                    {(this.state.loading) ? <Loading/> : <>
-                                        <Messages/>
-                                        <Heading level="h1">Import File</Heading>
-                                        <Text as='p'>
-                                            This tool allows you to import a set of events contained in a CSV file into
-                                            the <Link target='_blank'
-                                                      href={`${canvasBaseUrl}/calendar?include_contexts=course_${courseId}`}>course
-                                            calendar</Link>.
-                                            The file has to be specifically formatted for the importer. An <Link
-                                            href='example.csv'>example file</Link> can be downloaded, edited locally and
-                                            then uploaded again to import (You may delete extraneous columns in the
-                                            example
-                                            file, if necessary).
-                                        </Text>
-                                        <UploadJob proxyServer={this.servers.proxyServer}
-                                                   calendarServer={this.servers.calendarServer}
-                                                   token={this.token}
-                                                   handleProxyRefresh={() => this.setState({prompt: true})}
-                                                   courseId={courseId} courseName={courseName}
-                                                   onMessage={this.props.addMessage}/>
-                                        <ImportView server={this.servers.calendarServer} token={this.token}
-                                                    onMessage={this.props.addMessage}/>
-                                    </>}
+                                    {this.calendarImportRender()}
                                 </Error>
                             </View>
                         </LaunchOAuth>
