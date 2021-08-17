@@ -72,7 +72,14 @@ This tool uses the Canvas Proxy to make requests against the Canvas API, to do t
 * Redirect URIs:
   - prod: https://proxy.canvas.ox.ac.uk/login/oauth2/code/universityofoxford-ci-prod
   - dev: https://proxy-dev.canvas.ox.ac.uk/login/oauth2/code/<instance>-ci-<dev|yourFirstName>
-* Enforce Scopes: False
+* Enforce Scopes: Enabled
+* Scopes:
+  ```
+  url:GET|/api/v1/calendar_events
+  url:POST|/api/v1/calendar_events
+  url:DELETE|/api/v1/calendar_events/:id
+  url:GET|/api/v1/courses/:course_id/sections
+  ```
 
 When in development it is easier to disable the enforced scopes, however in production/test we must limit scopes to reduce exposure in the event of a compromise.
 
