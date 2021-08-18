@@ -92,7 +92,7 @@ class App extends React.Component {
                 <LtiApplyTheme url={comInstructureBrandConfigJsonUrl} highContrast={canvasUserPrefersHighContrast}>
                     <LtiHeightLimit>
                         <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyGotToken}
-                                     promptLogin={this.state.prompt} server={{proxyServer: this.settings.proxyServer}}>
+                                     promptLogin={this.state.prompt} server={{proxyServer: this.servers.proxyServer}}>
                             <View padding="small" as="div">
                                 <Error message={error}>
                                     {(this.state.loading) ? <Loading/> : <>
