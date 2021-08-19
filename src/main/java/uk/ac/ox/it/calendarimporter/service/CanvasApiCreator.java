@@ -10,6 +10,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
 import edu.ksu.canvas.oauth.OauthToken;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
@@ -26,6 +27,9 @@ import java.util.Map;
 public class CanvasApiCreator {
 
     public static final String PROTOCOL_SEP = "://";
+    
+    @Value("https://${hostname:localhost}")
+    private String issuer;
 
     /**
      * Just removes the local part from a URL. This is just needed so we don't need more
@@ -51,7 +55,7 @@ public class CanvasApiCreator {
         String ltiClientId = tenant.getLtiClientId();
         JWTClaimsSet claims =
                 new JWTClaimsSet.Builder()
-                        .issuer("https://localhost:8443") // TODO From config
+                        .issuer(issuer)
                         .audience(ltiClientId)
                         .subject(subject)
                         .notBeforeTime(Date.from(Instant.now()))
