@@ -57,7 +57,7 @@ Both a LTI developer key and an API developer key need to be created for this to
     canvas_user_prefers_high_contrast=$Canvas.user.prefersHighContrast
     ```
 * Privacy Level: Public
-* Placements: Course Home Sub Navigation
+* Placements: Course Home Sub Navigation, User Navigation (this will only be set when we want to show the oxford terms)
 
 ### API Key
 
