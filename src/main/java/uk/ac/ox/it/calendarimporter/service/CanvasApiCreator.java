@@ -28,7 +28,7 @@ public class CanvasApiCreator {
 
     public static final String PROTOCOL_SEP = "://";
     
-    @Value("https://${hostname:localhost}")
+    @Value("https://${hostname:localhost:8443}")
     private String issuer;
 
     /**
