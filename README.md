@@ -166,10 +166,15 @@ The CSR can then be uploaded to request the certificate.
 
 This service is deployed to AWS using elastic beanstalk. This is managed by GitHub Actions which is able todo the deployments to the development instance and then if everything looks ok a build can be deployed to the production environment. The files for doing this are in the folder [elasticbeanstalk](elasticbeanstalk).
 
-### CI/CD
+#### Config
 
-There is a file called [build.yml](build.yml) that has the configuration for the CI setup and then the CD pipeline. Any new commit on the master branch is automatically deployed to the development instance of the calendar import tool.
+The additional config for the clients that are registered is loaded from a file stored in S3. This file is only reloaded when the application is re-deployed (not restarted). So to change this file you typically download it:
 
+    aws s3 cp s3://elasticbeanstalk-eu-west-1-211318693510/files/calendar-import.canvas.ox.ac.uk-client.properties .
+
+then you can edit the file and upload it to S3 again:
+
+    aws s3 cp calendar-import.canvas.ox.ac.uk-client.properties s3://elasticbeanstalk-eu-west-1-211318693510/files/
 
 ## Cookies
 
