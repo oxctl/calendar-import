@@ -18,14 +18,13 @@ on:
       - '.github/workflows/frontend*'
       - '!frontend/README.md'
 
-defaults:
-  run:
-    working-directory: frontend
-
 jobs:
   build:
     runs-on: ubuntu-20.04
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
     outputs:
       artifact: ${{ steps.upload.outputs.artifact }}
     steps:
