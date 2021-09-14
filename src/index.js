@@ -14,6 +14,7 @@ import {settings} from "./utils/settings";
     if (dsn) {
         Sentry.init({
             dsn,
+            environment: settings.sentryEnv?settings.sentryEnv:"unknown",
             integrations: [new Integrations.BrowserTracing()],
 
             // Set tracesSampleRate to 1.0 to capture 100%
