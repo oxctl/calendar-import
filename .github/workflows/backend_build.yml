@@ -19,9 +19,7 @@ on:
       - '.github/workflows/backend*'
       - '!backend/README.md'
 
-defaults:
-  run:
-    working-directory: backend
+
 
 jobs:
   build:
@@ -30,6 +28,9 @@ jobs:
     outputs:
       tag: ${{ steps.output-tag.outputs.tag }}
       message: ${{ steps.output-message.outputs.message }}
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -90,7 +91,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: elasticbeanstalk
-          path: backend
       - name: Start deployment
         uses: bobheadxi/deployments@v0.4.3
         id: deployment
@@ -115,7 +115,7 @@ jobs:
           version_label: ${{ env.TAG }}
           version_description: ${{ env.MESSAGE }}
           region: ${{ env.AWS_REGION }}
-          deployment_package: backend/deploy.zip
+          deployment_package: deploy.zip
       - name: Update deployment status
         uses: bobheadxi/deployments@v0.4.3
         if: always()
