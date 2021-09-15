@@ -2,6 +2,7 @@ package uk.ac.ox.it.calendarimporter.jobs;
 
 import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
+import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.oauth.OauthToken;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
@@ -130,6 +131,9 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
             throw new JobExecutionException(e);
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to get signed JWT", e);
+        } catch (InvalidOauthTokenException e) {
+            log.debug("Token is invalid: {}", oauthToken.getAccessToken());
+            throw e;
         }
     }
 
