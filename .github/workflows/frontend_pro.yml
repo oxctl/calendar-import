@@ -31,7 +31,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: prod
+          env: frontend-prod
           desc: Production deploy of ${{ env.TAG }}
           ref: refs/tags/${{ env.TAG }}
       - name: Download release with tag ${{ env.TAG }}

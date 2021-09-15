@@ -32,7 +32,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: prod
+          env: backend-prod
           desc: Production deploy of ${{ env.TAG }}
           ref: refs/tags/${{ env.TAG }}
       - name: Deploy to EB

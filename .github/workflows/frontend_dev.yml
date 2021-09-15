@@ -74,7 +74,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: dev
+          env: frontend-dev
       - name: Download ${{ env.ARCHIVE }} build from S3
         run: aws s3 cp s3://${S3_ARTIFACT_BUCKET}/${ARCHIVE} build.tgz
       - run: mkdir files
