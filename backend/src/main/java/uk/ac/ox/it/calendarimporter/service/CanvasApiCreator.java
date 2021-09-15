@@ -10,10 +10,13 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import edu.ksu.canvas.oauth.NonRefreshableOauthToken;
 import edu.ksu.canvas.oauth.OauthToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -28,8 +31,15 @@ public class CanvasApiCreator {
 
     public static final String PROTOCOL_SEP = "://";
     
+    private final Logger log = LoggerFactory.getLogger(CanvasApiCreator.class);
+    
     @Value("https://${hostname:localhost:8443}")
     private String issuer;
+    
+    @PostConstruct
+    public void init() {
+        log.info("Using {} to sign tokens to the Canvas Proxy.", issuer);
+    }
 
     /**
      * Just removes the local part from a URL. This is just needed so we don't need more
