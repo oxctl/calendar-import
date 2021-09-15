@@ -50,7 +50,7 @@ class App extends React.Component {
         accountId: null,
         accountName: null,
         canvasUrl: null,
-        placement: false,
+        placement: null,
         needsToken: false,
         loading: true,
         error: null,
@@ -88,7 +88,7 @@ class App extends React.Component {
 
     calendarImportRender = () => {
 
-        const {placement} = this.state
+        const {placement, courseId, courseName, canvasBaseUrl} = this.state
         
         if(placement === "user_navigation") {
             return (<Fragment>
@@ -126,14 +126,8 @@ class App extends React.Component {
 
     
     render() {
-        const {error, courseId, courseName, canvasBaseUrl, comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast, placement} = this.state
+        const {error,  comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast, placement} = this.state
         const {servers} = this
-
-        
-        if(placement === "user_navigation") {
-
-
-        }
 
         return (
             <LtiTokenRetriever ltiServer={servers.ltiServer} handleJwt={this.updateToken}>
