@@ -40,7 +40,8 @@ import {connect} from "react-redux";
 import {addMessage} from "./actions/messages";
 import LtiApplyTheme from "./LtiApplyTheme";
 import {settings} from "./utils/settings";
-
+import OxfordImportsV1 from './OxfordImportsV1'
+import OxfordImportsV2 from './OxfordImportsV2'
 
 
 class App extends React.Component {
@@ -92,7 +93,8 @@ class App extends React.Component {
         
         if(placement === "user_navigation") {
             return (<Fragment>
-                <Text>Templace for react front end for user navigation</Text>
+                <OxfordImportsV1/>
+                <OxfordImportsV2/>
             </Fragment>)
         }
  
