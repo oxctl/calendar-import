@@ -18,6 +18,7 @@
     "@instructure/ui-alerts": "^8.6.0",
     "@instructure/ui-billboard": "^8.6.0",
     "@instructure/ui-buttons": "^8.6.0",
+    "@instructure/ui-checkbox": "^8.6.0",
     "@instructure/ui-file-drop": "^8.6.0",
     "@instructure/ui-flex": "^8.6.0",
     "@instructure/ui-form-field": "^8.6.0",
