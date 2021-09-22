@@ -19,6 +19,16 @@ import java.util.regex.Pattern;
  */
 public class DateTimeParser {
 
+    public static final DateTimeFormatter UK_DATE = new DateTimeFormatterBuilder()
+            .appendPattern("d/M/")
+            .optionalStart()
+            .appendPattern("uuuu")
+            .optionalEnd()
+            .optionalStart()
+            .appendValueReduced(ChronoField.YEAR, 2, 2, 1990)
+            .optionalEnd()
+            .toFormatter();
+
     static Duration parseDuration(String string) {
         Matcher matcher = Pattern.compile("(?:(?<hours>\\d+):)?(?<minutes>-?\\d+)").matcher(string);
         if (!matcher.matches()) {
@@ -39,16 +49,10 @@ public class DateTimeParser {
     static LocalDate parseDate(String string) {
         // TODO Locale handling, at the moment it's all in the default locale
         List<DateTimeFormatter> patterns = new ArrayList<>();
-        patterns.add(
-                new DateTimeFormatterBuilder()
-                        .appendPattern("d/M/")
-                        .optionalStart()
-                        .appendPattern("uuuu")
-                        .optionalEnd()
-                        .optionalStart()
-                        .appendValueReduced(ChronoField.YEAR, 2, 2, 1990)
-                        .optionalEnd()
-                        .toFormatter());
+        // We use ISO for standard imports.
+        patterns.add(DateTimeFormatter.ISO_DATE);
+        // Users generally prefer using their local date
+        patterns.add(UK_DATE);
 
         for (DateTimeFormatter pattern : patterns) {
             try {

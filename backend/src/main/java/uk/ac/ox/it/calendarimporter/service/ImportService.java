@@ -150,10 +150,9 @@ public class ImportService {
      * @throws SchedulerException    If we failed to schedule the job.
      * @throws IllegalStateException If the import is in a state that it can't be deleted.
      */
-    public void deleteImport(Long calendarImportId, User user, Long courseId)
+    public void deleteImport(Long calendarImportId, User user)
             throws SchedulerException {
 
-        // TODO Permission check
         CalendarImport calendarImport =
                 calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
 
@@ -209,21 +208,32 @@ public class ImportService {
         scheduler.scheduleJob(job, trigger);
     }
 
-    public Page<JobProgress> getJobs(User user, Pageable pageable) {
-        Page<UserJob> userJobs =
-                userJobRepository.findByUserIdOrderByCreatedDesc(user.getId(), pageable);
-        // TODO This should change to a join or re-structure the objects
-        return userJobs.map(
-                job -> {
-                    Optional<JobProgress> byId = progressService.findById(job.getTriggerId());
-                    return byId.orElse(null);
-                });
-    }
-
     public Page<ContextJob> getJobs(String tenantName, String context, Pageable pageable) {
         Page<ContextJob> contextJobs =
                 contextJobRepository.findByTenantNameAndContextAndHiddenOrderByCreatedDesc(
                         tenantName, context, false, pageable);
         return contextJobs;
+    }
+
+    /**
+     * This loads a context job and checks that it's in the expected tenant and context.
+     * @param tenantName The name of the current tenant.
+     * @param context The context it's being access from.
+     * @param id The ID of the context job.
+     * @return The context job.
+     */
+    public Optional<ContextJob> getJob(String tenantName, String context, Long id) {
+        return contextJobRepository.findById(id) .filter(contextJob ->
+                contextJob.getTenant().getName().equals(tenantName)  &&
+                contextJob.getContext().equals(context)
+        );
+    }
+
+    /**
+     * @param contextJob
+     */
+    public void hideImport(ContextJob contextJob) {
+        contextJob.setHidden(true);
+        contextJobRepository.save(contextJob);
     }
 }

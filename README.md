@@ -58,6 +58,7 @@ Both a LTI developer key and an API developer key need to be created for this to
 * Additional Settings: Custom fields:
     ```
     canvas_course_id=$Canvas.course.id
+    canvas_user_id=$Canvas.user.id
     canvas_course_name=$Canvas.course.name
     canvas_api_base_url=$Canvas.api.baseUrl
     person_address_timezone=$Person.address.timezone
@@ -66,6 +67,16 @@ Both a LTI developer key and an API developer key need to be created for this to
     ```
 * Privacy Level: Public
 * Placements: Course Home Sub Navigation, User Navigation (this will only be set when we want to show the oxford terms)
+
+Then once the key is entered switch to the JSON view and update the placement to include an icon:
+
+    "placements": [
+          {
+          "placement": "course_home_sub_navigation",
+          "message_type": "LtiResourceLinkRequest",
+          "canvas_icon_class": "icon-calendar-add"
+          }
+    ]
 
 ### API Key
 

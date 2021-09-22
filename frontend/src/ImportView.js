@@ -64,7 +64,7 @@ class ImportView extends React.Component {
         return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
     }
 
-    renderDelete = (calendarImport) => {
+    renderDelete = (id, calendarImport) => {
         // Only render when import is stopped and if delete hasn't run ok
         const deleteStatus = calendarImport.delete?.status;
         const importStatus = calendarImport.load?.status;
@@ -75,7 +75,7 @@ class ImportView extends React.Component {
             importStatus === 'ERRORED' || importStatus === 'PROBLEMS'
         if (deleteNotRun && importEnded) {
             return <IconButton screenReaderLabel='Delete' renderIcon={<IconTrashLine/>}
-                               onClick={() => this.handleDelete(calendarImport.id)}/>
+                               onClick={() => this.handleDelete(id)}/>
         }
     }
 
@@ -111,7 +111,7 @@ class ImportView extends React.Component {
                                 </View>
                             </Flex.Item>
                             <Flex.Item as='div' margin='none small'>
-                                {this.renderDelete(calendarImport)}
+                                {this.renderDelete(id, calendarImport)}
                             </Flex.Item>
                         </Flex>
                     </View>
