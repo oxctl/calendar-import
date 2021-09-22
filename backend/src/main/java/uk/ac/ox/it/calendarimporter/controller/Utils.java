@@ -23,6 +23,16 @@ public class Utils {
             }
         }
         String filename = upload.getOriginalFilename();
+        return toImportType(filename);
+    }
+
+    /**
+     * Attempts to work out the import type based on the file extension.
+     *
+     * @param filename The filename.
+     * @return The type or null if it cannot be determined.
+     */
+    public static ImportType toImportType(String filename) {
         if (filename != null) {
             filename = filename.toLowerCase();
             if (filename.endsWith(".csv")) {
