@@ -12,6 +12,7 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
+import uk.ac.ox.it.calendarimporter.service.UserService;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,16 +30,10 @@ class ApiControllerTest {
     private TenantRepository tenantRepository;
 
     @MockBean
-    private UserRepository userRepository;
-
-    @MockBean
     private DepositService depositService;
 
     @MockBean
-    private CanvasApiCreator canvasApiCreator;
-
-    @MockBean
-    private CalendarImportRepository calendarImportRepository;
+    private UserService userService;
 
     @Test
     public void testApiHasAuth() throws Exception {
