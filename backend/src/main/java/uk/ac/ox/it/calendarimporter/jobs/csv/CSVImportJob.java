@@ -104,6 +104,12 @@ public class CSVImportJob extends CanvasCalendarJob {
                     "Completed import, found %d events, imported %d events into calendar.",
                     progress.getTotal(), created);
         }
+        log.info(
+                "Imported {} of {} events from calendar {} of {}",
+                progress.getTotal(),
+                calendarEvents.size(),
+                context,
+                tenant);
     }
 
     private void runJobRecovery(CalendarWriter calendarWriter) throws IOException {
