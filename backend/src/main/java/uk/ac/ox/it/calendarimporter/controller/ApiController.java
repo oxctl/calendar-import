@@ -111,7 +111,7 @@ public class ApiController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
-    @PostMapping("/import/{contextJobId}/hide")
+    @PostMapping("/imports/{contextJobId}/hide")
     public ResponseEntity<Void> hide(
             @PathVariable Long contextJobId,
             Tenant tenant,

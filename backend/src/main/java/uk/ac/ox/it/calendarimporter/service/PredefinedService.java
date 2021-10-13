@@ -27,8 +27,8 @@ public class PredefinedService {
 
 	public List<PredefinedCalendar> getCalendars() {
 		return List.of(
-				new PredefinedCalendar("2021/22 Academic Year", "academic-year-2021.csv", Map.of("year", "2021")),
-				new PredefinedCalendar("2022/23 Academic Year", "academic-year-2022.csv", Map.of("year", "2022"))
+				new PredefinedCalendar("2021/22 Academic Year", "academic-year-2021.csv", Map.of("year", "2021", "start", "2021-09-01", "end", "2022-08-30")),
+				new PredefinedCalendar("2022/23 Academic Year", "academic-year-2022.csv", Map.of("year", "2022", "start", "2022-09-01", "end", "2023-08-30"))
 		);
 	}
 
