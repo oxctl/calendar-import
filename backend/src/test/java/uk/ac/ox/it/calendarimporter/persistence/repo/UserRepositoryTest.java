@@ -34,15 +34,15 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void testFindByTenantNameAndUsername() {
-        entityManager.persist(new User(tenant, "username"));
+    public void testFindByTenantNameAndSubject() {
+        entityManager.persist(new User(tenant, "subject", "username"));
         entityManager.flush();
         User user =
                 this.repository
-                        .findByUsernameAndTenant_Name("username", "tenant")
+                        .findBySubjectAndTenantName("subject", "tenant")
                         .orElseThrow(AssertionFailedError::new);
         assertEquals("tenant", user.getTenant().getName());
-        assertEquals("username", user.getUsername());
+        assertEquals("subject", user.getSubject());
         assertNotNull(user.getId());
     }
 
@@ -52,30 +52,30 @@ public class UserRepositoryTest {
         other.setName("other");
         other.setUrl("http://example.com");
         entityManager.persist(other);
-        entityManager.persist(new User(tenant, "username"));
-        entityManager.persist(new User(other, "username"));
+        entityManager.persist(new User(tenant, "subject", "username"));
+        entityManager.persist(new User(other, "subject", "username"));
 
         {
             User user =
                     repository
-                            .findByUsernameAndTenant_Name("username", "tenant")
+                            .findBySubjectAndTenantName("subject", "tenant")
                             .orElseThrow(AssertionFailedError::new);
             assertEquals("tenant", user.getTenant().getName());
-            assertEquals("username", user.getUsername());
+            assertEquals("subject", user.getSubject());
         }
         {
             User user =
                     repository
-                            .findByUsernameAndTenant_Name("username", "other")
+                            .findBySubjectAndTenantName("subject", "other")
                             .orElseThrow(AssertionFailedError::new);
             assertEquals("other", user.getTenant().getName());
-            assertEquals("username", user.getUsername());
+            assertEquals("subject", user.getSubject());
         }
     }
 
     @Test
     public void testNotFound() {
-        Optional<User> missing = this.repository.findByUsernameAndTenant_Name("noUser", "badTenant");
+        Optional<User> missing = this.repository.findBySubjectAndTenantName("noUser", "badTenant");
         assertFalse(missing.isPresent());
     }
 
@@ -85,20 +85,29 @@ public class UserRepositoryTest {
                 PersistenceException.class,
                 () -> {
                     // Check index prevents duplicates
-                    entityManager.persist(new User(tenant, "username"));
-                    entityManager.persist(new User(tenant, "username"));
+                    entityManager.persist(new User(tenant, "subject", "username"));
+                    entityManager.persist(new User(tenant, "subject", "username"));
                     entityManager.flush();
                 });
     }
 
     @Test
+    public void testDuplicateUsernames() {
+        // Check we can have duplicate username as this happens when the same tool is launched from different
+        // placements.
+        entityManager.persist(new User(tenant, "subject1", "username"));
+        entityManager.persist(new User(tenant, "subject2", "username"));
+        entityManager.flush();
+    }
+
+    @Test
     public void testUpdateUser() {
-        entityManager.persist(new User(tenant, "username"));
+        entityManager.persist(new User(tenant, "subject", "username"));
         entityManager.flush();
         {
             User user =
                     this.repository
-                            .findByUsernameAndTenant_Name("username", "tenant")
+                            .findBySubjectAndTenantName("subject", "tenant")
                             .orElseThrow(AssertionFailedError::new);
             assertNotNull(user.getId());
             user.setEmail("email@example.com");
@@ -108,7 +117,7 @@ public class UserRepositoryTest {
         {
             User user =
                     this.repository
-                            .findByUsernameAndTenant_Name("username", "tenant")
+                            .findBySubjectAndTenantName("subject", "tenant")
                             .orElseThrow(AssertionFailedError::new);
             assertEquals("email@example.com", user.getEmail());
             assertEquals("Display Name", user.getName());

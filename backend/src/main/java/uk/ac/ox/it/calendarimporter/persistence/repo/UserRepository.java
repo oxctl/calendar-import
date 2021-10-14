@@ -10,8 +10,5 @@ import java.util.Optional;
 public interface UserRepository extends CrudRepository<User, Long> {
 
     @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
-    Optional<User> findByUsernameAndTenant_Name(String username, String tenantName);
-
-    @QueryHints(@QueryHint(name = "org.hibernate.cacheable", value = "true"))
     Optional<User> findBySubjectAndTenantName(String subject, String tenantName);
 }

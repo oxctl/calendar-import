@@ -40,7 +40,7 @@ public class User {
     private String username;
 
     // The subject from Canvas
-    @Column(name = "subject")
+    @Column(name = "subject", nullable = false)
     private String subject;
 
     // The name of the Canvas tenant
@@ -65,8 +65,9 @@ public class User {
     public User() {
     }
 
-    public User(Tenant tenant, String username) {
+    public User(Tenant tenant, String subject, String username) {
         this.tenant = tenant;
+        this.subject = subject;
         this.username = username;
     }
 }
