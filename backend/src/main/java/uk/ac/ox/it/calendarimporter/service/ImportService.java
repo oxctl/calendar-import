@@ -123,7 +123,7 @@ public class ImportService {
                         .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
                         // This is in the trigger key but it's better to be explicit about this.
                         .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
-                        .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
+                        .usingJobData(CanvasCalendarJob.SUBJECT, user.getSubject())
                         .usingJobData(CanvasCalendarJob.TIME_ZONE, importConfig.getTimeZone().getID())
                         .forJob(detail)
                         .build();
@@ -178,9 +178,9 @@ public class ImportService {
                         .startNow()
                         .withIdentity(
                                 TriggerUtils.toTriggerKey(
-                                        uuid.toString(), user.getTenant().getName(), user.getUsername()))
+                                        uuid.toString(), user.getTenant().getName(), user.getSubject()))
                         .usingJobData(CanvasCalendarJob.TENANT_NAME, user.getTenant().getName())
-                        .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
+                        .usingJobData(CanvasCalendarJob.SUBJECT, user.getSubject())
                         .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImportId)
                         .forJob(detail)
                         .build();
@@ -191,16 +191,16 @@ public class ImportService {
         calendarImportRepository.save(calendarImport);
     }
 
-    public void purgeImports(String courseContext, String tenantName, String username, boolean all)
+    public void purgeImports(String context, String tenantName, String subject, boolean all)
             throws SchedulerException {
 
         JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
         Trigger trigger =
                 TriggerBuilder.newTrigger()
                         .startNow()
-                        .usingJobData(CanvasCalendarJob.CONTEXT, courseContext)
+                        .usingJobData(CanvasCalendarJob.CONTEXT, context)
                         .usingJobData(CanvasCalendarJob.TENANT_NAME, tenantName)
-                        .usingJobData(CanvasCalendarJob.USERNAME, username)
+                        .usingJobData(CanvasCalendarJob.SUBJECT, subject)
                         .usingJobData(CleanoutJob.ALL, all)
                         .forJob(job)
                         .build();

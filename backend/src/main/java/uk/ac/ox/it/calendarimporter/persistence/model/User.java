@@ -20,7 +20,6 @@ import javax.validation.constraints.NotNull;
 
 @Table(
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"tenant", "username"}),
                 @UniqueConstraint(columnNames = {"tenant", "subject"})
         })
 @Entity
@@ -34,7 +33,8 @@ public class User {
     @JsonView(Views.Public.class)
     private Long id;
 
-    // The username from Canvas
+    // The username from Canvas, we don't use this any more (since LTI 1.1 -> 1.3), but it's useful for debugging issues.
+    // We now use the subject (from JWT) to identify the user.
     @NotNull
     @Column(name = "username", nullable = false)
     private String username;

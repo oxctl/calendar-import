@@ -184,20 +184,22 @@ public class ApiController {
     }
 
 
-    @PostMapping("purge")
+    @PostMapping("/purge")
     public ResponseEntity<Void> purge(
             @RequestParam(name = "all", required = false, defaultValue = "false") boolean all,
             Tenant tenant,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+                    Number userId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Number courseId,
+            @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             JwtAuthenticationToken authentication)
             throws SchedulerException {
-        String courseContext = "course_" + courseId;
+        final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
+        Placement placement = toPlacement(type, courseId, userId);
         User user = userService.getUser(authentication, tenant);
 
-        importService.purgeImports(courseContext, tenant.getName(), user.getUsername(), all);
+        importService.purgeImports(placement.toContext(), tenant.getName(), user.getSubject(), all);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 }

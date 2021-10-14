@@ -31,7 +31,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     public static final String CONTEXT = "context";
     public static final String SECTION = "section";
     public static final String TENANT_NAME = "tenant_name";
-    public static final String USERNAME = "user_id";
+    public static final String SUBJECT = "subject";
     public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
     public static final String TIME_ZONE = "time_zone";
     private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
@@ -108,10 +108,10 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
         User user =
                 userRepository
-                        .findByUsernameAndTenant_Name(config.getString(USERNAME), tenantName)
+                        .findBySubjectAndTenantName(config.getString(SUBJECT), tenantName)
                         .orElseThrow(
                                 () ->
-                                        new JobExecutionException("Failed to find user: " + config.getLong(USERNAME)));
+                                        new JobExecutionException("Failed to find user: " + config.getString(SUBJECT)));
 
         long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
         this.calendarImport =
