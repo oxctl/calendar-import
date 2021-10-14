@@ -48,9 +48,9 @@ public class PredefinedService {
 					new Term("Trinity", LocalDate.of(2022, 4, 24), LocalDate.of(2022, 6, 18))
 			)),
 			"academic-year-2022.csv", new AcademicYear(Year.of(2022), List.of(
-					new Term("Michaelmas", LocalDate.of(2021, 10, 9), LocalDate.of(2021, 12, 3)),
-					new Term("Hilary", LocalDate.of(2022, 1, 15), LocalDate.of(2022, 3, 11)),
-					new Term("Trinity", LocalDate.of(2022, 4, 23), LocalDate.of(2022, 6, 17))
+					new Term("Michaelmas", LocalDate.of(2022, 10, 9), LocalDate.of(2022, 12, 3)),
+					new Term("Hilary", LocalDate.of(2023, 1, 15), LocalDate.of(2023, 3, 11)),
+					new Term("Trinity", LocalDate.of(2023, 4, 23), LocalDate.of(2023, 6, 17))
 			))
 	);
 
