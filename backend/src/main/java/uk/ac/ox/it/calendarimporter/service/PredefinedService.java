@@ -109,7 +109,7 @@ public class PredefinedService {
 		LocalDate week = term.start;
 		int weekNumber = 1;
 		do {
-			csv.printRecord("Week "+ weekNumber, year.toYears(),dateFormat.format(week), "00:00");
+			csv.printRecord("Week "+ weekNumber+ " "+ term.name, year.toYears(),dateFormat.format(week), "00:00");
 			weekNumber++;
 			week = week.plus(1, ChronoUnit.WEEKS);
 		} while (weekNumber < MAX_WEEKS_PER_TERM && week.isBefore(term.end));
