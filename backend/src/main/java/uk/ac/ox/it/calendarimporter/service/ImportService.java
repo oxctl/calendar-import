@@ -62,7 +62,7 @@ public class ImportService {
     // Should we just pass in a User object?
     // Should url be an actual URL?
 
-    public ImportJob importNow(ImportConfig importConfig) throws SchedulerException {
+    public ContextJob importNow(ImportConfig importConfig) throws SchedulerException {
         // This method shouldn't be transactional as we want each repository call to be in it's own
         // transaction.
         // This is so that all the data is in the DB before we trigger the job, otherwise the job can
@@ -116,7 +116,7 @@ public class ImportService {
                 TriggerBuilder.newTrigger()
                         .startNow()
                         .withIdentity(
-                                TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getUsername()))
+                                TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getSubject()))
                         .usingJobData(CanvasCalendarJob.SOURCE_URL, importConfig.getUrl())
                         .usingJobData(CanvasCalendarJob.CONTEXT, importConfig.getContext())
                         .usingJobData(CanvasCalendarJob.SECTION, section)
@@ -140,10 +140,7 @@ public class ImportService {
         calendarImportRepository.save(calendarImport);
 
         Date date = scheduler.scheduleJob(trigger);
-        ImportJob job = new ImportJob();
-        job.setStarted(date.toInstant());
-        job.setProgressUrl("/api/v1/import/progress/" + uuid);
-        return job;
+        return contextJob;
     }
 
     /**
