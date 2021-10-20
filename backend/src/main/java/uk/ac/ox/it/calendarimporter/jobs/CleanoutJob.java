@@ -67,17 +67,17 @@ public class CleanoutJob implements Job {
 
         User user =
                 userRepository
-                        .findByUsernameAndTenant_Name(config.getString(USERNAME), tenant.getName())
+                        .findBySubjectAndTenantName(config.getString(SUBJECT), tenant.getName())
                         .orElseThrow(
                                 () ->
-                                        new JobExecutionException("Failed to find user: " + config.getLong(USERNAME)));
+                                        new JobExecutionException("Failed to find user: " + config.getString(SUBJECT)));
         OauthToken oauthToken;
         try {
             oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to create JWT.", e);
         }
-        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getUrl());
+        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
         CalendarReader calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);
         CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);

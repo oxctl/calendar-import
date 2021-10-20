@@ -29,8 +29,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TENANT_NAME;
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.USERNAME;
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.*;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.*;
 
 /**
@@ -74,10 +73,10 @@ public class DeleteJob extends LoggingJob implements Job {
 
         User user =
                 userRepository
-                        .findByUsernameAndTenant_Name(config.getString(USERNAME), tenant.getName())
+                        .findBySubjectAndTenantName(config.getString(SUBJECT), tenant.getName())
                         .orElseThrow(
                                 () ->
-                                        new JobExecutionException("Failed to find user: " + config.getLong(USERNAME)));
+                                        new JobExecutionException("Failed to find user: " + config.getString(SUBJECT)));
         OauthToken oauthToken;
         try {
             oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());

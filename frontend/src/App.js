@@ -22,25 +22,20 @@
  * SOFTWARE.
  */
 
-import React, { Fragment } from 'react'
+import React from 'react'
 
 import jwtDecode from 'jwt-decode'
 import {View} from '@instructure/ui-view'
 import {Loading} from './Loading'
 import Error from './Error'
-import {Heading} from '@instructure/ui-heading'
 import {LaunchOAuth, LtiHeightLimit, LtiTokenRetriever} from "@oxctl/ui-lti"
-import ImportView from "./ImportView";
-import UploadJob from "./UploadJob";
-import {Link} from "@instructure/ui-link";
-import {Text} from "@instructure/ui-text";
-import Messages from "./Messages";
 import {setServer, setToken} from "./actions/lti";
 import {connect} from "react-redux";
 import {addMessage} from "./actions/messages";
 import LtiApplyTheme from "./LtiApplyTheme";
 import {settings} from "./utils/settings";
-
+import UserCalendars from './UserCalendars'
+import CourseCalendars from "./CourseCalendars";
 
 
 class App extends React.Component {
@@ -76,6 +71,8 @@ class App extends React.Component {
             courseName: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_name,
             canvasBaseUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_api_base_url,
             placement: this.jwt['https://www.instructure.com/placement'],
+            returnUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/launch_presentation'].return_url,
+            userId: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_user_id,
             token: token,
             loading: false
         })
@@ -91,42 +88,24 @@ class App extends React.Component {
         const {placement, courseId, courseName, canvasBaseUrl} = this.state
         
         if(placement === "user_navigation") {
-            return (<Fragment>
-                <Text>Templace for react front end for user navigation</Text>
-            </Fragment>)
+            return <UserCalendars
+                    calendarServer={this.servers.calendarServer}
+                    proxyServer={this.servers.proxyServer}
+                    token={this.state.token}
+                    returnUrl={this.state.returnUrl}
+                    canvasUrl={this.state.canvasBaseUrl}
+                    userId={this.state.userId}
+                    onMissingToken={() => this.setState({prompt: true})}
+                />
         }
- 
-
-        return(<Fragment>
-                {(this.state.loading) ? <Loading/> : <>
-                    <Messages/>
-                    <Heading level="h1">Import File</Heading>
-                    <Text as='p'>
-                        This tool allows you to import a set of events contained in a CSV file into
-                        the <Link target='_blank'
-                                href={`${canvasBaseUrl}/calendar?include_contexts=course_${courseId}`}>course
-                        calendar</Link>.
-                        The file has to be specifically formatted for the importer. An <Link
-                        href='example.csv'>example file</Link> can be downloaded, edited locally and
-                        then uploaded again to import (You may delete extraneous columns in the
-                        example
-                        file, if necessary).
-                    </Text>
-                    <UploadJob proxyServer={this.servers.proxyServer}
-                            calendarServer={this.servers.calendarServer}
-                            token={this.token}
-                            handleProxyRefresh={() => this.setState({prompt: true})}
-                            courseId={courseId} courseName={courseName}
-                            onMessage={this.props.addMessage}/>
-                    <ImportView server={this.servers.calendarServer} token={this.token}
-                                onMessage={this.props.addMessage}/>
-                </>}
-            </Fragment>)
+        return(<CourseCalendars canvasBaseUrl={canvasBaseUrl} courseId={courseId} servers={this.servers}
+                                token={this.token} handleProxyRefresh={() => this.setState({prompt: true})}
+                                courseName={courseName} />)
     }
 
     
     render() {
-        const {error,  comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast, placement} = this.state
+        const {error,  comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast} = this.state
         const {servers} = this
 
         return (
@@ -136,9 +115,11 @@ class App extends React.Component {
                         <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyGotToken}
                                      promptLogin={this.state.prompt} server={{proxyServer: this.servers.proxyServer}}>
                             <View padding="small" as="div">
-                                <Error message={error}>
-                                    {this.calendarImportRender()}
-                                </Error>
+                            <Error message={error}>
+                            {(this.state.loading) ? <Loading/> : <>
+                                {this.calendarImportRender()}
+                            </>}
+                            </Error>
                             </View>
                         </LaunchOAuth>
                     </LtiHeightLimit>

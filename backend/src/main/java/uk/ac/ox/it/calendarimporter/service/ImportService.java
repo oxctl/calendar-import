@@ -62,7 +62,7 @@ public class ImportService {
     // Should we just pass in a User object?
     // Should url be an actual URL?
 
-    public ImportJob importNow(ImportConfig importConfig) throws SchedulerException {
+    public ContextJob importNow(ImportConfig importConfig) throws SchedulerException {
         // This method shouldn't be transactional as we want each repository call to be in it's own
         // transaction.
         // This is so that all the data is in the DB before we trigger the job, otherwise the job can
@@ -116,14 +116,14 @@ public class ImportService {
                 TriggerBuilder.newTrigger()
                         .startNow()
                         .withIdentity(
-                                TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getUsername()))
+                                TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getSubject()))
                         .usingJobData(CanvasCalendarJob.SOURCE_URL, importConfig.getUrl())
                         .usingJobData(CanvasCalendarJob.CONTEXT, importConfig.getContext())
                         .usingJobData(CanvasCalendarJob.SECTION, section)
                         .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
                         // This is in the trigger key but it's better to be explicit about this.
                         .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
-                        .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
+                        .usingJobData(CanvasCalendarJob.SUBJECT, user.getSubject())
                         .usingJobData(CanvasCalendarJob.TIME_ZONE, importConfig.getTimeZone().getID())
                         .forJob(detail)
                         .build();
@@ -140,10 +140,7 @@ public class ImportService {
         calendarImportRepository.save(calendarImport);
 
         Date date = scheduler.scheduleJob(trigger);
-        ImportJob job = new ImportJob();
-        job.setStarted(date.toInstant());
-        job.setProgressUrl("/api/v1/import/progress/" + uuid);
-        return job;
+        return contextJob;
     }
 
     /**
@@ -178,9 +175,9 @@ public class ImportService {
                         .startNow()
                         .withIdentity(
                                 TriggerUtils.toTriggerKey(
-                                        uuid.toString(), user.getTenant().getName(), user.getUsername()))
+                                        uuid.toString(), user.getTenant().getName(), user.getSubject()))
                         .usingJobData(CanvasCalendarJob.TENANT_NAME, user.getTenant().getName())
-                        .usingJobData(CanvasCalendarJob.USERNAME, user.getUsername())
+                        .usingJobData(CanvasCalendarJob.SUBJECT, user.getSubject())
                         .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImportId)
                         .forJob(detail)
                         .build();
@@ -191,16 +188,16 @@ public class ImportService {
         calendarImportRepository.save(calendarImport);
     }
 
-    public void purgeImports(String courseContext, String tenantName, String username, boolean all)
+    public void purgeImports(String context, String tenantName, String subject, boolean all)
             throws SchedulerException {
 
         JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
         Trigger trigger =
                 TriggerBuilder.newTrigger()
                         .startNow()
-                        .usingJobData(CanvasCalendarJob.CONTEXT, courseContext)
+                        .usingJobData(CanvasCalendarJob.CONTEXT, context)
                         .usingJobData(CanvasCalendarJob.TENANT_NAME, tenantName)
-                        .usingJobData(CanvasCalendarJob.USERNAME, username)
+                        .usingJobData(CanvasCalendarJob.SUBJECT, subject)
                         .usingJobData(CleanoutJob.ALL, all)
                         .forJob(job)
                         .build();

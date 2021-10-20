@@ -37,6 +37,18 @@ export const handleErrors = (response) => {
 }
 
 /**
+ * Checks to see that we had an ok response and throws an error if not.
+ * @param response The response.
+ */
+export const checkOK = (response) => {
+  if (!response.ok) {
+    const {statusMessage, status} = response
+    throw new Error(`Request failed (${status}): ${statusMessage}`)
+  }
+  return response
+}
+
+/**
  * A custom error type for failures that should be resolved by an OAuth Login.
  * This is useful so that we can send the user to grant access and not display an error.
  */

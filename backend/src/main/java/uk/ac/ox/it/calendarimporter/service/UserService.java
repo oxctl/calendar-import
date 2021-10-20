@@ -28,7 +28,7 @@ public class UserService {
 													authentication
 															.getToken()
 															.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/lis")
-															.get("personsourceid")));
+															.get("person_sourcedid")));
 									newUser.setSubject(subject);
 									newUser.setTenant(tenant);
 									return newUser;

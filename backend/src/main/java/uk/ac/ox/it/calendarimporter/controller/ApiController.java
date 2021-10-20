@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import uk.ac.ox.it.calendarimporter.JsonPage;
 import uk.ac.ox.it.calendarimporter.Views;
-import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
@@ -111,7 +110,7 @@ public class ApiController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
-    @PostMapping("/import/{contextJobId}/hide")
+    @PostMapping("/imports/{contextJobId}/hide")
     public ResponseEntity<Void> hide(
             @PathVariable Long contextJobId,
             Tenant tenant,
@@ -133,7 +132,7 @@ public class ApiController {
 
     @JsonView(Views.Public.class)
     @PostMapping("/run")
-    public ResponseEntity<ImportJob> runJob(
+    public ResponseEntity<ContextJob> runJob(
             JwtAuthenticationToken authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
                     Number userId,
@@ -145,10 +144,15 @@ public class ApiController {
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['person_address_timezone']")
                     String addressTimezone,
             Tenant tenant,
-            @RequestParam(name = "sectionId") String sectionId,
-            @RequestParam(name = "sectionName") String sectionName,
+            @RequestParam(name = "sectionId", defaultValue = "") String sectionId,
+            @RequestParam(name = "sectionName", defaultValue = "") String sectionName,
             @RequestParam(name = "file") MultipartFile upload)
             throws IOException, SchedulerException {
+        
+        // This method assumes we already have a token for the user.
+        // It's the responsibility of the frontend to check that the proxy has a valid token for
+        // the current user before starting an import.
+        // By the time we get here we can't easily prompt the user to grant access.
 
         final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
         Placement placement = toPlacement(type, courseId, userId);
@@ -170,7 +174,7 @@ public class ApiController {
         }
 
         CourseSection into = (!sectionId.isEmpty()) ? new CourseSection(sectionId, sectionName) : null;
-        ImportJob importJob =
+        ContextJob contextJob =
                 importService.importNow(
                         new ImportConfig(
                                 importType,
@@ -180,24 +184,26 @@ public class ApiController {
                                 placement.toContext(),
                                 into,
                                 timeZone));
-        return ResponseEntity.ok(importJob);
+        return ResponseEntity.ok(contextJob);
     }
 
 
-    @PostMapping("purge")
+    @PostMapping("/purge")
     public ResponseEntity<Void> purge(
             @RequestParam(name = "all", required = false, defaultValue = "false") boolean all,
             Tenant tenant,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+                    Number userId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Number courseId,
+            @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             JwtAuthenticationToken authentication)
             throws SchedulerException {
-        String courseContext = "course_" + courseId;
+        final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
+        Placement placement = toPlacement(type, courseId, userId);
         User user = userService.getUser(authentication, tenant);
 
-        importService.purgeImports(courseContext, tenant.getName(), user.getUsername(), all);
+        importService.purgeImports(placement.toContext(), tenant.getName(), user.getSubject(), all);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 }

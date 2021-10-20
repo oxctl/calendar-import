@@ -27,8 +27,8 @@ public class PredefinedService {
 
 	public List<PredefinedCalendar> getCalendars() {
 		return List.of(
-				new PredefinedCalendar("2021/22 Academic Year", "academic-year-2021.csv", Map.of("year", "2021")),
-				new PredefinedCalendar("2022/23 Academic Year", "academic-year-2022.csv", Map.of("year", "2022"))
+				new PredefinedCalendar("2021/22 Academic Year", "academic-year-2021.csv", Map.of("year", "2021", "start", "2021-09-01", "end", "2022-08-30")),
+				new PredefinedCalendar("2022/23 Academic Year", "academic-year-2022.csv", Map.of("year", "2022", "start", "2022-09-01", "end", "2023-08-30"))
 		);
 	}
 
@@ -48,9 +48,9 @@ public class PredefinedService {
 					new Term("Trinity", LocalDate.of(2022, 4, 24), LocalDate.of(2022, 6, 18))
 			)),
 			"academic-year-2022.csv", new AcademicYear(Year.of(2022), List.of(
-					new Term("Michaelmas", LocalDate.of(2021, 10, 9), LocalDate.of(2021, 12, 3)),
-					new Term("Hilary", LocalDate.of(2022, 1, 15), LocalDate.of(2022, 3, 11)),
-					new Term("Trinity", LocalDate.of(2022, 4, 23), LocalDate.of(2022, 6, 17))
+					new Term("Michaelmas", LocalDate.of(2022, 10, 9), LocalDate.of(2022, 12, 3)),
+					new Term("Hilary", LocalDate.of(2023, 1, 15), LocalDate.of(2023, 3, 11)),
+					new Term("Trinity", LocalDate.of(2023, 4, 23), LocalDate.of(2023, 6, 17))
 			))
 	);
 
@@ -109,7 +109,7 @@ public class PredefinedService {
 		LocalDate week = term.start;
 		int weekNumber = 1;
 		do {
-			csv.printRecord("Week "+ weekNumber, year.toYears(),dateFormat.format(week), "00:00");
+			csv.printRecord("Week "+ weekNumber+ " "+ term.name, year.toYears(),dateFormat.format(week), "00:00");
 			weekNumber++;
 			week = week.plus(1, ChronoUnit.WEEKS);
 		} while (weekNumber < MAX_WEEKS_PER_TERM && week.isBefore(term.end));
