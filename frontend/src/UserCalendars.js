@@ -100,6 +100,9 @@ class UserCalendars extends React.Component {
                 const current = predefinedJson.find(calendar => calendar.properties.start < now && calendar.properties.end > now);
                 const future = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
                 const next = predefinedJson.find(calendar => calendar.properties.start < future && calendar.properties.end > future);
+                if (!current || !next ) {
+                    throw new Error("Failed to find current or next calendar")
+                }
                 this.setState({
                     currentCalendar: current,
                     nextCalendar: next
@@ -141,7 +144,7 @@ class UserCalendars extends React.Component {
                     }
                 })
             }).catch(reason => {
-                console.log(reason)
+                this.addAlert("Failed to process calendars: "+ reason.message, 'error')
             })
     }
 
