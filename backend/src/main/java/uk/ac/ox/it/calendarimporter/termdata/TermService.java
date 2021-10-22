@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -17,16 +18,19 @@ import java.util.List;
 @Service
 public class TermService {
 
-	@Autowired
+	@Autowired(required = false)
 	private WebClient webClient;
 
-	@Value("${dynamics.year.url}")
+	@Value("${dynamics.year.url:#{null}}")
 	private String yearUrl;
 
-	@Value("${dynamics.term.url}")
+	@Value("${dynamics.term.url:#{null}}")
 	private String termUrl;
 	
 	public List<AcademicYear> getYears() {
+		if (webClient == null || yearUrl == null) {
+			return Collections.emptyList();
+		}
 		Mono<List<AcademicYear>> response = webClient.get()
 				.uri(yearUrl)
 				.accept(MediaType.APPLICATION_JSON)
@@ -36,6 +40,9 @@ public class TermService {
 	}
 
 	public List<AcademicYearTerm> getTerms() {
+		if (webClient == null || termUrl == null) {
+			return Collections.emptyList();
+		}
 		Mono<List<AcademicYearTerm>> response = webClient.get()
 				.uri(termUrl)
 				.accept(MediaType.APPLICATION_JSON)

@@ -1,10 +1,13 @@
 package uk.ac.ox.it.calendarimporter.termdata;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesRegistrationAdapter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
@@ -30,6 +33,7 @@ public class WebClientConfiguration {
 	private String registrationId;
 	
 	@Bean
+	@Conditional(ClientsConfiguredCondition.class)
 	public WebClient webClient(ReactiveClientRegistrationRepository clientRegistrations) {
 		// This custom webclient is so that we use Azure AD OAuth when making requests.
 		ServerOAuth2AuthorizedClientExchangeFilterFunction oauth =
@@ -48,6 +52,7 @@ public class WebClientConfiguration {
 
 	// This normally would be in autoconfiguration, but we need to declare it explicitly
 	@Bean
+	@Lazy
 	InMemoryReactiveClientRegistrationRepository reactiveClientRegistrationRepository(OAuth2ClientProperties properties) {
 		List<ClientRegistration> registrations = new ArrayList<>(
 				OAuth2ClientPropertiesRegistrationAdapter.getClientRegistrations(properties).values());
@@ -56,6 +61,7 @@ public class WebClientConfiguration {
 
 	// This normally would be in autoconfiguration, but we need to declare it explicitly
 	@Bean
+	@Lazy
 	ReactiveOAuth2AuthorizedClientService reactiveAuthorizedClientService(
 			ReactiveClientRegistrationRepository clientRegistrationRepository) {
 		return new InMemoryReactiveOAuth2AuthorizedClientService(clientRegistrationRepository);
