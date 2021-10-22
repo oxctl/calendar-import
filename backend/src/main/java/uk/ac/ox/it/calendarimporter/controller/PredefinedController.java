@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.ox.it.calendarimporter.service.PredefinedService;
+import uk.ac.ox.it.calendarimporter.termdata.AcademicYearTerm;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -24,21 +25,27 @@ public class PredefinedController {
 		this.predefinedService = predefinedService;
 	}
 
+	/**
+	 * Gets a list of all the predefined calendars that are available.
+	 */
 	@GetMapping()
 	public List<PredefinedCalendar> getCalendars() {
 		return predefinedService.getCalendars();
 	}
-	
+
+	/**
+	 * Gets an actual pre-defined calendar.
+	 */
 	@GetMapping("/{filename}")
-	public void getCalendar(@PathVariable() String filename, HttpServletResponse response) throws IOException {
-		PredefinedService.AcademicYear academicYear = predefinedService.lookupAcademicYear(filename);
-		if (academicYear == null) {
+	public void getFile(@PathVariable() String filename, HttpServletResponse response) throws IOException {
+		List<AcademicYearTerm> terms = predefinedService.lookupAcademicYear(filename);
+		if (terms == null || terms.isEmpty()) {
 			throw new NotFoundException("No calendar for "+ filename);
 		}
 		response.setContentType("text/csv");
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
 				"attachment; filename=\"" + filename + "\"");
-		predefinedService.generateYear(response.getWriter(), academicYear);
+		predefinedService.generateTerms(response.getWriter(), terms);
 	}
 
 }

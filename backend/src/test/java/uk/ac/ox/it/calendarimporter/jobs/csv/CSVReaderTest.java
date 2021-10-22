@@ -173,11 +173,10 @@ public class CSVReaderTest {
     }
 
     @Test
-    public void testDurationTooLong() throws IOException, HeaderException {
-        // Has all the required headers, but is missing essential data on each row.
-        List<CalendarEvent> calendarEvents = parse("/too-long-duration.csv");
-        assertTrue(hasErrors);
-        assertTrue(calendarEvents.isEmpty());
+    public void testMoreThan24Hours() throws IOException, HeaderException {
+        List<CalendarEvent> calendarEvents = parse("/more-than24-hours.csv");
+        assertFalse(hasErrors);
+        assertFalse(calendarEvents.isEmpty());
     }
 
     @Test
