@@ -112,6 +112,29 @@ When in development it is easier to disable the enforced scopes, however in prod
 - Click Add, then install, and you should have a (course management) tool - with the same name as the LTI key
 - This should now appear on the left hand side of the list 
 
+### Configuring Predefined Calendars
+
+This tool has support for reading term data from a feed produced from Azure Dynamics. Two feeds are used, one to get the data on the academic years that are available and when they run (to work out the current and next year). Then a second feed is used to work out the weeks based on the term data. The URLs that the JSON can be downloaded from are protected by OAuth2 and credentials are needed that work against the Azure AD are needed. To then configure the application spring properties like these need to be set:
+
+    # The OAuth2 grant type (always client_credentials)
+    spring.security.oauth2.client.registration.terms.authorization-grant-type=client_credentials
+    # The client ID, must be provided
+    spring.security.oauth2.client.registration.terms.client-id=1234....
+    # The client secret, must be provided
+    spring.security.oauth2.client.registration.terms.client-secret=top-secret....
+    # The scope, must be provided
+    spring.security.oauth2.client.registration.terms.scope=api://....
+
+    # The token URI, must be provided
+    spring.security.oauth2.client.provider.terms.token-uri=https://login...
+
+    # The URL to get the academic year data from (will be different for prod/test/uat)
+    dynamics.year.url=https://...
+    # The URL to get the term data from (will be different for prod/test/uat)
+    dynamics.term.url=https://...
+
+If you don't supply this configuration, the tool will startup, but the predefined terms won't be defined.
+
 ## Releasing
  
 This tool should be released in one step, updating the maven versions and updating the npm versions.

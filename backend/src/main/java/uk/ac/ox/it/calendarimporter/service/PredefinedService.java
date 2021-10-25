@@ -2,18 +2,21 @@ package uk.ac.ox.it.calendarimporter.service;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.controller.PredefinedCalendar;
+import uk.ac.ox.it.calendarimporter.termdata.AcademicYearTerm;
+import uk.ac.ox.it.calendarimporter.termdata.TermService;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.time.LocalDate;
-import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This is just a placeholder service so that we can continue with development until we have
@@ -25,93 +28,110 @@ public class PredefinedService {
 	// Just a safety so we don't ever have a runaway loop.
 	public static final int MAX_WEEKS_PER_TERM = 1000;
 
-	public List<PredefinedCalendar> getCalendars() {
-		return List.of(
-				new PredefinedCalendar("2021/22 Academic Year", "academic-year-2021.csv", Map.of("year", "2021", "start", "2021-09-01", "end", "2022-08-30")),
-				new PredefinedCalendar("2022/23 Academic Year", "academic-year-2022.csv", Map.of("year", "2022", "start", "2022-09-01", "end", "2023-08-30"))
-		);
+	private static final String ACADEMIC_YEAR = "academic-year-";
+	private static final String CSV = ".csv";
+
+	private final TermService termService;
+
+	public void setValidTermCodes(Collection<String> validTermCodes) {
+		this.validTermCodes = validTermCodes;
+	}
+
+	// We only want to include some terms in the output
+	@Value("${term.codes:MT,TT,HT}")
+	private Collection<String> validTermCodes;
+
+	public PredefinedService(TermService termService) {
+		this.termService = termService;
+	}
+	
+	String toFilename(String yearCode) {
+		String filenameSafe = yearCode.replace("/", "-");
+		return ACADEMIC_YEAR + filenameSafe+ CSV;
+	}
+	
+	String fromFilename(String filename) {
+		if (filename.startsWith(ACADEMIC_YEAR)) {
+			if (filename.endsWith(CSV)) {
+				String year = filename.substring(ACADEMIC_YEAR.length(), filename.length()- CSV.length());
+				return year.replace('-', '/');
+			}
+		}
+		return null;
 	}
 
 	/**
-	 * This gets the actual predefined file.
-	 * @param filename The filename to lookup.
-	 * @return Either a reference to a file to import or null if it doesn't exist or can't be generated.
+	 * Get all the predefined calendars available.
 	 */
-	public File getFile(String filename) {
-		return null;
-	}
-	
-	private static Map<String, AcademicYear> years = Map.of(
-			"academic-year-2021.csv", new AcademicYear(Year.of(2021), List.of(
-					new Term("Michaelmas", LocalDate.of(2021, 10, 10), LocalDate.of(2021, 12, 4)),
-					new Term("Hilary", LocalDate.of(2022, 1, 16), LocalDate.of(2022, 3, 12)),
-					new Term("Trinity", LocalDate.of(2022, 4, 24), LocalDate.of(2022, 6, 18))
-			)),
-			"academic-year-2022.csv", new AcademicYear(Year.of(2022), List.of(
-					new Term("Michaelmas", LocalDate.of(2022, 10, 9), LocalDate.of(2022, 12, 3)),
-					new Term("Hilary", LocalDate.of(2023, 1, 15), LocalDate.of(2023, 3, 11)),
-					new Term("Trinity", LocalDate.of(2023, 4, 23), LocalDate.of(2023, 6, 17))
-			))
-	);
-
-	public AcademicYear lookupAcademicYear(String filename) {
-		return years.get(filename);
+	public List<PredefinedCalendar> getCalendars() {
+		return termService.getYears().stream().map((year) -> new PredefinedCalendar(
+				year.getAcademicYear()+ " Academic Year",
+				toFilename(year.getAcademicYear()),
+				Map.of(
+						"start", year.getStartDate().format(DateTimeFormatter.ISO_LOCAL_DATE),
+						"end", year.getEndDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
+				)
+		)).collect(Collectors.toList());
 	}
 
-	public static class AcademicYear {
-		public final Year year;
-		public final List<Term> terms;
-		
-		private static DateTimeFormatter START_YEAR = DateTimeFormatter.ofPattern("yyyy");
-		private static DateTimeFormatter END_YEAR = DateTimeFormatter.ofPattern("yy");
-
-		public AcademicYear(Year year, List<Term> terms) {
-			this.year = year;
-			this.terms = terms;
+	/**
+	 * Find all the terms for a filename.
+	 * @return A list of terms for the filename
+	 */
+	public List<AcademicYearTerm> lookupAcademicYear(String filename) {
+		String yearCode = fromFilename(filename);
+		if (yearCode == null) {
+			return null;
 		}
-		
-		public String toYears() {
-			return
-				 START_YEAR.format(year) +
-				 "-" +
-				 END_YEAR.format(year.plus(1, ChronoUnit.YEARS));
-		}
+		List<AcademicYearTerm> terms = termService.getTerms();
+		return terms.stream()
+				.filter(term -> yearCode.equals(term.getAcademicYear()))
+				.filter(term -> validTermCodes.contains(term.getAcademicTermCode()))
+				.collect(Collectors.toList());
 	}
 	
-	public static class Term {
-		public final String name;
-		public final LocalDate start;
-		public final LocalDate end;
-
-		public Term(String name, LocalDate start, LocalDate end) {
-			this.name = name;
-			this.start = start;
-			this.end = end;
-		}
-	}
-	
-	enum EventType {WEEKLY_SUNDAY_DAY, WEEKLY_SUNDAY_WEEK}
-	
-	public void generateYear(Writer writer, AcademicYear academicYear) throws IOException {
+	public void generateTerms(Writer writer, List<AcademicYearTerm> terms) throws IOException {
 		CSVPrinter csv = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		csv.printRecord("Title", "Description", "Date", "Start");
-		generateYear(csv, academicYear);
-	}
-	
-	public void generateYear(CSVPrinter csv, AcademicYear year) throws IOException {
-		for (Term term : year.terms) {
-			generateTerm(csv, year, term);
+		csv.printRecord("Title", "Description", "Date", "Start", "Duration");
+		for (AcademicYearTerm term : terms) {
+			generateTerm(csv, term);
 		}
 	}
 	
-	public void generateTerm(CSVPrinter csv, AcademicYear year, Term term) throws IOException {
+	void generateTerm(CSVPrinter csv, AcademicYearTerm term) throws IOException {
 		DateTimeFormatter dateFormat = DateTimeFormatter.ISO_DATE;
-		LocalDate week = term.start;
-		int weekNumber = 1;
-		do {
-			csv.printRecord("Week "+ weekNumber+ " "+ term.name, year.toYears(),dateFormat.format(week), "00:00");
-			weekNumber++;
-			week = week.plus(1, ChronoUnit.WEEKS);
-		} while (weekNumber < MAX_WEEKS_PER_TERM && week.isBefore(term.end));
+		LocalDate week = term.getStartDate().minus(1, ChronoUnit.WEEKS);
+		for(
+				int weekNumber = 0;
+				(weekNumber < MAX_WEEKS_PER_TERM) && week.isBefore(term.getEndDate());
+				weekNumber++, week = week.plus(1, ChronoUnit.WEEKS)
+		) {
+			csv.printRecord(
+					weekNumber+ getOrdinal(weekNumber)+ " Week "+ term.getAcademicTermCode(),
+					"",
+					dateFormat.format(week),
+					"00:00",
+					"168:00" // One week in hours
+			);
+		}
+	}
+
+	/**
+	 * Gets the suffix for a number.
+	 * 
+	 * @param number The number
+	 * @return The suffix
+	 */
+	String getOrdinal(int number) {
+		// The teens are different
+		if ( (number % 100) / 10 == 1) {
+			return "th";
+		}
+		switch (number % 10) {
+			case 1: return "st";
+			case 2: return "nd";
+			case 3: return "rd";
+			default: return "th";
+		}
 	}
 }
