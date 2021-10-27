@@ -36,4 +36,4 @@
 *.db
 calendar-import-dev.canvas.ox.ac.uk-client.properties
 calendar-import.canvas.ox.ac.uk-client.properties
-config/application.properties
+config/application*.properties
