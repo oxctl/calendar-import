@@ -80,8 +80,8 @@ class PredefinedServiceTest {
 		String csv = writer.getBuffer().toString();
 		assertThat(csv).isEqualToIgnoringWhitespace(
 				"Title,Description,Date,Start,Duration" +
-						"0th Week TT,,2000-01-01,00:00,168:00" +
-						"1st Week TT,,2000-01-08,00:00,168:00"
+						"0th Week TT,,2000-01-01,00:00,167:59" +
+						"1st Week TT,,2000-01-08,00:00,167:59"
 		);
 
 	}
