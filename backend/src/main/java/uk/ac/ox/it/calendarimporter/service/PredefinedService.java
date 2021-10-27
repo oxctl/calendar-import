@@ -111,7 +111,7 @@ public class PredefinedService {
 					"",
 					dateFormat.format(week),
 					"00:00",
-					"168:00" // One week in hours
+					"167:59" // One week in hours(minus 1 minute)
 			);
 		}
 	}
