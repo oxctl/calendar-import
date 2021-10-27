@@ -8,7 +8,6 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -134,7 +133,8 @@ public class ProgressService {
     public JobProgress updateJobCreated(String triggerId) {
         log.debug("Trigger {} created", triggerId);
         JobProgress jobProgress =
-            progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
+                // When it's queued we don't want a start time.
+                progressRepository.findById(triggerId).orElse(new JobProgress(triggerId));
         if (jobProgress.getStatus() != null) {
             log.warn("Job already exists for trigger {}, not setting to queued.", triggerId);
             return jobProgress;
