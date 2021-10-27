@@ -52,7 +52,7 @@ public class ProgressService {
                 "Percentage must be from 0 to 100");
 
         JobProgress progress =
-                progressRepository.findById(triggerId).orElseGet(() -> createJobProgress(triggerId));
+                progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         if (progress.getCompleted() != null) {
             throw new IllegalStateException("Can't update a job that's complete: " + triggerId);
         }
@@ -133,7 +133,8 @@ public class ProgressService {
     @Transactional
     public JobProgress updateJobCreated(String triggerId) {
         log.debug("Trigger {} created", triggerId);
-        JobProgress jobProgress = findById(triggerId).orElseGet(() -> new JobProgress(triggerId));
+        JobProgress jobProgress =
+            progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         if (jobProgress.getStatus() != null) {
             log.warn("Job already exists for trigger {}, not setting to queued.", triggerId);
             return jobProgress;
@@ -142,10 +143,5 @@ public class ProgressService {
             jobProgress.setLastMessage("Job queued");
             return progressRepository.save(jobProgress);
         }
-    }
-
-    public Optional<JobProgress> findById(String triggerId) {
-        // TODO Check the user owning the job
-        return progressRepository.findById(triggerId);
     }
 }

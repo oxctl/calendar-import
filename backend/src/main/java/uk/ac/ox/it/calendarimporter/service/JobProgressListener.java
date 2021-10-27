@@ -7,6 +7,8 @@ import org.quartz.JobListener;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.OrMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.jobs.LoggingJob;
@@ -22,6 +24,8 @@ import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
  */
 @Service
 public class JobProgressListener implements JobListener {
+    
+    private final Logger log = LoggerFactory.getLogger(JobProgressListener.class);
 
     @Autowired
     private Scheduler scheduler;
@@ -44,7 +48,11 @@ public class JobProgressListener implements JobListener {
     @Override
     public void jobToBeExecuted(JobExecutionContext context) {
         String triggerId = context.getTrigger().getKey().getName();
-        progressService.updateJobStarted(triggerId);
+        try {
+            progressService.updateJobStarted(triggerId);
+        } catch (Exception e) {
+            log.warn("Failed to mark job as started. [job={}]", context.getJobDetail().getKey(), e);
+        }
     }
 
     @Override
@@ -64,11 +72,15 @@ public class JobProgressListener implements JobListener {
             problems = result.isProblems();
             failure = result.isFailure();
         }
-        if (jobException != null) {
-            error = jobException.getLocalizedMessage();
-            progressService.updateJobStopped(jobId, error, logfile);
-        } else {
-            progressService.updateJobStopped(jobId, logfile, problems, failure);
+        try {
+            if (jobException != null) {
+                error = jobException.getLocalizedMessage();
+                progressService.updateJobStopped(jobId, error, logfile);
+            } else {
+                progressService.updateJobStopped(jobId, logfile, problems, failure);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to mark job as finished. [job={}]",  context.getJobDetail().getKey(), e);
         }
     }
 }
