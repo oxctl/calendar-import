@@ -22,12 +22,6 @@ public class ProgressServiceTest {
     private TestEntityManager entityManager;
 
     @Test
-    public void testDoesNotExist() {
-        Optional<JobProgress> byId = progressService.findById("does-not-exist");
-        assertFalse(byId.isPresent());
-    }
-
-    @Test
     public void testUpdateJobCreated() {
         JobProgress triggerId = progressService.updateJobCreated("triggerId");
         assertEquals(JobProgress.Status.QUEUED, triggerId.getStatus());

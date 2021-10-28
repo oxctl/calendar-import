@@ -8,7 +8,6 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -52,7 +51,7 @@ public class ProgressService {
                 "Percentage must be from 0 to 100");
 
         JobProgress progress =
-                progressRepository.findById(triggerId).orElseGet(() -> createJobProgress(triggerId));
+                progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
         if (progress.getCompleted() != null) {
             throw new IllegalStateException("Can't update a job that's complete: " + triggerId);
         }
@@ -133,7 +132,9 @@ public class ProgressService {
     @Transactional
     public JobProgress updateJobCreated(String triggerId) {
         log.debug("Trigger {} created", triggerId);
-        JobProgress jobProgress = findById(triggerId).orElseGet(() -> new JobProgress(triggerId));
+        JobProgress jobProgress =
+                // When it's queued we don't want a start time.
+                progressRepository.findById(triggerId).orElse(new JobProgress(triggerId));
         if (jobProgress.getStatus() != null) {
             log.warn("Job already exists for trigger {}, not setting to queued.", triggerId);
             return jobProgress;
@@ -142,10 +143,5 @@ public class ProgressService {
             jobProgress.setLastMessage("Job queued");
             return progressRepository.save(jobProgress);
         }
-    }
-
-    public Optional<JobProgress> findById(String triggerId) {
-        // TODO Check the user owning the job
-        return progressRepository.findById(triggerId);
     }
 }
