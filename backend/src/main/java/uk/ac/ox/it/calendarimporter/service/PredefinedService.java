@@ -100,10 +100,13 @@ public class PredefinedService {
 	
 	void generateTerm(CSVPrinter csv, AcademicYearTerm term) throws IOException {
 		DateTimeFormatter dateFormat = DateTimeFormatter.ISO_DATE;
+		// We want to generate 0th week.
 		LocalDate week = term.getStartDate().minus(1, ChronoUnit.WEEKS);
+		// We want to generate 9th week.
+		LocalDate endDate = term.getEndDate().plus(1, ChronoUnit.WEEKS);
 		for(
 				int weekNumber = 0;
-				(weekNumber < MAX_WEEKS_PER_TERM) && week.isBefore(term.getEndDate());
+				(weekNumber < MAX_WEEKS_PER_TERM) && week.isBefore(endDate);
 				weekNumber++, week = week.plus(1, ChronoUnit.WEEKS)
 		) {
 			csv.printRecord(
