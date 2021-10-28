@@ -43,7 +43,7 @@ jobs:
           aws_secret_key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
           application_name: ${{ env.EB_APPLICATION }}
           environment_name: ${{ env.EB_ENVIRONMENT }}
-          version_label: github.${{ env.TAG }}
+          version_label: calendar-import.${{ env.TAG }}
           region: ${{ env.AWS_REGION }}
       - name: Update deployment status
         uses: bobheadxi/deployments@v0.4.3
