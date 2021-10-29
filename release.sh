@@ -16,7 +16,7 @@ version=$1
 
 echo Releasing $1
 
-(cd frontend; npm --no-git-tag-version version $version; git add package.json)
+(cd frontend; npm --no-git-tag-version version $version; git add package.json package-lock.json)
 (cd backend; mvn versions:set -DnewVersion=$1; git add pom.xml)
 git commit -m "Release $1"
 git tag $1
