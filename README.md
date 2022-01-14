@@ -144,8 +144,8 @@ To make a release use the `release.sh` script in the repository and specify the 
 
 This will increment the version in the [frontend](frontend) and [backend](backend) projects to the new version, commit the changes, tag the new release and then increment to a new snapshot in the backend. If everything looks ok and seems to have worked you can then push the changes.
 
-   git push
-   git push --tags
+    git push
+    git push --tags
 
 And then GitHub Actions should build the new tag and it can be deployed to production once tested.
  
