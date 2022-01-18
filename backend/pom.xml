@@ -233,6 +233,10 @@
           <container>
             <!-- As we're in docker we really don't want to be running as root -->
             <user>nobody:nobody</user>
+            <jvmFlags>
+              <!-- The ZGC collector allows memory to be released back to the OS by default. -->
+              <jvmFlag>-XX:+UseZGC</jvmFlag>
+            </jvmFlags>
           </container>
         </configuration>
       </plugin>
