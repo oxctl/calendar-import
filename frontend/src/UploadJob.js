@@ -66,7 +66,7 @@ class UploadJob extends React.Component {
         ).then((response) => {
             if (response.ok) {
                 this.props.onMessage({
-                    text: 'Calendar import started, click update button to follow its progress.',
+                    text: 'Calendar import started, click "Reload" button to follow its progress.',
                     type: 'info'
                 })
                 this.props.load()
