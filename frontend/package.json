@@ -6,10 +6,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test jest --passWithNoTests",
-    "eject": "react-scripts eject",
-    "lint:fix": "ui-test --lint --fix",
-    "clean": "ui-build --clean",
-    "open:sandbox": "ui-scripts open-sandbox"
+    "eject": "react-scripts eject"
   },
   "dependencies": {
     "@instructure/canvas-theme": "^8.6.0",
@@ -54,7 +51,6 @@
   },
   "devDependencies": {
     "@instructure/ui-eslint-config": "^8.6.0",
-    "@instructure/ui-scripts": "^8.6.0",
     "@instructure/ui-stylelint-config": "^8.6.0",
     "@instructure/ui-webpack-config": "^8.6.0",
     "html-webpack-plugin": "^4"
