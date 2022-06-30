@@ -51,7 +51,7 @@ Both a LTI developer key and an API developer key need to be created for this to
 * Description: Allows the import of events into the Canvas calendar.
 * Target Link URI:
     - prod: https://static.canvas.ox.ac.uk/calendar-import/
-    - dev : https://static-dev.canvas.ox.ac.uk/calendar-import/ or https://localhost:3000
+    - dev : https://localhost:3000
 * OpenID Connect Initiation URL:
     - prod: https://lti.canvas.ox.ac.uk/lti/login_initiation/universityofoxford-ci-prod
     - dev: https://lti-dev.canvas.ox.ac.uk/lti/login_initiation/<instance>-ci-<dev|yourFirstName>
