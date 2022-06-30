@@ -66,7 +66,7 @@ Both a LTI developer key and an API developer key need to be created for this to
     canvas_user_prefers_high_contrast=$Canvas.user.prefersHighContrast
     ```
 * Privacy Level: Public
-* Placements: Course Home Sub Navigation, User Navigation, Link Selection (LtiDeepLinkingRequest message type)
+* Placements: Course Home Sub Navigation, User Navigation, Link Selection (set the message type to LtiDeepLinkingRequest and the Title to "Import Events Into Personal Calendar")
 
 Then once the key is entered switch to the JSON view and update the placement to include an icon:
 
