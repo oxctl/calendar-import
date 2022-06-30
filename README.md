@@ -23,6 +23,12 @@ This tool depends on the LTI launch service to handle the LTI launch to React fr
 service to handle requests to load the sections and then all calendar import requests are made through the proxy. This
 means we don't hold any of the user's tokens in the calendar import tool itself.
 
+## Developer Setup
+
+### Backend
+
+There's some example/useful config in [backend/config/application-dev.properties](backend/config/application-dev.properties) that can be activated by starting the application with the `dev` profile. To use the embedded database use the `h2` profile.
+
 ## Canvas Configuration
 
 Both a LTI developer key and an API developer key need to be created for this tool to function.
