@@ -27,7 +27,7 @@ means we don't hold any of the user's tokens in the calendar import tool itself.
 
 ### Backend
 
-There's some example/useful config in [backend/config/application-dev.properties] that can be activated by starting the application with the `dev` profile. To use the embedded database use the `h2` profile.
+There's some example/useful config in [backend/config/application-dev.properties](backend/config/application-dev.properties) that can be activated by starting the application with the `dev` profile. To use the embedded database use the `h2` profile.
 
 ## Canvas Configuration
 
