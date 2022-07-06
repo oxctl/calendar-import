@@ -94,8 +94,9 @@ class ImportCourseEvents extends React.Component {
       }
       return response.json()
     }).then((json) => {
-      this.setState({deepLinkingJwt: json['jwt']})
-      document.getElementById('deepLinkingForm').submit();
+      this.setState({deepLinkingJwt: json['jwt']}, () => {
+            document.getElementById('deepLinkingForm').submit()
+      })
     }).catch((error) => {
       this.props.onMessage({text: 'Failed to add, status: ' + error, type: 'error'})
     }).finally(() => {
@@ -148,6 +149,10 @@ ImportCourseEvents.propTypes = {
   deepLinkReturnUrl: PropTypes.string,
   ltiServer: PropTypes.string,
   targetLinkUri: PropTypes.string
+}
+
+const mapStateToProps = state => {
+  return {}
 }
 
 const mapDispatchToProps = dispatch => {
