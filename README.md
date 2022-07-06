@@ -23,6 +23,12 @@ This tool depends on the LTI launch service to handle the LTI launch to React fr
 service to handle requests to load the sections and then all calendar import requests are made through the proxy. This
 means we don't hold any of the user's tokens in the calendar import tool itself.
 
+## Developer Setup
+
+### Backend
+
+There's some example/useful config in [backend/config/application-dev.properties](backend/config/application-dev.properties) that can be activated by starting the application with the `dev` profile. To use the embedded database use the `h2` profile.
+
 ## Canvas Configuration
 
 Both a LTI developer key and an API developer key need to be created for this tool to function.
@@ -45,7 +51,7 @@ Both a LTI developer key and an API developer key need to be created for this to
 * Description: Allows the import of events into the Canvas calendar.
 * Target Link URI:
     - prod: https://static.canvas.ox.ac.uk/calendar-import/
-    - dev : https://static-dev.canvas.ox.ac.uk/calendar-import/ or https://localhost:3000
+    - dev : https://localhost:3000
 * OpenID Connect Initiation URL:
     - prod: https://lti.canvas.ox.ac.uk/lti/login_initiation/universityofoxford-ci-prod
     - dev: https://lti-dev.canvas.ox.ac.uk/lti/login_initiation/<instance>-ci-<dev|yourFirstName>
@@ -66,7 +72,7 @@ Both a LTI developer key and an API developer key need to be created for this to
     canvas_user_prefers_high_contrast=$Canvas.user.prefersHighContrast
     ```
 * Privacy Level: Public
-* Placements: Course Home Sub Navigation, User Navigation (this will only be set when we want to show the oxford terms)
+* Placements: Course Home Sub Navigation, User Navigation, Link Selection (set the message type to LtiDeepLinkingRequest and the Title to "Import Events Into Personal Calendar")
 
 Then once the key is entered switch to the JSON view and update the placement to include an icon:
 
