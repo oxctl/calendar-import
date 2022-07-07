@@ -15,6 +15,7 @@ import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +61,9 @@ public class CSVImportJob extends CanvasCalendarJob {
         TrackingErrorHandler errorHandler = new TrackingErrorHandler();
         List<CalendarEvent> calendarEvents;
         try {
-            calendarEvents = reader.parseCSV(url, timeZone, errorHandler);
+            URLConnection connection = url.openConnection();
+            connection.setReadTimeout(10000);
+            calendarEvents = reader.parseCSV(connection.getInputStream(), timeZone, errorHandler);
         } catch (HeaderException he) {
             failure("Failed to read file: " + he.getLocalizedMessage());
             return;

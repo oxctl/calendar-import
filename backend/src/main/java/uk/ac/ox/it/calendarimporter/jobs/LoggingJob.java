@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
+import io.sentry.spring.tracing.SentrySpan;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -35,6 +36,7 @@ public abstract class LoggingJob implements Job {
     private JobResult result;
 
     @Override
+    @SentrySpan
     public final void execute(JobExecutionContext context) throws JobExecutionException {
         triggerId = context.getTrigger().getKey().getName();
         result = new JobResult();
@@ -105,6 +107,10 @@ public abstract class LoggingJob implements Job {
     public void problem(String message, Object... args) {
         log(message, args);
         result.problems = true;
+    }
+    
+    public void reset() {
+        progressService.resetJob(triggerId);
     }
 
     /**

@@ -14,4 +14,9 @@ public interface ImportedEventRepository
         extends CrudRepository<ImportedEvent, ImportedEvent.ImportedEventIdentity> {
 
     List<ImportedEvent> findByCalendarImport(CalendarImport calendarImport);
+
+    /**
+     * Find events in an import, but only those that match the status.
+     */
+    List<ImportedEvent> findByCalendarImportAndStatusIn(CalendarImport calendarImport, ImportedEvent.Status... statuses);
 }

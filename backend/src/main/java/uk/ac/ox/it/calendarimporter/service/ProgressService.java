@@ -64,10 +64,28 @@ public class ProgressService {
     }
 
     /**
-     * Used by listener to mark a job as running.
+     * This is used by jobs that run multiple times to reset it's progress.
      *
-     * @param triggerId The trigger ID.
+     * @param triggerId  The trigger ID.
      */
+    @Transactional
+    public JobProgress resetJob(String triggerId) {
+        checkArgument(triggerId != null, "You must supply a triggerId");
+        JobProgress progress =
+                progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
+        progress.setCompleted(null);
+        progress.setLastMessage(null);
+        progress.setStatus(null);
+        progress.setPercentage(0);
+        return progressRepository.save(progress);
+    }
+
+
+        /**
+         * Used by listener to mark a job as running.
+         *
+         * @param triggerId The trigger ID.
+         */
     @Transactional
     public JobProgress updateJobStarted(String triggerId) {
         log.debug("Trigger {} started", triggerId);

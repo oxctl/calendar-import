@@ -27,11 +27,11 @@ import java.util.Map;
  * live on beta/test. Then when the tokens get updated live will break.
  */
 @Service
-public class CanvasApiCreator {
+public class ProxyTokenCreator implements CanvasTokenCreator {
 
     public static final String PROTOCOL_SEP = "://";
     
-    private final Logger log = LoggerFactory.getLogger(CanvasApiCreator.class);
+    private final Logger log = LoggerFactory.getLogger(ProxyTokenCreator.class);
     
     @Value("https://${hostname:localhost:8443}")
     private String issuer;
@@ -61,7 +61,8 @@ public class CanvasApiCreator {
         return url.substring(0, endHostname);
     }
 
-    public OauthToken getSignedJwt(Tenant tenant, String subject) throws JOSEException {
+    @Override
+    public OauthToken getToken(Tenant tenant, String subject) throws JOSEException {
         String ltiClientId = tenant.getLtiClientId();
         JWTClaimsSet claims =
                 new JWTClaimsSet.Builder()

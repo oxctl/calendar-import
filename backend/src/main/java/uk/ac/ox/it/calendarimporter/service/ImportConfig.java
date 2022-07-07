@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 
+import java.util.Map;
 import java.util.TimeZone;
 
 @AllArgsConstructor
@@ -24,4 +25,9 @@ public class ImportConfig {
 
     private final CourseSection into;
     private final TimeZone timeZone;
+
+    /**
+     * Custom parameters that are made available to the job.
+     */
+    private final Map<String, String> parameters;
 }

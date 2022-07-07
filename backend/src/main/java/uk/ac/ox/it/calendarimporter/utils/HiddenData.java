@@ -50,11 +50,7 @@ public class HiddenData {
     public static String toHidden(String data) {
         // We don't want the UUID
         String encoded = Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
-        StringBuilder hidden = new StringBuilder();
-        hidden.append(prefix);
-        hidden.append(encoded);
-        hidden.append(suffix);
-        return hidden.toString();
+        return prefix + encoded + suffix;
     }
 
     public static String fromHidden(String comment) {

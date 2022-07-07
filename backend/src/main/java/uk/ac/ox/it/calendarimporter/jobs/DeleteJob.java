@@ -23,13 +23,14 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
-import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
+import uk.ac.ox.it.calendarimporter.service.CanvasTokenCreator;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.*;
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.SUBJECT;
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.TENANT_NAME;
 import static uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent.Status.*;
 
 /**
@@ -48,7 +49,7 @@ public class DeleteJob extends LoggingJob implements Job {
     @Autowired
     private ImportedEventRepository importedEventRepository;
     @Autowired
-    private CanvasApiCreator canvasApiCreator;
+    private CanvasTokenCreator canvasTokenCreator;
     @Autowired
     private UserRepository userRepository;
 
@@ -79,7 +80,7 @@ public class DeleteJob extends LoggingJob implements Job {
                                         new JobExecutionException("Failed to find user: " + config.getString(SUBJECT)));
         OauthToken oauthToken;
         try {
-            oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
+            oauthToken = canvasTokenCreator.getToken(tenant, user.getSubject());
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to create JWT.", e);
         }
