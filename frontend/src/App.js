@@ -37,6 +37,7 @@ import {settings} from "./utils/settings";
 import UserCalendars from './UserCalendars'
 import CourseCalendars from "./CourseCalendars";
 import ImportCourseEvents from './ImportCourseEvents'
+import AuthoriseCalendarEvents from './AuthoriseCalendarEvents'
 
 
 class App extends React.Component {
@@ -78,7 +79,8 @@ class App extends React.Component {
             loading: false,
             ltiMessageType: this.jwt['https://purl.imsglobal.org/spec/lti/claim/message_type'],
             deepLinkReturnUrl: this.jwt['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings']?.deep_link_return_url,
-            targetLinkUri: this.jwt['https://purl.imsglobal.org/spec/lti/claim/target_link_uri']
+            targetLinkUri: this.jwt['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'],
+            calendarUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].url
         })
         this.props.setToken(token)
     }
@@ -89,7 +91,7 @@ class App extends React.Component {
 
     calendarImportRender = () => {
 
-        const {placement, courseId, courseName, canvasBaseUrl, ltiMessageType} = this.state
+        const {placement, courseId, courseName, canvasBaseUrl, ltiMessageType, calendarUrl} = this.state
 
         if(ltiMessageType === 'LtiDeepLinkingRequest'){
             return <ImportCourseEvents
@@ -100,6 +102,16 @@ class App extends React.Component {
                 targetLinkUri={this.state.targetLinkUri}
             />
         }
+
+        if(calendarUrl){
+            return <AuthoriseCalendarEvents
+                calendarServer={this.servers.calendarServer}
+                personalCalendarLink={this.state.canvasBaseUrl + '/calendar?include_contexts=user_' + this.state.userId}
+                returnUrl={this.state.returnUrl}
+                token={this.state.token}
+            />
+        }
+
         if(placement === "user_navigation") {
             return <UserCalendars
                     calendarServer={this.servers.calendarServer}
