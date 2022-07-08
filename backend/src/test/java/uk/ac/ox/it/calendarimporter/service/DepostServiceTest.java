@@ -10,8 +10,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DepostServiceTest {
 
@@ -56,4 +55,27 @@ public class DepostServiceTest {
         assertNotEquals(d1, d2);
         assertNotEquals(d2, d3);
     }
+    
+    @Test
+    public void testDeleteNotFound() {
+        depositService.remove("file:///tmp/does-not-exist-today");
+    }
+    
+    @Test
+    public void testDelete() throws IOException {
+        Path upload = Files.createTempFile("upload", ".txt");
+        depositService.remove(upload.toUri().toString());
+        assertTrue(Files.notExists(upload));
+    }
+
+    @Test
+    public void testDeleteNotUrl() {
+        depositService.remove("not a URL");
+    }
+
+    @Test
+    public void testDeleteUnknownScheme() {
+        assertThrows(Exception.class, () -> depositService.remove("https://www.google.com/"));
+    }
+    
 }
