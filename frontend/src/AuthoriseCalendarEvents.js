@@ -28,16 +28,14 @@ class AuthoriseCalendarEvents extends React.Component {
     this.setState(prevState => ({subscribe: !prevState.subscribe}))
   }
 
-  componentDidMount() {
-    this.setState({loading: true})
-    fetch(`${this.props.calendarServer}/api/is-user-subscribed`, {
+  getUserSubscribed = () => {
+    return fetch(`${this.props.calendarServer}/api/is-user-subscribed`, {
         headers: {
           Accept: 'application/json',
           'Authorization': 'Bearer ' + this.props.token
         }
       }
-    )
-    .then((response) => {
+    ).then((response) => {
       if (!response.ok) {
         throw Error("" + response.status);
       }
@@ -47,7 +45,26 @@ class AuthoriseCalendarEvents extends React.Component {
     }).catch((error) => {
       this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
       throw error
-    }).finally(() => {
+    })
+  }
+
+  componentDidMount() {
+    const {proxyServer, token} = this.props
+    this.setState({loading: true})
+
+    fetch(proxyServer + '/tokens/refresh?force=true', {
+      // We need this so that we don't get redirected to grant access, but instead detect that we need to go to the grant access page.
+      redirect: 'manual',
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Bearer ' + token
+      }
+    }).then(response => {
+      // When expired we will get a 401 back.
+      if (response.status === 401 || response.type === 'opaqueredirect') this.props.onMissingToken()
+    }).then(
+        this.getUserSubscribed
+    ).finally(() => {
       this.setState({loading: false})
     })
   }
@@ -113,6 +130,7 @@ class AuthoriseCalendarEvents extends React.Component {
 AuthoriseCalendarEvents.propTypes = {
   calendarServer: PropTypes.string,
   personalCalendarLink: PropTypes.string,
+  proxyServer: PropTypes.string,
   returnUrl: PropTypes.string,
   token: PropTypes.string,
 }

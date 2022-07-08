@@ -106,7 +106,9 @@ class App extends React.Component {
         if(calendarUrl){
             return <AuthoriseCalendarEvents
                 calendarServer={this.servers.calendarServer}
+                onMissingToken={() => this.setState({prompt: true})}
                 personalCalendarLink={this.state.canvasBaseUrl + '/calendar?include_contexts=user_' + this.state.userId}
+                proxyServer={this.servers.proxyServer}
                 returnUrl={this.state.returnUrl}
                 token={this.state.token}
             />
