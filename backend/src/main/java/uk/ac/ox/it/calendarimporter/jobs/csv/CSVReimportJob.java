@@ -64,10 +64,8 @@ public class CSVReimportJob extends CanvasCalendarJob {
         TimeZone timeZone = TimeZone.getTimeZone(this.timeZone);
 
         // Just a short code that should be unique to group together imports.
-        // We don't want to use the triggerID as it's semi secret, only need a few characters so they
-        // don't clash
-        // TODO This should be the same across all import runs.
-        String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
+        // We don't want to use the triggerID as it's semi secret, only need a few characters so they don't clash
+        String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + id);
         log("Import started, timezone of: " + timeZone.getID());
         log.debug("Attempting to load CSV file: {}", url);
         log("Reading in file.");
