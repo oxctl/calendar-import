@@ -110,7 +110,10 @@ public abstract class LoggingJob implements Job {
     }
     
     public void reset() {
-        progressService.resetJob(triggerId);
+        String logfile = progressService.resetJob(triggerId);
+        if (logfile != null) {
+            depositService.remove(logfile);
+        }
     }
 
     /**

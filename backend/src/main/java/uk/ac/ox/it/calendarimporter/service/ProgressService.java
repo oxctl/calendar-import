@@ -67,17 +67,22 @@ public class ProgressService {
      * This is used by jobs that run multiple times to reset it's progress.
      *
      * @param triggerId  The trigger ID.
+     * @return The log before it was reset (may be null).
      */
     @Transactional
-    public JobProgress resetJob(String triggerId) {
+    public String resetJob(String triggerId) {
         checkArgument(triggerId != null, "You must supply a triggerId");
         JobProgress progress =
                 progressRepository.findById(triggerId).orElse(createJobProgress(triggerId));
+        String logfile = progress.getLogfile();
+        
         progress.setCompleted(null);
         progress.setLastMessage(null);
         progress.setStatus(null);
         progress.setPercentage(0);
-        return progressRepository.save(progress);
+        progress.setLogfile(null);
+        progressRepository.save(progress);
+        return logfile;
     }
 
 
