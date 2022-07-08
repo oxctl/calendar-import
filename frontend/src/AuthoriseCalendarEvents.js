@@ -52,6 +52,12 @@ class AuthoriseCalendarEvents extends React.Component {
     })
   }
 
+  renderSuccessMessage = () => {
+    return <Text>
+      {this.state.subscribe ? 'Subscribed to' : 'Unsubscribed from'} calendar. <Link href={this.props.returnUrl}>Click here to return to the previous page.</Link>
+    </Text>
+  }
+
   submitHandler = () => {
     this.setState({
       saving: true,
@@ -65,8 +71,7 @@ class AuthoriseCalendarEvents extends React.Component {
       }
     ).then((response) => {
       if (response.ok) {
-        this.props.onMessage({text: `${this.state.subscribe ? 'Subscribed to' : 'Unsubscribed from'} calendar.`, type: 'info'})
-        window.location = this.props.returnUrl
+        this.props.onMessage({text: this.renderSuccessMessage(), type: 'info'})
       } else {
         this.props.onMessage({text: `Failed to ${this.state.subscribe ? 'subscribe to' : 'unsubscribe from'} calendar, status: ` + response.status, type: 'error'})
       }
