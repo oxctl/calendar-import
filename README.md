@@ -83,6 +83,7 @@ Then once the key is entered switch to the JSON view and update the placement fo
           "canvas_icon_class": "icon-calendar-add"
           },
           {
+            "text": "Import Events Into Personal Calendar",
             "placement": "link_selection",
             "message_type": "LtiDeepLinkingRequest",
             "selection_height": 500
