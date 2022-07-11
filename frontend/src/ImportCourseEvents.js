@@ -43,13 +43,28 @@ class ImportCourseEvents extends React.Component {
     return url.startsWith('calendar://')
   }
 
+  VALID_VARIABLE_REGEX = new RegExp(/(?<=\${).+?(?=})/, 'g')
+  VALID_VARIABLES = ['course.id', 'user.sis_id']
+
+  hasValidVariables = (url) => {
+    const matches = url.match(this.VALID_VARIABLE_REGEX)
+    if(!matches) return true
+    return matches.every(el => this.VALID_VARIABLES.includes(el))
+  }
+
   validate = () => {
-    if(!this.state.url || !this.state.pageName){
+    const {url, pageName} = this.state
+    if(!url || !pageName){
       this.props.onMessage({text: 'You must provide a URL and Page name', type: 'error'})
       return false
     }
 
-    if(!this.isMagicUrl(this.state.url) && !this.isValidUrl(this.state.url)){
+    if(!this.hasValidVariables(url)){
+      this.props.onMessage({text: `Parameterised URL variables must be one of: ${this.VALID_VARIABLES.join(', ')}`, type: 'error'})
+      return false
+    }
+
+    if(!this.isMagicUrl(url) && !this.isValidUrl(url)){
       this.props.onMessage({text: 'Not a valid URL', type: 'error'})
       return false
     }
@@ -112,7 +127,7 @@ class ImportCourseEvents extends React.Component {
       <Heading level="h1">Import Course Events</Heading>
       <Text as="p">
         Provides the facility for students to import course-related events into their personal Canvas calendar and receive regular updates. You may parameterise your URL with: $&#123;course.id&#125; and $&#123;user.sis_id&#125;.
-        Here is an <Link href="/import_course_events_example.csv">example file</Link> in the necessary format.
+        Here is an <Link href="./import_course_events_example.csv">example file</Link> in the necessary format.
       </Text>
       <View as="div" margin="0 0 small 0">
         <TextInput
