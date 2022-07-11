@@ -74,13 +74,18 @@ Both a LTI developer key and an API developer key need to be created for this to
 * Privacy Level: Public
 * Placements: Course Home Sub Navigation, User Navigation, Link Selection (set the message type to LtiDeepLinkingRequest and the Title to "Import Events Into Personal Calendar")
 
-Then once the key is entered switch to the JSON view and update the placement to include an icon:
+Then once the key is entered switch to the JSON view and update the placement for course_home_sub_navigation to include an icon, and for link_selection to set the height (this is so all the content in the modal will display):
 
     "placements": [
           {
           "placement": "course_home_sub_navigation",
           "message_type": "LtiResourceLinkRequest",
           "canvas_icon_class": "icon-calendar-add"
+          },
+          {
+            "placement": "link_selection",
+            "message_type": "LtiDeepLinkingRequest",
+            "selection_height": 500
           }
     ]
 
