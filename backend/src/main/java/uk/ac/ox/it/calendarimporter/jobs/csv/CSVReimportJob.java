@@ -7,6 +7,7 @@ import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
 import org.quartz.JobExecutionException;
+import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import java.util.UUID;
 /**
  * This job supports re-importing events into a calendar on a regular basis.
  */
+@PersistJobDataAfterExecution
 public class CSVReimportJob extends CanvasCalendarJob {
 
     private static final String HIDDEN_DATA_PREFIX = "csv-reimport:";
@@ -160,6 +162,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
                     calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getId()));
                     deleted++;
                     importEventService.eventDeleted(tenant.getId(), event);
+                    log("Deleted event id: %d as it's no longer in source.", event.getId());
                 } catch (UnauthorizedException | ObjectNotFoundException e) {
                     importEventService.eventMissing(tenant.getId(), event);
                 }
