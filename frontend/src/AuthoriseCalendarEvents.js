@@ -29,7 +29,7 @@ class AuthoriseCalendarEvents extends React.Component {
   }
 
   getUserSubscribed = () => {
-    return fetch(`${this.props.calendarServer}/api/is-user-subscribed`, {
+    return fetch(`${this.props.calendarServer}/api/isUserSubscribed`, {
         headers: {
           Accept: 'application/json',
           'Authorization': 'Bearer ' + this.props.token
@@ -41,7 +41,7 @@ class AuthoriseCalendarEvents extends React.Component {
       }
       return response.json()
     }).then((json) => {
-      this.setState({subscribe: json['isUserSubscribed']})
+      this.setState({subscribe: json})
     }).catch((error) => {
       this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
       throw error
@@ -81,6 +81,7 @@ class AuthoriseCalendarEvents extends React.Component {
       messages: []
     })
     fetch(`${this.props.calendarServer}/api/${this.state.subscribe ? 'subscribe' : 'unsubscribe'}`, {
+        method: 'POST',
         headers: {
           Accept: 'application/json',
           'Authorization': 'Bearer ' + this.props.token
