@@ -17,9 +17,12 @@ import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
-import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
+import uk.ac.ox.it.calendarimporter.service.CanvasTokenCreator;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * This wrapper Job sets up the API Factory with OAuth tokens, works out what context the import
@@ -34,6 +37,15 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     public static final String SUBJECT = "subject";
     public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
     public static final String TIME_ZONE = "time_zone";
+
+    /**
+     * This is an ID that is set in the Job map.
+     */
+    public static final String ID = "id";
+
+    // All entries start with this are considered parameters.
+    public static final String PARAM_PREFIX = "param-";
+
     private final Logger log = LoggerFactory.getLogger(CanvasCalendarJob.class);
     // The context (course) we are importing into.
     protected String context;
@@ -44,6 +56,12 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     protected String url;
     // The timezone that should be used when importing.
     protected String timeZone;
+    
+    // A unique ID.
+    protected String id;
+    
+    // These are custom parameters passed through.
+    protected Map<String, String> parameters = new HashMap<>();
 
     protected CanvasApiFactory canvasApiFactory;
     protected OauthToken oauthToken;
@@ -65,7 +83,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     private UserRepository userRepository;
 
     @Autowired
-    private CanvasApiCreator canvasApiCreator;
+    private CanvasTokenCreator canvasTokenCreator;
 
     public void setContext(String context) {
         this.context = context;
@@ -81,6 +99,10 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     public void setSection(String section) {
         this.section = section;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void interrupt() {
@@ -99,6 +121,18 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
         setContext(config.getString(CONTEXT));
         setTimeZone(config.getString(TIME_ZONE));
         setSection(config.getString(SECTION));
+        for (Map.Entry<String, Object> entry : config.entrySet()) {
+            if (entry.getKey().startsWith(PARAM_PREFIX)) {
+                parameters.put(entry.getKey().substring(PARAM_PREFIX.length()), entry.getValue().toString());
+            }
+        }
+
+        String id = config.getString(ID);
+        if (id == null) {
+            id = UUID.randomUUID().toString().substring(0, 6);
+            context.getTrigger().getJobDataMap().put(ID, id);
+        }
+        setId(id);
 
         String tenantName = config.getString(TENANT_NAME);
         this.tenant =
@@ -125,7 +159,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
         canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
         try {
-            oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
+            oauthToken = canvasTokenCreator.getToken(tenant, user.getSubject());
             run();
         } catch (IOException e) {
             throw new JobExecutionException(e);

@@ -32,7 +32,7 @@ public class CSVReaderTest {
     }
 
     private List<CalendarEvent> parse(String s) throws IOException, HeaderException {
-        return csvReader.parseCSV(getResource(s), timeZone, errorHandler);
+        return csvReader.parseCSV(getResource(s).openStream(), timeZone, errorHandler);
     }
 
     private URL getResource(String s) {

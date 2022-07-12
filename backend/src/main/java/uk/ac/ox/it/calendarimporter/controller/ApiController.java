@@ -29,6 +29,7 @@ import uk.ac.ox.it.calendarimporter.service.UserService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 
@@ -183,7 +184,8 @@ public class ApiController {
                                 user.getId(),
                                 placement.toContext(),
                                 into,
-                                timeZone));
+                                timeZone,
+                                Map.of()));
         return ResponseEntity.ok(contextJob);
     }
 

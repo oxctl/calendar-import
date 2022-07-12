@@ -147,6 +147,21 @@ This tool has support for reading term data from a feed produced from Azure Dyna
 
 If you don't supply this configuration, the tool will startup, but the predefined terms won't be defined.
 
+## Importing to Personal Calendars
+
+The calendar import tool can use the Link Selection LTI placement to allow administrators/teachers to configure a calendar from a URL that users can import into their personal calendar. Any user who then visits the URL will get the option to import those events into their personal calendar. The calendar import tool will poll that URL and then update the users calendar with any changes that happen over time.
+
+### Configured Calendars
+
+The URLs supported by this are http://, https:// and calendar:// . The calendar prefix references a configured calendar which can optionally also include HTTP basic authentication. To configure these calendar add Spring properties under the prefix `calendar.url.predefined` followed by the name of the calendar. For example:
+
+    # Example calendar accessed as calendar://example
+    calendar.url.predefined.example.url=https://calendar.example/file.csv
+    calendar.url.predefined.example.username=canvas-user
+    calendar.url.predefined.example.password=secret1234
+
+Then when configuring the calendar import tool from the Modules tool set the URL to `calendar://example` and this will get expanded by the server and the authentication will get added to any requests that are made.
+
 ## Releasing
  
 This tool should be released in one step, updating the maven versions and updating the npm versions.

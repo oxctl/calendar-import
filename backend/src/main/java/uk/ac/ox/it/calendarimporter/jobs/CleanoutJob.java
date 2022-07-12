@@ -20,7 +20,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
-import uk.ac.ox.it.calendarimporter.service.CanvasApiCreator;
+import uk.ac.ox.it.calendarimporter.service.CanvasTokenCreator;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class CleanoutJob implements Job {
     @Autowired
     private TenantRepository tenantRepository;
     @Autowired
-    private CanvasApiCreator canvasApiCreator;
+    private CanvasTokenCreator canvasTokenCreator;
     @Autowired
     private UserRepository userRepository;
 
@@ -73,7 +73,7 @@ public class CleanoutJob implements Job {
                                         new JobExecutionException("Failed to find user: " + config.getString(SUBJECT)));
         OauthToken oauthToken;
         try {
-            oauthToken = canvasApiCreator.getSignedJwt(tenant, user.getSubject());
+            oauthToken = canvasTokenCreator.getToken(tenant, user.getSubject());
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to create JWT.", e);
         }

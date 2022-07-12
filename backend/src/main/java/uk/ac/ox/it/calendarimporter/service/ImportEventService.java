@@ -24,4 +24,20 @@ public class ImportEventService {
         ImportedEvent event = new ImportedEvent(identity, calendarImport, ImportedEvent.Status.CREATED);
         importedEventRepository.save(event);
     }
+    
+    public void eventDeleted(Long tenantId, CalendarEvent calendarEvent) {
+        ImportedEvent.ImportedEventIdentity identity =
+                new ImportedEvent.ImportedEventIdentity(tenantId, calendarEvent.getId());
+        ImportedEvent importedEvent = importedEventRepository.findById(identity).orElseThrow();
+        importedEvent.setStatus(ImportedEvent.Status.DELETED);
+        importedEventRepository.save(importedEvent);
+    }
+
+    public void eventMissing(Long tenantId, CalendarEvent calendarEvent) {
+        ImportedEvent.ImportedEventIdentity identity =
+                new ImportedEvent.ImportedEventIdentity(tenantId, calendarEvent.getId());
+        ImportedEvent importedEvent = importedEventRepository.findById(identity).orElseThrow();
+        importedEvent.setStatus(ImportedEvent.Status.MISSING);
+        importedEventRepository.save(importedEvent);
+    }
 }

@@ -38,13 +38,10 @@ public class CSVReader {
     @Value("${spring.servlet.multipart.max-file-size:10MB}")
     private final DataSize inputLimit = DataSize.ofMegabytes(10);
 
-    public List<CalendarEvent> parseCSV(URL url, TimeZone timeZone, ErrorHandler errorHandler)
+    public List<CalendarEvent> parseCSV(InputStream inputStream, TimeZone timeZone, ErrorHandler errorHandler)
             throws IOException, HeaderException {
         try {
-            URLConnection connection = url.openConnection();
-            connection.setReadTimeout(10000);
-            try (InputStream in =
-                         new TerminatingInputStream(connection.getInputStream(), inputLimit.toBytes())) {
+            try (InputStream in = new TerminatingInputStream(inputStream, inputLimit.toBytes())) {
                 // Ignore blank lines
                 CSVFormat format =
                         CSVFormat.EXCEL

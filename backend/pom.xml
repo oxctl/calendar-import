@@ -116,9 +116,9 @@
     </dependency>
 
     <dependency>
-      <groupId>edu.ksu.canvas</groupId>
+      <groupId>uk.ac.ox.ctl</groupId>
       <artifactId>canvas-api</artifactId>
-      <version>1.0.24</version>
+      <version>1.6.1</version>
     </dependency>
 
     <dependency>
@@ -162,6 +162,12 @@
       <version>${sentry.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>1.9</version>
+    </dependency>
+
     <!-- Using H2 in development/test -->
     <dependency>
       <groupId>com.h2database</groupId>
@@ -181,6 +187,12 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
     </dependency>
     
   </dependencies>

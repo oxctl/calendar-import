@@ -8,9 +8,11 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +20,7 @@ import java.util.UUID;
 
 /**
  * This is where file uploads are put. If we run this in a cluster then we will need a service like
- * this that is network aware. // TODO Cleanup of deposited files.
+ * this that is network aware. 
  */
 @Service
 @Slf4j
@@ -60,6 +62,21 @@ public class DepositService {
             return move.toUri().toURL();
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("The filename isn't valid.", e);
+        }
+    }
+
+    /**
+     * Remove a deposited file.
+     * @param deposit The URL of the file to remove.
+     */
+    public void remove(String deposit) {
+        try {
+            URL url = new URL(deposit);
+            Path path = Paths.get(url.toURI());
+            Files.delete(path);
+            log.debug("Removed file {}", deposit);
+        } catch (IOException | URISyntaxException e) {
+            log.warn("Failed to delete deposit: {}, error: {}", deposit, e.getMessage());
         }
     }
 

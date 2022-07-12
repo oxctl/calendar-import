@@ -5,13 +5,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CanvasApiCreatorTest {
+public class ProxyTokenCreatorTest {
 
-    private CanvasApiCreator factory;
+    private ProxyTokenCreator factory;
 
     @BeforeEach
     public void setUp() {
-        factory = new CanvasApiCreator();
+        factory = new ProxyTokenCreator();
     }
 
     @Test

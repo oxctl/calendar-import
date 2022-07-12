@@ -6,13 +6,14 @@ import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import uk.ac.ox.it.calendarimporter.beans.ImportJob;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.CleanoutJob;
 import uk.ac.ox.it.calendarimporter.jobs.DeleteJob;
@@ -28,8 +29,10 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -57,6 +60,9 @@ public class ImportService {
 
     @Autowired
     private ContextJobRepository contextJobRepository;
+    
+    @Value("${calendar.reimport.interval}")
+    private Duration reimportInterval;
 
     // TODO Handling of SchedulerException
     // Should we just pass in a User object?
@@ -110,10 +116,8 @@ public class ImportService {
 
         // For repeating jobs we want to lookup much more of this that way if the token/url gets updated
         // later on jobs that run will use the new URL/token
-        String section =
-                (importConfig.getInto() != null) ? importConfig.getInto().getSectionId() : null;
-        Trigger trigger =
-                TriggerBuilder.newTrigger()
+        String section = (importConfig.getInto() != null) ? importConfig.getInto().getSectionId() : null;
+        TriggerBuilder<Trigger> triggerBuilder = TriggerBuilder.newTrigger()
                         .startNow()
                         .withIdentity(
                                 TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getSubject()))
@@ -125,8 +129,21 @@ public class ImportService {
                         .usingJobData(CanvasCalendarJob.TENANT_NAME, tenant.getName())
                         .usingJobData(CanvasCalendarJob.SUBJECT, user.getSubject())
                         .usingJobData(CanvasCalendarJob.TIME_ZONE, importConfig.getTimeZone().getID())
-                        .forJob(detail)
-                        .build();
+                        .forJob(detail);
+        
+        if (importConfig.getType().isRepeats()) {
+            triggerBuilder.withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                    .withIntervalInMilliseconds(reimportInterval.toMillis())
+                    .repeatForever()
+            );
+        }
+        if (importConfig.getParameters() != null) {
+            // This is done because it's advised to only use simple types in the 
+            // quartz job data map. This is to avoid serialisation issues with upgrades.
+            for (Map.Entry<String,String> entry: importConfig.getParameters().entrySet()) {
+                triggerBuilder.usingJobData(CanvasCalendarJob.PARAM_PREFIX + entry.getKey(), entry.getValue());
+            }
+        }
 
         ContextJob contextJob = new ContextJob();
         contextJob.setCalendarImport(calendarImport);
@@ -139,9 +156,11 @@ public class ImportService {
         calendarImport.setLoad(jobProgress);
         calendarImportRepository.save(calendarImport);
 
-        Date date = scheduler.scheduleJob(trigger);
+        Date date = scheduler.scheduleJob(triggerBuilder.build());
         return contextJob;
     }
+    
+    
 
     /**
      * @throws SchedulerException    If we failed to schedule the job.
