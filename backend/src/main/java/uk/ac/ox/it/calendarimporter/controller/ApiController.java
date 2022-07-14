@@ -181,7 +181,7 @@ public class ApiController {
                                 importType,
                                 deposit.toString(),
                                 originalFilename,
-                                user.getId(),
+                                user,
                                 placement.toContext(),
                                 into,
                                 timeZone,
