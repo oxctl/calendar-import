@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
+import uk.ac.ox.it.calendarimporter.persistence.model.User;
 
 import java.util.Map;
 import java.util.TimeZone;
@@ -16,7 +17,7 @@ public class ImportConfig {
     private final ImportType type;
     private final String url;
     private final String filename;
-    private final Long userId;
+    private final User user;
     /**
      * The context in which the import is to be done. Typically this is the course although in the
      * future we may wish to support importing into a user's calendar. Example: course_123.

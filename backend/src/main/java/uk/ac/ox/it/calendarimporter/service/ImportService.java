@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.CleanoutJob;
 import uk.ac.ox.it.calendarimporter.jobs.DeleteJob;
@@ -91,14 +92,14 @@ public class ImportService {
         UUID uuid = UUID.randomUUID();
 
         // TODO What exception?
-        User user = userRepository.findById(importConfig.getUserId()).orElseThrow();
+        User user = importConfig.getUser();
 
         Tenant tenant = user.getTenant();
 
         // Allow lookups from user to jobs.
         UserJob userJob = new UserJob(uuid.toString());
         userJob.setCreated(Instant.now());
-        userJob.setUserId(importConfig.getUserId());
+        userJob.setUserId(importConfig.getUser().getId());
         userJobRepository.save(userJob);
 
         CalendarImport calendarImport = new CalendarImport();
