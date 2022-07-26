@@ -59,8 +59,6 @@ public class ApiCalendarEventImportController {
                     Number userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Number courseId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_sis_id']")
-                    Number userSisId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url)
             throws SchedulerException {
@@ -78,7 +76,7 @@ public class ApiCalendarEventImportController {
                                     "user_" + userId,
                                     null,
                                     TimeZone.getDefault(),
-                                    Map.of("course.id", courseId.toString(), "user.sis_id", userSisId.toString())));
+                                    Map.of("course.id", courseId.toString(), "user.sis_id", user.getUsername())));
             return ResponseEntity.ok(contextJob);
         }
         else {
