@@ -65,7 +65,6 @@ Both a LTI developer key and an API developer key need to be created for this to
     ```
     canvas_course_id=$Canvas.course.id
     canvas_user_id=$Canvas.user.id
-    canvas_user_sis_id=$Canvas.user.sisSourceId
     canvas_course_name=$Canvas.course.name
     canvas_api_base_url=$Canvas.api.baseUrl
     person_address_timezone=$Person.address.timezone
