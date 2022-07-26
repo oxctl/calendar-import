@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import org.quartz.JobDataMap;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.ac.ox.it.calendarimporter.Views;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
@@ -52,6 +54,7 @@ public class ApiCalendarEventImportController {
     private Scheduler scheduler;
 
     @PostMapping("/subscribe")
+    @JsonView(Views.Public.class)
     public ResponseEntity<ContextJob> subscribe(
             Tenant tenant,
             JwtAuthenticationToken authentication,
