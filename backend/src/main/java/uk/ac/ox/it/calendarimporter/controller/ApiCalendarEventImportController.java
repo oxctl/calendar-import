@@ -87,7 +87,6 @@ public class ApiCalendarEventImportController {
 
     @PostMapping("/unsubscribe")
     public ResponseEntity<Void> unsubscribe(
-            @RequestParam(name = "all", required = false, defaultValue = "false") boolean all,
             Tenant tenant,
             JwtAuthenticationToken authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
