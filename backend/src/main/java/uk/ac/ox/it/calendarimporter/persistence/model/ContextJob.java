@@ -19,6 +19,8 @@ import java.time.Instant;
 
 /**
  * This links an CalendarImport to a context that it's run against.
+ * When returning this object through the API it normally wants to use a custom JSON view to prevent
+ * secret fields from being displayed.
  */
 @Entity
 @Data
