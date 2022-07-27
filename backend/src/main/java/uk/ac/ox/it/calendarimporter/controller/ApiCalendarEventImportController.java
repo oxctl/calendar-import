@@ -103,9 +103,14 @@ public class ApiCalendarEventImportController {
             for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals( groupName))) {
                 Trigger trigger = scheduler.getTrigger(key);
                 JobDataMap config = trigger.getJobDataMap();
-                long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
-                scheduler.unscheduleJob(key);
-                importService.deleteImport(calendarImportId, user);
+                String configURL = config.getString(SOURCE_URL);
+                boolean isReimportJob = ImportType.CSV_REIMPORT.toString().equals(((SimpleTriggerImpl) trigger).getJobName());
+                boolean isUserSubscribedToURL = url.equals(configURL);
+                if (isReimportJob && isUserSubscribedToURL){
+                    long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
+                    scheduler.unscheduleJob(key);
+                    importService.deleteImport(calendarImportId, user);
+                }
             }
             return ResponseEntity.status(HttpStatus.ACCEPTED).build();
         }
