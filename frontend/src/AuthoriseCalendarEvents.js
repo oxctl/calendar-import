@@ -19,13 +19,18 @@ class AuthoriseCalendarEvents extends React.Component {
 
   state = {
     message: [],
-    subscribe: true,
+    // Is the user currently subscribed to the calendar?
+    subscribed: true,
+    // Is the user want to subscribe to the calendar?
+    subscribed_toggle: true,
+    // Are we currently loading data from the server?
     loading: false,
+    // Are we currently saving data to the server?
     saving: false
   }
 
   handleSubscribeChanged = () => {
-    this.setState(prevState => ({subscribe: !prevState.subscribe}))
+    this.setState(prevState => ({subscribed_toggle: !prevState.subscribed_toggle}))
   }
 
   getUserSubscribed = () => {
@@ -41,7 +46,10 @@ class AuthoriseCalendarEvents extends React.Component {
       }
       return response.json()
     }).then((json) => {
-      this.setState({subscribe: json})
+      this.setState({
+        subscribed: json,
+        subscribed_toggle: json
+      })
     }).catch((error) => {
       this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
       throw error
@@ -71,7 +79,7 @@ class AuthoriseCalendarEvents extends React.Component {
 
   renderSuccessMessage = () => {
     return <Text>
-      {this.state.subscribe ? 'Subscribed to' : 'Unsubscribed from'} calendar. <Link href={this.props.returnUrl}>Click here to return to the previous page.</Link>
+      {this.state.subscribed_toggle ? 'Subscribed to' : 'Unsubscribed from'} calendar. <Link href={this.props.returnUrl}>Click here to return to the previous page.</Link>
     </Text>
   }
 
@@ -80,7 +88,7 @@ class AuthoriseCalendarEvents extends React.Component {
       saving: true,
       messages: []
     })
-    fetch(`${this.props.calendarServer}/api/${this.state.subscribe ? 'subscribe' : 'unsubscribe'}`, {
+    fetch(`${this.props.calendarServer}/api/${this.state.subscribed_toggle ? 'subscribe' : 'unsubscribe'}`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -90,6 +98,7 @@ class AuthoriseCalendarEvents extends React.Component {
     ).then((response) => {
       if (response.ok) {
         this.props.onMessage({text: this.renderSuccessMessage(), type: 'info'})
+        this.setState({subscribed: this.state.subscribed_toggle})
       } else {
         this.props.onMessage({text: `Failed to ${this.state.subscribe ? 'subscribe to' : 'unsubscribe from'} calendar, status: ` + response.status, type: 'error'})
       }
@@ -109,11 +118,11 @@ class AuthoriseCalendarEvents extends React.Component {
         Selecting will import events in your <Link target='_top' href={this.props.personalCalendarLink}>personal Canvas calendar</Link>. These events will be regularly updated. If you deselect this it will remove the events from your personal Canvas calendar.
       </Text>
       <View as="div" margin="0 0 small 0">
-        <Checkbox variant="toggle" label="Import events" checked={this.state.subscribe} onChange={this.handleSubscribeChanged}/>
+        <Checkbox variant="toggle" label="Import events" checked={this.state.subscribed_toggle} onChange={this.handleSubscribeChanged}/>
       </View>
       <Flex margin="x-small none x-small" direction="row-reverse">
         <Flex.Item>
-          <Button interaction={this.state.saving ? 'disabled' : 'enabled'} color="primary" margin="x-small"
+          <Button interaction={this.state.saving || this.state.subscribed === this.state.subscribed_toggle ? 'disabled' : 'enabled'} color="primary" margin="x-small"
                   onClick={this.submitHandler}>Save</Button>
         </Flex.Item>
         <Flex.Item>
