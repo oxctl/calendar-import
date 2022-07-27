@@ -93,6 +93,8 @@ class AuthoriseCalendarEvents extends React.Component {
       } else {
         this.props.onMessage({text: `Failed to ${this.state.subscribe ? 'subscribe to' : 'unsubscribe from'} calendar, status: ` + response.status, type: 'error'})
       }
+      // If we don't read the response then it's not available in the Chrome debugger.
+      return response.text()
     }).finally(() => {
       this.setState({saving: false})
     })
