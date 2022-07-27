@@ -28,20 +28,6 @@ class AuthoriseCalendarEvents extends React.Component {
     // Are we currently saving data to the server?
     saving: false
   }
-  
-  static propTypes = {
-    // The URL of the calendar backend
-    calendarServer: PropTypes.string,
-    // The URL of the proxy server
-    proxyServer: PropTypes.string,
-    // The JWT token to authenticate to the calendar/proxy server
-    token: PropTypes.string,
-    // Function to display messages to the user
-    onMessage: PropTypes.func,
-    // Handler for requesting user grant access
-    onMissingToken: PropTypes.func
-    
-  }
 
   handleSubscribeChanged = () => {
     this.setState(prevState => ({subscribedToggle: !prevState.subscribedToggle}))
@@ -158,11 +144,20 @@ class AuthoriseCalendarEvents extends React.Component {
 }
 
 AuthoriseCalendarEvents.propTypes = {
+  // The URL of the calendar backend
   calendarServer: PropTypes.string,
+  // Link to the user's personal calendar in Canvas
   personalCalendarLink: PropTypes.string,
+  // The URL of the proxy server
   proxyServer: PropTypes.string,
+  // The LTI return URL to send the user back to.
   returnUrl: PropTypes.string,
+  // The JWT token to authenticate to the calendar/proxy server
   token: PropTypes.string,
+  // Function to display messages to the user
+  onMessage: PropTypes.func,
+  // Handler for requesting user grant access
+  onMissingToken: PropTypes.func
 }
 
 const mapStateToProps = state => {
