@@ -21,9 +21,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.ac.ox.it.calendarimporter.Views;
+import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
+import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
+import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.service.ImportConfig;
 import uk.ac.ox.it.calendarimporter.service.ImportService;
 import uk.ac.ox.it.calendarimporter.service.UserService;
@@ -34,6 +37,8 @@ import java.util.TimeZone;
 
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.CALENDAR_IMPORT_ID;
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.SOURCE_URL;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.PROCESSING;
+import static uk.ac.ox.it.calendarimporter.persistence.model.JobProgress.Status.QUEUED;
 
 /**
  * This API subscribes or unsubscribes a user from the calendar course event sync job.
@@ -52,6 +57,9 @@ public class ApiCalendarEventImportController {
 
     @Autowired
     private Scheduler scheduler;
+
+    @Autowired
+    private CalendarImportRepository calendarImportRepository;
 
     @PostMapping("/subscribe")
     @JsonView(Views.Public.class)
@@ -111,6 +119,14 @@ public class ApiCalendarEventImportController {
                 boolean isUserSubscribedToURL = url.equals(configURL);
                 if (isReimportJob && isUserSubscribedToURL){
                     long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
+                    CalendarImport calendarImport =
+                            calendarImportRepository.findById(calendarImportId).orElseThrow(RuntimeException::new);
+
+                    JobProgress load = calendarImport.getLoad();
+                    if (QUEUED.equals(load.getStatus()) || PROCESSING.equals(load.getStatus())) {
+                        // if the subscribe job is still queued or processing then return
+                        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+                    }
                     scheduler.unscheduleJob(key);
                     importService.deleteImport(calendarImportId, user);
                 }
