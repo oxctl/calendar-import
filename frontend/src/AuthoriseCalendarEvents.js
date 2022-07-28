@@ -121,7 +121,7 @@ class AuthoriseCalendarEvents extends React.Component {
       <Messages/>
       <Heading level="h1">Import Events Into Personal Calendar</Heading>
       <Text as="p">
-        Selecting will import events in your <Link target='_top' href={this.props.personalCalendarLink}>personal Canvas calendar</Link>. These events will be regularly updated. If you deselect this it will remove the events from your personal Canvas calendar.
+        Selecting will import events in your <Link target='_top' href={this.props.personalCalendarLink}>personal Canvas calendar</Link>. These events will be regularly updated. If you deselect, this will remove the events from your personal Canvas calendar.
       </Text>
       <View as="div" margin="0 0 small 0">
         <Checkbox variant="toggle" label="Import events" checked={this.state.subscribedToggle} onChange={this.handleSubscribeChanged}/>
