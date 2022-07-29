@@ -109,6 +109,7 @@ This tool uses the Canvas Proxy to make requests against the Canvas API, to do t
   url:GET|/api/v1/calendar_events
   url:POST|/api/v1/calendar_events
   url:DELETE|/api/v1/calendar_events/:id
+  url:GET|/api/v1/calendar_events/:id
   url:GET|/api/v1/courses/:course_id/sections
   ```
 
