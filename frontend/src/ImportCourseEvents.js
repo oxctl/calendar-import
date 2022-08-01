@@ -88,7 +88,9 @@ class ImportCourseEvents extends React.Component {
         "title": this.state.pageName,
         "url": this.props.targetLinkUri,
         "custom": {
-          "url": this.state.url
+          "url": this.state.url,
+          // The timezone that should be used to import the file.
+          "timezone": this.props.timezone
         }
       }]
     }
@@ -163,7 +165,8 @@ ImportCourseEvents.propTypes = {
   courseName: PropTypes.string,
   deepLinkReturnUrl: PropTypes.string,
   ltiServer: PropTypes.string,
-  targetLinkUri: PropTypes.string
+  targetLinkUri: PropTypes.string,
+  timezone: PropTypes.string
 }
 
 const mapStateToProps = state => {

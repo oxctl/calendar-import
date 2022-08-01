@@ -63,11 +63,18 @@ public class ApiCalendarEventImportController {
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Number courseId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
-                    String url)
-            throws SchedulerException {
+                    String url,
+            // This isn't the timezone of the user, but that of the user who setup the import.
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['timezone']")
+            String timezone
+    ) throws SchedulerException {
         if (!isUserSubscribed(tenant, authentication, userId, url)){
             log.debug("User not currently subscribed so creating calendar course events sync job for user {} using calendar url {}", userId, url);
             User user = userService.getUser(authentication, tenant);
+
+            TimeZone importTimezone = (timezone != null && !timezone.isEmpty())
+                    ? TimeZone.getTimeZone(timezone)
+                    : TimeZone.getDefault();
 
             ContextJob contextJob =
                     importService.importNow(
@@ -78,7 +85,7 @@ public class ApiCalendarEventImportController {
                                     user,
                                     "user_" + userId,
                                     null,
-                                    TimeZone.getDefault(),
+                                    importTimezone,
                                     Map.of("course.id", courseId.toString(), "user.sis_id", user.getUsername())));
             return ResponseEntity.ok(contextJob);
         }

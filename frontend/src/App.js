@@ -52,6 +52,8 @@ class App extends React.Component {
         loading: true,
         error: null,
         prompt: false,
+        // The timezone of the current user.
+        timezone: null,
     }
 
     constructor(props, context) {
@@ -80,7 +82,8 @@ class App extends React.Component {
             ltiMessageType: this.jwt['https://purl.imsglobal.org/spec/lti/claim/message_type'],
             deepLinkReturnUrl: this.jwt['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings']?.deep_link_return_url,
             targetLinkUri: this.jwt['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'],
-            calendarUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].url
+            calendarUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].url,
+            timezone: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].person_address_timezone
         })
         this.props.setToken(token)
     }
@@ -100,6 +103,7 @@ class App extends React.Component {
                 courseName={courseName}
                 ltiServer={this.servers.ltiServer}
                 targetLinkUri={this.state.targetLinkUri}
+                timezone={this.state.timezone}
             />
         }
 
