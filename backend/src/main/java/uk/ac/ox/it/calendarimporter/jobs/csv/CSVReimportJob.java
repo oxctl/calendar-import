@@ -58,7 +58,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
     @Override
     public void run() throws IOException, JobExecutionException {
         // Reset the progress.
-        reset();
+        reset(triggerId);
 
         CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
         CalendarReader calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);

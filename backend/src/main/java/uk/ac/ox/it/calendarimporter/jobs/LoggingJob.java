@@ -34,7 +34,7 @@ public abstract class LoggingJob implements Job {
     private Instant lastUpdate = Instant.MIN;
     private String unsavedMessage;
     private OutputStreamWriter logWriter;
-    private String triggerId;
+    protected String triggerId;
     private JobResult result;
 
     @Override
@@ -132,7 +132,7 @@ public abstract class LoggingJob implements Job {
         result.problems = true;
     }
     
-    public void reset() {
+    public void reset(String triggerId) {
         String logfile = progressService.resetJob(triggerId);
         if (logfile != null) {
             depositService.remove(logfile);
