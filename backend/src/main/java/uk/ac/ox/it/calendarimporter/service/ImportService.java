@@ -145,7 +145,6 @@ public class ImportService {
                 triggerBuilder.usingJobData(CanvasCalendarJob.PARAM_PREFIX + entry.getKey(), entry.getValue());
             }
         }
-        triggerBuilder.usingJobData(CanvasCalendarJob.PARAM_PREFIX + "triggerId", String.valueOf(uuid));
 
         ContextJob contextJob = new ContextJob();
         contextJob.setCalendarImport(calendarImport);
