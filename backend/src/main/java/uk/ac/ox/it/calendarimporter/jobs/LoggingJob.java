@@ -41,6 +41,18 @@ public abstract class LoggingJob implements Job {
     @SentrySpan
     public final void execute(JobExecutionContext context) throws JobExecutionException {
         triggerId = context.getTrigger().getKey().getName();
+        if (triggerId==null || triggerId.isEmpty()){
+            throw new JobExecutionException("Failed to retrieve trigger id from context for job of type " + context.getJobDetail().getKey().getName() +
+                    " for course id " + context.getTrigger().getJobDataMap().get("param-course.id") +
+                    " and for user sis id " + context.getTrigger().getJobDataMap().get("param-user.sis_id") +
+                    " using a config of " + context.getTrigger().getJobDataMap().getWrappedMap().toString() +
+                    ". Job first ran at " + context.getFireTime().toString() + " and ran every " +
+                    ((SimpleTriggerImpl)context.getTrigger()).getRepeatInterval() + " milliseconds after that and has run " +
+                    ((SimpleTriggerImpl)context.getTrigger()).getTimesTriggered() + " times in the past and will run next at " +
+                    context.getTrigger().getNextFireTime() + " and will " +
+                    (ImportType.valueOf(context.getJobDetail().getKey().getName()).isRepeats() ? "run" : "not run") +
+                    " forever.");
+        }
         result = new JobResult();
         File logfile;
         try {
