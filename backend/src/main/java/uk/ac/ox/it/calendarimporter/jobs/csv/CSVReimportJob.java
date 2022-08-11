@@ -58,12 +58,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
     @Override
     public void run() throws IOException, JobExecutionException {
         // Reset the progress.
-
-        if (triggerId==null || triggerId.isEmpty()) {
-            throw new JobExecutionException("Failed to get trigger id in run method for job of type CSV_REIMPORT");
-        }
-
-        reset(triggerId);
+        reset(parameters.get("triggerId"));
 
         CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
         CalendarReader calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);
