@@ -68,9 +68,9 @@ public class CSVReimportJob extends CanvasCalendarJob {
         // Just a short code that should be unique to group together imports.
         // We don't want to use the triggerID as it's semi secret, only need a few characters so they don't clash
         String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + id);
-        log("Import started, timezone of: " + timeZone.getID());
+        log.debug("Import started, timezone of: " + timeZone.getID());
         log.debug("Attempting to load CSV file: {}", url);
-        log("Reading in file.");
+        log.debug("Reading in file.");
         CSVReimportJob.TrackingErrorHandler errorHandler = new CSVReimportJob.TrackingErrorHandler();
         List<CalendarEvent> importingEvents;
         URLMapper urlMapper = new URLMapper(calendarUrlConfiguration.getPredefined(), ()->parameters);
@@ -80,14 +80,14 @@ public class CSVReimportJob extends CanvasCalendarJob {
             // continue to work.
             URLConnection connection = urlMapper.open(url);
             openedUrl = connection.getURL().toExternalForm();
-            log("Open connection to: %s", openedUrl);
+            log.debug("Open connection to: %s", openedUrl);
             importingEvents = reader.parseCSV(connection.getInputStream(), timeZone, errorHandler);
         } catch (HeaderException he) {
             failure("Failed to read file: " + he.getLocalizedMessage());
             return;
         }
         log.trace("Parsed {} rows.", importingEvents.size());
-        log("Source file read.");
+        log.debug("Source file read.");
         // Unlike other jobs we still process the file when it's empty.
         // We limit the number of events we process so the jobs can't run for a long period of time.
         if (importingEvents.size() > maxEventsInCsv) {
@@ -99,7 +99,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
         log.trace("Found {} existing rows for import", existingEvents.size());
         
         Progress progress = new Progress(importingEvents.size()+existingEvents.size());
-        log("Looking up events in Canvas.");
+        log.debug("Looking up events in Canvas.");
         List<CalendarEvent> canvasEvents = new ArrayList<>();
         long lookedUp = 0;
         for(ImportedEvent event : existingEvents) {
@@ -112,11 +112,11 @@ public class CSVReimportJob extends CanvasCalendarJob {
                 Optional<CalendarEvent> calendarEventOpt = calendarReader.getCalendarEvent(event.getId());
                 if (calendarEventOpt.isPresent()) {
                     canvasEvents.add(calendarEventOpt.get());
-                    log("Looked up event %d of %d", lookedUp, existingEvents.size());
+                    log.debug("Looked up event %d of %d", lookedUp, existingEvents.size());
                 }
 
             } catch (UnauthorizedException | ObjectNotFoundException e) {
-                log("Failed to find event {}: {}", event.getId(), e.getMessage());
+                log.debug("Failed to find event {}: {}", event.getId(), e.getMessage());
                 event.setStatus(ImportedEvent.Status.MISSING);
                 importedEventRepository.save(event);
             }
@@ -129,7 +129,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
         }
         
         long created = 0;
-        log("Creating events in Canvas.");
+        log.debug("Creating events in Canvas.");
         for (CalendarEvent event : importingEvents) {
             if (isInterrupted()) {
                 throw new JobExecutionException("Job interrupted");
@@ -146,7 +146,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
             Optional<CalendarEvent> calendarEventOpt = calendarWriter.createCalendarEvent(event);
             if (calendarEventOpt.isPresent()) {
                 created++;
-                log(progress, "Created event %d of %d", created, importingEvents.size());
+//                log.debug(progress +  "Created event %d of %d", created, importingEvents.size());
                 importEventService.eventCreated(tenant.getId(), calendarImport, calendarEventOpt.get());
             }
         }
@@ -162,7 +162,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
                     calendarWriter.deleteCalendarEvent(new DeleteCalendarEventOptions(event.getId()));
                     deleted++;
                     importEventService.eventDeleted(tenant.getId(), event);
-                    log("Deleted event id: %d as it's no longer in source.", event.getId());
+                    log.debug("Deleted event id: %d as it's no longer in source.", event.getId());
                 } catch (UnauthorizedException | ObjectNotFoundException e) {
                     importEventService.eventMissing(tenant.getId(), event);
                 }
@@ -172,12 +172,12 @@ public class CSVReimportJob extends CanvasCalendarJob {
         
         
         if (errorHandler.hasProblems()) {
-            log(
+            log.debug(
                     "Completed import, %d events in source, created %d events, deleted %d events.",
                     importingEvents.size(), created, deleted, errorHandler.problems);
 
         } else {
-            log(
+            log.debug(
                     "Completed import, %d events in source, created %d events, deleted %d events.",
                     importingEvents.size(), created, deleted);
         }
