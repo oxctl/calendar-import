@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.impl.triggers.SimpleTriggerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
@@ -34,25 +32,13 @@ public abstract class LoggingJob implements Job {
     private Instant lastUpdate = Instant.MIN;
     private String unsavedMessage;
     private OutputStreamWriter logWriter;
-    protected String triggerId;
+    private String triggerId;
     private JobResult result;
 
     @Override
     @SentrySpan
     public final void execute(JobExecutionContext context) throws JobExecutionException {
         triggerId = context.getTrigger().getKey().getName();
-        if (triggerId==null || triggerId.isEmpty()){
-            throw new JobExecutionException("Failed to retrieve trigger id from context for job of type " + context.getJobDetail().getKey().getName() +
-                    " for course id " + context.getTrigger().getJobDataMap().get("param-course.id") +
-                    " and for user sis id " + context.getTrigger().getJobDataMap().get("param-user.sis_id") +
-                    " using a config of " + context.getTrigger().getJobDataMap().getWrappedMap().toString() +
-                    ". Job first ran at " + context.getFireTime().toString() + " and ran every " +
-                    ((SimpleTriggerImpl)context.getTrigger()).getRepeatInterval() + " milliseconds after that and has run " +
-                    ((SimpleTriggerImpl)context.getTrigger()).getTimesTriggered() + " times in the past and will run next at " +
-                    context.getTrigger().getNextFireTime() + " and will " +
-                    (ImportType.valueOf(context.getJobDetail().getKey().getName()).isRepeats() ? "run" : "not run") +
-                    " forever.");
-        }
         result = new JobResult();
         File logfile;
         try {
@@ -67,16 +53,7 @@ public abstract class LoggingJob implements Job {
         } catch (IOException e) {
             throw new JobExecutionException("Failed to open logfile for writing: " + logfile);
         } catch (Exception e) {
-            log.warn("Failed to run job of type " + context.getJobDetail().getKey().getName() +
-                    " for course id " + context.getTrigger().getJobDataMap().get("param-course.id") +
-                    " and for user sis id " + context.getTrigger().getJobDataMap().get("param-user.sis_id") +
-                    " using a config of " + context.getTrigger().getJobDataMap().getWrappedMap().toString() +
-                    ". Job first ran at " + context.getFireTime().toString() + " and ran every " +
-                    ((SimpleTriggerImpl)context.getTrigger()).getRepeatInterval() + " milliseconds after that and has run " +
-                    ((SimpleTriggerImpl)context.getTrigger()).getTimesTriggered() + " times in the past and will run next at " +
-                    context.getTrigger().getNextFireTime() + " and will " +
-                    (ImportType.valueOf(context.getJobDetail().getKey().getName()).isRepeats() ? "run" : "not run") +
-                    " forever.", e);
+            log.warn("Failed to run job.", e);
             throw e;
         } finally {
             // Make sure to flush the last message.
@@ -132,7 +109,7 @@ public abstract class LoggingJob implements Job {
         result.problems = true;
     }
     
-    public void reset(String triggerId) {
+    public void reset() {
         String logfile = progressService.resetJob(triggerId);
         if (logfile != null) {
             depositService.remove(logfile);
