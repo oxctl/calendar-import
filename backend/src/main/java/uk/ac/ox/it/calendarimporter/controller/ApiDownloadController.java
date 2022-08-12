@@ -15,6 +15,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 
 import java.io.FileNotFoundException;
@@ -33,6 +34,9 @@ public class ApiDownloadController {
     @Autowired
     private ContextJobRepository contextJobRepository;
 
+    @Autowired
+    private CalendarImportRepository calendarImportRepository;
+
     @GetMapping("/log/{contextJobId}/load")
     public ResponseEntity<InputStreamResource> load(
             @PathVariable() Long contextJobId,
@@ -46,6 +50,14 @@ public class ApiDownloadController {
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getLoad();
+        String logfile = jobProgress.getLogfile();
+        return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
+    }
+
+    @GetMapping("/log/{calendarImportId}/loadByCalendarImportId")
+    public ResponseEntity<InputStreamResource> loadByCalendarImportId(@PathVariable() Long calendarImportId) throws IOException {
+        CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow();
+        JobProgress jobProgress = calendarImport.getLoad();
         String logfile = jobProgress.getLogfile();
         return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
     }

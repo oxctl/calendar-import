@@ -14,6 +14,8 @@ import { View } from '@instructure/ui-view'
 import Messages from './Messages'
 import { addMessage } from './actions/messages'
 import { Loading } from './Loading'
+import { IconImportLine } from '@instructure/ui-icons'
+import { getRelativeTime } from './relativeTime'
 
 class AuthoriseCalendarEvents extends React.Component {
 
@@ -26,7 +28,8 @@ class AuthoriseCalendarEvents extends React.Component {
     // Are we currently loading data from the server?
     loading: false,
     // Are we currently saving data to the server?
-    saving: false
+    saving: false,
+    lastCalendarImport: {}
   }
 
   handleSubscribeChanged = () => {
@@ -34,7 +37,7 @@ class AuthoriseCalendarEvents extends React.Component {
   }
 
   getUserSubscribed = () => {
-    return fetch(`${this.props.calendarServer}/api/isUserSubscribed`, {
+    return fetch(`${this.props.calendarServer}/api/getUserSubscription`, {
         headers: {
           Accept: 'application/json',
           'Authorization': 'Bearer ' + this.props.token
@@ -46,9 +49,11 @@ class AuthoriseCalendarEvents extends React.Component {
       }
       return response.json()
     }).then((json) => {
+      const subscribed = json.load != null
       this.setState({
-        subscribed: json,
-        subscribedToggle: json
+        subscribed: subscribed,
+        subscribedToggle: subscribed,
+        lastCalendarImport: json
       })
     }).catch((error) => {
       this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
@@ -113,6 +118,38 @@ class AuthoriseCalendarEvents extends React.Component {
     })
   }
 
+  renderAgo = (isoDateTime) => {
+    return getRelativeTime(Date.parse(isoDateTime))
+  }
+
+  renderStatus = (status) => {
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  }
+
+  renderLoadInfo = () => {
+    return <View as='div' background='primary' margin='small small small large' borderWidth='small' padding='small'>
+      <Flex>
+        <Flex.Item>
+          <IconImportLine/>
+        </Flex.Item>
+        <Flex.Item as='div' margin='none small' shouldGrow shouldShrink>
+          <Text as='div' weight='bold'>Last Import Status: {this.renderStatus(this.state.lastCalendarImport.load.status)}</Text>
+          <View as='div' margin='0 0 0 small'>
+            {this.state.lastCalendarImport.load.completed &&
+              <>
+                <Text weight='bold'>When:</Text> {this.renderAgo(this.state.lastCalendarImport.load.completed)} ago
+                <br/>
+              </>
+            }
+            <Text weight='bold'>Message:</Text> {this.state.lastCalendarImport.load.lastMessage}
+            <br/>
+            <Text weight='bold'>Logfile:</Text> <Link target='_blank' href={`${this.props.calendarServer}/api/log/${this.state.lastCalendarImport.id}/loadByCalendarImportId?access_token=${this.props.token}`}>logfile</Link>
+          </View>
+        </Flex.Item>
+      </Flex>
+    </View>
+  }
+
   render() {
     if(this.state.loading){
       return <Loading/>
@@ -136,9 +173,10 @@ class AuthoriseCalendarEvents extends React.Component {
         </Flex.Item>
         <Flex.Item>
           <Button interaction={this.state.saving || !this.props.returnUrl ? 'disabled' : 'enabled'} color="secondary"
-                  margin="x-small" onClick={() => window.location = this.props.returnUrl}>Cancel</Button>
+                  margin="x-small" onClick={() => window.location = this.props.returnUrl}>Back</Button>
         </Flex.Item>
       </Flex>
+      {this.state.lastCalendarImport.load && this.renderLoadInfo()}
     </>
   }
 }
