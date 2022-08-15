@@ -5,7 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.impl.triggers.SimpleTriggerImpl;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
@@ -28,6 +31,10 @@ public abstract class LoggingJob implements Job {
     private DepositService depositService;
     @Autowired
     private ProgressService progressService;
+
+    @Autowired
+    private BeanFactory beanFactory;
+
     // These are for preventing lots of small DB updates.
     private Instant lastUpdate = Instant.MIN;
     private String unsavedMessage;
@@ -65,6 +72,22 @@ public abstract class LoggingJob implements Job {
             // and a recovery run will be in the logs instead.
             URL deposit;
             try {
+                if (depositService==null){
+                    depositService = beanFactory.getBean("depositService", DepositService.class);
+                }
+                if (depositService==null){
+                    throw new JobExecutionException("Failed to deposit log file: " + logfile +" for job of type " +
+                            context.getJobDetail().getKey().getName() +
+                            " for course id " + context.getTrigger().getJobDataMap().get("param-course.id") +
+                            " and for user sis id " + context.getTrigger().getJobDataMap().get("param-user.sis_id") +
+                            " using a config of " + context.getTrigger().getJobDataMap().getWrappedMap().toString() +
+                            ". Job first ran at " + context.getFireTime().toString() + " and ran every " +
+                            ((SimpleTriggerImpl)context.getTrigger()).getRepeatInterval() + " milliseconds after that and has run " +
+                            ((SimpleTriggerImpl)context.getTrigger()).getTimesTriggered() + " times in the past and will run next at " +
+                            context.getTrigger().getNextFireTime() + " and will " +
+                            (ImportType.valueOf(context.getJobDetail().getKey().getName()).isRepeats() ? "run" : "not run") +
+                            " forever.");
+                }
                 deposit = depositService.deposit(logfile, DepositService.Type.LOG);
                 result.logfile = deposit.toExternalForm();
                 context.setResult(result);
