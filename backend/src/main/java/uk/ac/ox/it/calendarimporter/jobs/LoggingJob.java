@@ -132,9 +132,15 @@ public abstract class LoggingJob implements Job {
         result.problems = true;
     }
     
-    public void reset() {
+    public void reset() throws JobExecutionException {
         String logfile = progressService.resetJob(triggerId);
         if (logfile != null) {
+            if (depositService==null){
+                depositService = beanFactory.getBean("depositService", DepositService.class);
+            }
+            if (depositService==null){
+                throw new JobExecutionException("Failed to remove log file: " + logfile);
+            }
             depositService.remove(logfile);
         }
     }
