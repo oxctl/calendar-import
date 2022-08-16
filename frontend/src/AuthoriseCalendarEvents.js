@@ -191,7 +191,6 @@ class AuthoriseCalendarEvents extends React.Component {
         </Flex.Item>
       </Flex>
       {this.state.lastCalendarImport.load && this.renderLoadInfo("load")}
-      {this.state.lastCalendarImport.delete && this.renderLoadInfo("delete")}
     </>
   }
 }
