@@ -8,6 +8,7 @@ import org.quartz.JobExecutionException;
 import org.quartz.impl.triggers.SimpleTriggerImpl;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
@@ -34,6 +35,9 @@ public abstract class LoggingJob implements Job {
 
     @Autowired
     private BeanFactory beanFactory;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     // These are for preventing lots of small DB updates.
     private Instant lastUpdate = Instant.MIN;
@@ -73,7 +77,7 @@ public abstract class LoggingJob implements Job {
             URL deposit;
             try {
                 if (depositService==null){
-                    depositService = beanFactory.getBean("depositService", DepositService.class);
+                    depositService = applicationContext.getBean("depositService", DepositService.class);
                 }
                 if (depositService==null){
                     throw new JobExecutionException("Failed to deposit log file: " + logfile +" for job of type " +
@@ -136,7 +140,7 @@ public abstract class LoggingJob implements Job {
         String logfile = progressService.resetJob(triggerId);
         if (logfile != null) {
             if (depositService==null){
-                depositService = beanFactory.getBean("depositService", DepositService.class);
+                depositService = applicationContext.getBean("depositService", DepositService.class);
             }
             if (depositService==null){
                 throw new JobExecutionException("Failed to remove log file: " + logfile);
