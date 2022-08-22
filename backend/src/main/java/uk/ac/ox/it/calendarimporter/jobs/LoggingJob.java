@@ -1,12 +1,10 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
-import io.sentry.spring.tracing.SentrySpan;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
@@ -22,7 +20,6 @@ import java.time.Instant;
  * This is a quartz job that records any log messages that are written out.
  */
 @Slf4j
-@Component
 public abstract class LoggingJob implements Job {
 
     private final Duration updateInterval = Duration.ofSeconds(1);
@@ -41,7 +38,6 @@ public abstract class LoggingJob implements Job {
     private JobResult result;
 
     @Override
-    @SentrySpan
     public final void execute(JobExecutionContext context) throws JobExecutionException {
         triggerId = context.getTrigger().getKey().getName();
         result = new JobResult();
