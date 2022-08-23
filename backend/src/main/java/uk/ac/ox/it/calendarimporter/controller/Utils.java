@@ -50,4 +50,8 @@ public class Utils {
         }
         return null;
     }
+
+    public static String userIdToContext(Number userId){
+        return "user_" + userId;
+    }
 }

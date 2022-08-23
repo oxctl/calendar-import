@@ -14,6 +14,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.security.WithMockClaims;
@@ -37,6 +38,9 @@ public class ApiDownloadControllerTest {
     @MockBean
     private TenantRepository tenantRepository;
     private Tenant tenant;
+
+    @MockBean
+    private CalendarImportRepository calendarImportRepository;
 
     @BeforeEach
     public void setUp() {
