@@ -88,7 +88,7 @@ public class ApiCalendarEventImportController {
                                     url,
                                     null,
                                     user,
-                                    "user_" + userId,
+                                    Utils.userIdToContext(userId),
                                     null,
                                     importTimezone,
                                     Map.of("course.id", courseId.toString(), "user.sis_id", user.getUsername())));

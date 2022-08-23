@@ -55,8 +55,14 @@ public class ApiDownloadController {
     }
 
     @GetMapping("/log/{calendarImportId}/loadByCalendarImportId")
-    public ResponseEntity<InputStreamResource> loadByCalendarImportId(@PathVariable() Long calendarImportId) throws IOException {
+    public ResponseEntity<InputStreamResource> loadByCalendarImportId(
+            @PathVariable() Long calendarImportId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']") Number userId
+    ) throws IOException {
         CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow();
+        if(!Utils.userIdToContext(userId).equals(calendarImport.getContext())){
+            throw new AccessDeniedException("You don't have permission to view this log.");
+        }
         JobProgress jobProgress = calendarImport.getLoad();
         String logfile = jobProgress.getLogfile();
         return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
