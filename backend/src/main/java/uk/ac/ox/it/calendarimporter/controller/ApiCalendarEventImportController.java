@@ -106,7 +106,8 @@ public class ApiCalendarEventImportController {
             throws SchedulerException {
 
         if (isUserSubscribed(tenant, authentication, userId, url)){
-            log.debug("User {} is currently subscribed to url {} so now deleting calendar course events sync job for user {} and calendar url {}", userId, url);
+            log.debug("User {} is currently subscribed to url {}, unsubscribing so now deleting calendar course " +
+                    "events sync job and starting delete job", userId, url);
 
             User user = userService.getUser(authentication, tenant);
             String groupName = TriggerUtils.getTriggerGroup(tenant.getName(), user.getSubject());
