@@ -3,20 +3,14 @@ package uk.ac.ox.it.calendarimporter.jobs;
 import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
-import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.oauth.OauthToken;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
@@ -43,8 +37,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     public static final String SUBJECT = "subject";
     public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
     public static final String TIME_ZONE = "time_zone";
-    public static final String IS_REPEATING = "is_repeating";
-    public static final String CURRENT_RETRIES = "currentRetries";
 
     /**
      * This is an ID that is set in the Job map.
@@ -92,12 +84,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     @Autowired
     private CanvasTokenCreator canvasTokenCreator;
-
-    @Autowired
-    private Scheduler scheduler;
-
-    @Value("${calendar.reimport.max.retries}")
-    private Integer maxRetries;
 
     public void setContext(String context) {
         this.context = context;
@@ -181,52 +167,9 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
             throw new JobExecutionException("Failed to get signed JWT", e);
         } catch (InvalidOauthTokenException e) {
             log.debug("Token is invalid: {}", oauthToken.getAccessToken());
-            retryOrDeleteJob(context);
-            throw e;
-        } catch (UnauthorizedException e) {
-            log.debug("User is not authorized to perform this action");
-            retryOrDeleteJob(context);
             throw e;
         }
     }
-
-    private void retryOrDeleteJob(JobExecutionContext context){
-        Trigger trigger = context.getTrigger();
-        TriggerKey triggerKey = trigger.getKey();
-        JobDataMap jobDataMap = trigger.getJobDataMap();
-        if (!jobDataMap.containsKey(IS_REPEATING)) return;
-        
-        int currentRetries = (int) jobDataMap.getOrDefault(CURRENT_RETRIES, 0);
-        if(currentRetries >= maxRetries) {
-            unscheduleJob(triggerKey);
-        }else{
-            ++currentRetries;
-            log.info("Attempting to retry job {}: attempt {} of {}", triggerKey, currentRetries, maxRetries);
-            jobDataMap.put(CURRENT_RETRIES, currentRetries);
-            if(!rescheduleJob(triggerKey, trigger)) unscheduleJob(triggerKey);
-        }
-    }
-    
-    private boolean rescheduleJob(TriggerKey triggerKey, Trigger trigger){
-        try{
-            scheduler.rescheduleJob(triggerKey, trigger);
-            log.info("Rescheduled job {}.", triggerKey);
-            return true;
-        }catch(SchedulerException e){
-            log.warn("Could not reschedule job {}.", triggerKey);
-            return false;
-        }
-    }
-    
-    private void unscheduleJob(TriggerKey triggerKey){
-        try {
-            scheduler.unscheduleJob(triggerKey);
-            log.info("Deleting job {}.", triggerKey);
-        } catch (SchedulerException e) {
-            log.warn("Could not delete job {}.", triggerKey);
-        }
-    }
-
 
     public abstract void run() throws IOException, JobExecutionException;
 }
