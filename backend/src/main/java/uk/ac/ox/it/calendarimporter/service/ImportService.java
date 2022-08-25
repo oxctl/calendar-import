@@ -9,6 +9,7 @@ import org.quartz.SchedulerException;
 import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.quartz.impl.matchers.KeyMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -133,9 +134,7 @@ public class ImportService {
                         .forJob(detail);
         
         if (importConfig.getType().isRepeats()) {
-            triggerBuilder
-                    .usingJobData(CanvasCalendarJob.IS_REPEATING, true)
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+            triggerBuilder.withSchedule(SimpleScheduleBuilder.simpleSchedule()
                     .withIntervalInMilliseconds(reimportInterval.toMillis())
                     .repeatForever()
             );
@@ -159,7 +158,12 @@ public class ImportService {
         calendarImport.setLoad(jobProgress);
         calendarImportRepository.save(calendarImport);
 
-        Date date = scheduler.scheduleJob(triggerBuilder.build());
+        Trigger trigger = triggerBuilder.build();
+        if (importConfig.getType().isRepeats()) {
+            scheduler.getListenerManager().addTriggerListener(new JobTriggerListener(), KeyMatcher.keyEquals(trigger.getKey()));
+        }
+
+        Date date = scheduler.scheduleJob(trigger);
         return contextJob;
     }
     

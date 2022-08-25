@@ -43,7 +43,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     public static final String SUBJECT = "subject";
     public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
     public static final String TIME_ZONE = "time_zone";
-    public static final String IS_REPEATING = "is_repeating";
+    public static final String RETRY = "retry";
     public static final String CURRENT_RETRIES = "currentRetries";
 
     /**
@@ -192,10 +192,10 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     private void retryOrDeleteJob(JobExecutionContext context){
         Trigger trigger = context.getTrigger();
+        if (!isRepeatingJob(trigger)) return;
+
         TriggerKey triggerKey = trigger.getKey();
         JobDataMap jobDataMap = trigger.getJobDataMap();
-        if (!jobDataMap.containsKey(IS_REPEATING)) return;
-        
         int currentRetries = (int) jobDataMap.getOrDefault(CURRENT_RETRIES, 0);
         if(currentRetries >= maxRetries) {
             unscheduleJob(triggerKey);
@@ -204,7 +204,21 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
             log.info("Attempting to retry job {}: attempt {} of {}", triggerKey, currentRetries, maxRetries);
             jobDataMap.put(CURRENT_RETRIES, currentRetries);
             if(!rescheduleJob(triggerKey, trigger)) unscheduleJob(triggerKey);
+            flagTriggerAsRetry(jobDataMap);
         }
+    }
+
+    private boolean isRepeatingJob(Trigger trigger){
+        return trigger.getNextFireTime() != null;
+    }
+
+    /**
+     * Mark trigger as retry, so that its retry counter won't be reset by TriggerListener.
+     * This is passed to the trigger listener but not persisted.
+     * @param jobDataMap The JobDataMap to flag
+     */
+    private void flagTriggerAsRetry(JobDataMap jobDataMap){
+        jobDataMap.put(RETRY, true);
     }
     
     private boolean rescheduleJob(TriggerKey triggerKey, Trigger trigger){
