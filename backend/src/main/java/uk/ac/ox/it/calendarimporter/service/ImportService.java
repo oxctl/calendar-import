@@ -133,7 +133,9 @@ public class ImportService {
                         .forJob(detail);
         
         if (importConfig.getType().isRepeats()) {
-            triggerBuilder.withSchedule(SimpleScheduleBuilder.simpleSchedule()
+            triggerBuilder
+                    .usingJobData(CanvasCalendarJob.IS_REPEATING, true)
+                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                     .withIntervalInMilliseconds(reimportInterval.toMillis())
                     .repeatForever()
             );
