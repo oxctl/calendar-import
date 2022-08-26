@@ -9,20 +9,16 @@ import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
+import uk.ac.ox.it.calendarimporter.service.CanvasCalendarService;
 import uk.ac.ox.it.calendarimporter.service.CanvasTokenCreator;
 
 import java.io.IOException;
@@ -43,7 +39,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     public static final String SUBJECT = "subject";
     public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
     public static final String TIME_ZONE = "time_zone";
-    public static final String RETRY = "retry";
     public static final String CURRENT_RETRIES = "currentRetries";
 
     /**
@@ -94,10 +89,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     private CanvasTokenCreator canvasTokenCreator;
 
     @Autowired
-    private Scheduler scheduler;
-
-    @Value("${calendar.reimport.max.retries}")
-    private Integer maxRetries;
+    private CanvasCalendarService canvasCalendarService;
 
     public void setContext(String context) {
         this.context = context;
@@ -175,69 +167,19 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
         try {
             oauthToken = canvasTokenCreator.getToken(tenant, user.getSubject());
             run();
+            canvasCalendarService.resetRetryCounter(context);
         } catch (IOException e) {
             throw new JobExecutionException(e);
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to get signed JWT", e);
         } catch (InvalidOauthTokenException e) {
             log.debug("Token is invalid: {}", oauthToken.getAccessToken());
-            retryOrDeleteJob(context);
+            canvasCalendarService.retryOrDeleteJob(context);
             throw e;
         } catch (UnauthorizedException e) {
             log.debug("User is not authorized to perform this action");
-            retryOrDeleteJob(context);
+            canvasCalendarService.retryOrDeleteJob(context);
             throw e;
-        }
-    }
-
-    private void retryOrDeleteJob(JobExecutionContext context){
-        Trigger trigger = context.getTrigger();
-        if (!isRepeatingJob(trigger)) return;
-
-        TriggerKey triggerKey = trigger.getKey();
-        JobDataMap jobDataMap = trigger.getJobDataMap();
-        int currentRetries = (int) jobDataMap.getOrDefault(CURRENT_RETRIES, 0);
-        if(currentRetries >= maxRetries) {
-            unscheduleJob(triggerKey);
-        }else{
-            ++currentRetries;
-            log.info("Attempting to retry job {}: attempt {} of {}", triggerKey, currentRetries, maxRetries);
-            jobDataMap.put(CURRENT_RETRIES, currentRetries);
-            if(!rescheduleJob(triggerKey, trigger)) unscheduleJob(triggerKey);
-            flagTriggerAsRetry(jobDataMap);
-        }
-    }
-
-    private boolean isRepeatingJob(Trigger trigger){
-        return trigger.getNextFireTime() != null;
-    }
-
-    /**
-     * Mark trigger as retry, so that its retry counter won't be reset by TriggerListener.
-     * This is passed to the trigger listener but not persisted.
-     * @param jobDataMap The JobDataMap to flag
-     */
-    private void flagTriggerAsRetry(JobDataMap jobDataMap){
-        jobDataMap.put(RETRY, true);
-    }
-    
-    private boolean rescheduleJob(TriggerKey triggerKey, Trigger trigger){
-        try{
-            scheduler.rescheduleJob(triggerKey, trigger);
-            log.info("Rescheduled job {}.", triggerKey);
-            return true;
-        }catch(SchedulerException e){
-            log.warn("Could not reschedule job {}.", triggerKey);
-            return false;
-        }
-    }
-    
-    private void unscheduleJob(TriggerKey triggerKey){
-        try {
-            scheduler.unscheduleJob(triggerKey);
-            log.info("Deleting job {}.", triggerKey);
-        } catch (SchedulerException e) {
-            log.warn("Could not delete job {}.", triggerKey);
         }
     }
 

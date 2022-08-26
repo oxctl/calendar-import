@@ -158,12 +158,7 @@ public class ImportService {
         calendarImport.setLoad(jobProgress);
         calendarImportRepository.save(calendarImport);
 
-        Trigger trigger = triggerBuilder.build();
-        if (importConfig.getType().isRepeats()) {
-            scheduler.getListenerManager().addTriggerListener(new JobTriggerListener(), KeyMatcher.keyEquals(trigger.getKey()));
-        }
-
-        Date date = scheduler.scheduleJob(trigger);
+        Date date = scheduler.scheduleJob(triggerBuilder.build());
         return contextJob;
     }
     
