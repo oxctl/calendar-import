@@ -3,6 +3,7 @@ package uk.ac.ox.it.calendarimporter.jobs;
 import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
+import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.oauth.OauthToken;
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
@@ -17,6 +18,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
+import uk.ac.ox.it.calendarimporter.service.CanvasCalendarService;
 import uk.ac.ox.it.calendarimporter.service.CanvasTokenCreator;
 
 import java.io.IOException;
@@ -37,6 +39,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     public static final String SUBJECT = "subject";
     public static final String CALENDAR_IMPORT_ID = "calendar_import_id";
     public static final String TIME_ZONE = "time_zone";
+    public static final String CURRENT_RETRIES = "currentRetries";
 
     /**
      * This is an ID that is set in the Job map.
@@ -84,6 +87,9 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     @Autowired
     private CanvasTokenCreator canvasTokenCreator;
+
+    @Autowired
+    private CanvasCalendarService canvasCalendarService;
 
     public void setContext(String context) {
         this.context = context;
@@ -161,15 +167,22 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
         try {
             oauthToken = canvasTokenCreator.getToken(tenant, user.getSubject());
             run();
+            canvasCalendarService.resetRetryCounter(context);
         } catch (IOException e) {
             throw new JobExecutionException(e);
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to get signed JWT", e);
         } catch (InvalidOauthTokenException e) {
             log.debug("Token is invalid: {}", oauthToken.getAccessToken());
+            canvasCalendarService.retryOrDeleteJob(context);
+            throw e;
+        } catch (UnauthorizedException e) {
+            log.debug("User is not authorized to perform this action");
+            canvasCalendarService.retryOrDeleteJob(context);
             throw e;
         }
     }
+
 
     public abstract void run() throws IOException, JobExecutionException;
 }
