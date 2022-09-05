@@ -50,6 +50,9 @@ describe('valid variables in URL', () => {
     test('unknown variable', () => {
         expect(hasValidVariables('http://sites.test/${unknown}')).toBeFalsy()
     })
+    test('empty variable', () => {
+        expect(hasValidVariables('http://sites.test/${}')).toBeFalsy()
+    })
     test('last unknown variable', () => {
         expect(hasValidVariables('http://sites.test/${course.id}/${unknown}')).toBeFalsy()
     })

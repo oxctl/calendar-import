@@ -11,13 +11,13 @@ const isMagicUrl = (url) => {
     return url.startsWith('calendar://')
 }
 
-const VALID_VARIABLE_REGEX = new RegExp(/(?<=\${).+?(?=})/, 'g')
+const VALID_VARIABLE_REGEX = new RegExp(/\${([^}]*)}/, 'g')
 const VALID_VARIABLES = ['course.id', 'user.sis_id']
 
 const hasValidVariables = (url) => {
-    const matches = url.match(VALID_VARIABLE_REGEX)
-    if(!matches) return true
-    return matches.every(el => VALID_VARIABLES.includes(el))
+    const matches = Array.from(url.matchAll(VALID_VARIABLE_REGEX))
+    if(!matches.length) return true
+    return matches.every(el => VALID_VARIABLES.includes(el[1]))
 }
 
 const validVariables = () => {
