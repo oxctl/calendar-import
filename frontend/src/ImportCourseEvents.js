@@ -12,6 +12,8 @@ import { Button } from '@instructure/ui-buttons'
 import { Spinner } from '@instructure/ui-spinner'
 import { Link } from '@instructure/ui-link'
 
+import {isValidUrl, hasValidVariables, isMagicUrl, validVariables} from "./utils/calendar_url";
+
 class ImportCourseEvents extends React.Component {
 
   state = {
@@ -30,28 +32,6 @@ class ImportCourseEvents extends React.Component {
     this.setState({pageName: value})
   }
 
-  isValidUrl = (url) => {
-    try {
-      new URL(url);
-    } catch (e) {
-      return false;
-    }
-    return true;
-  }
-
-  isMagicUrl = (url) => {
-    return url.startsWith('calendar://')
-  }
-
-  VALID_VARIABLE_REGEX = new RegExp(/(?<=\${).+?(?=})/, 'g')
-  VALID_VARIABLES = ['course.id', 'user.sis_id']
-
-  hasValidVariables = (url) => {
-    const matches = url.match(this.VALID_VARIABLE_REGEX)
-    if(!matches) return true
-    return matches.every(el => this.VALID_VARIABLES.includes(el))
-  }
-
   validate = () => {
     const {url, pageName} = this.state
     if(!url || !pageName){
@@ -59,12 +39,12 @@ class ImportCourseEvents extends React.Component {
       return false
     }
 
-    if(!this.hasValidVariables(url)){
-      this.props.onMessage({text: `Parameterised URL variables must be one of: ${this.VALID_VARIABLES.join(', ')}`, type: 'error'})
+    if(!hasValidVariables(url)){
+      this.props.onMessage({text: `Parameterised URL variables must be one of: ${validVariables().join(', ')}`, type: 'error'})
       return false
     }
 
-    if(!this.isMagicUrl(url) && !this.isValidUrl(url)){
+    if(!isMagicUrl(url) && !isValidUrl(url)){
       this.props.onMessage({text: 'Not a valid URL', type: 'error'})
       return false
     }

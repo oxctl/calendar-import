@@ -55,6 +55,7 @@
     "@instructure/ui-eslint-config": "^8.6.0",
     "@instructure/ui-stylelint-config": "^8.6.0",
     "@instructure/ui-webpack-config": "^8.6.0",
+    "@jest/globals": "^29.0.2",
     "html-webpack-plugin": "^4"
   },
   "browserslist": {
