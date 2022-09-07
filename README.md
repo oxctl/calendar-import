@@ -161,7 +161,7 @@ The URLs supported by this are http://, https:// and calendar:// . The calendar 
     calendar.url.predefined.bsg-mpp.username=canvas
     calendar.url.predefined.bsg-mpp.password=secret1234
 
-Then when configuring the calendar import tool from the Modules tool set the URL to `calendar://bsg-mpp` and this will get expanded by the server and the authentication will get added to any requests that are made. NB one cannot parameterise this URL in the UI, this must be done in the configurtation 'properties' file - ${course.id} could also be used as a parameter, eg, https://ict.bsg.ox.ac.uk/canvas/${course.id}/${user.sis_id}.csv
+Then when configuring the calendar import tool from the Modules tool set the URL to `calendar://bsg-mpp` and this will get expanded by the server and the authentication will get added to any requests that are made. NB one cannot parameterise or add 'sub-folders' to this URL in the UI, this must be done in the configurtation 'properties' file - ${course.id} could also be used as a parameter, eg, https://ict.bsg.ox.ac.uk/canvas/${course.id}/${user.sis_id}.csv
 
 ## Releasing
  
