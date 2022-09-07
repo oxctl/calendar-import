@@ -156,12 +156,12 @@ The calendar import tool can use the Link Selection LTI placement to allow admin
 
 The URLs supported by this are http://, https:// and calendar:// . The calendar prefix references a configured calendar which can optionally also include HTTP basic authentication. To configure these calendar add Spring properties under the prefix `calendar.url.predefined` followed by the name of the calendar. For example:
 
-    # Example calendar accessed as calendar://example
-    calendar.url.predefined.example.url=https://calendar.example/file.csv
-    calendar.url.predefined.example.username=canvas-user
-    calendar.url.predefined.example.password=secret1234
+    # Example: BSG MPP calendar accessed as calendar://bsg-mpp
+    calendar.url.predefined.bsp-mpp.url=https://ict.bsg.ox.ac.uk/canvas/${user.sis_id}.csv
+    calendar.url.predefined.bsg-mpp.username=canvas
+    calendar.url.predefined.bsg-mpp.password=secret1234
 
-Then when configuring the calendar import tool from the Modules tool set the URL to `calendar://example` and this will get expanded by the server and the authentication will get added to any requests that are made.
+Then when configuring the calendar import tool from the Modules tool set the URL to `calendar://bsg-mpp` and this will get expanded by the server and the authentication will get added to any requests that are made. NB one cannot parameterise this URL in the UI, this must be done in the configurtation 'properties' file - ${course.id} could also be used as a parameter, eg, https://ict.bsg.ox.ac.uk/canvas/${course.id}/${user.sis_id}.csv
 
 ## Releasing
  
