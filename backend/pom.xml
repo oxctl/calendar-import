@@ -6,7 +6,7 @@
 
   <groupId>uk.ac.ox.it</groupId>
   <artifactId>canvas-calendar-importer</artifactId>
-  <version>2.2.3-SNAPSHOT</version>
+  <version>2.2.3</version>
   <packaging>jar</packaging>
 
   <name>Calendar Importer for Canvas</name>
