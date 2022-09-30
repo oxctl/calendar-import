@@ -17,7 +17,6 @@ import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-// @ExtendWith(SpringExtension.class)
 @DataJpaTest
 public class ContextJobRepositoryTest {
 

@@ -6,6 +6,7 @@ import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 
@@ -31,6 +32,34 @@ public class UserRepositoryTest {
         tenant.setName("tenant");
         tenant.setUrl("http://example.com/");
         entityManager.persist(tenant);
+    }
+
+    @Test
+    public void testSaveMissingFields() {
+        assertThrows(
+                DataIntegrityViolationException.class,
+                () -> {
+                    repository.save(new User(null, "subject", "username"));
+                    entityManager.flush();
+                });
+    }
+
+    @Test
+    public void testSaveLoad() {
+        long id;
+        {
+            id = repository.save(new User(tenant, "subject", "username")).getId();
+            entityManager.flush();
+        }
+        {
+            User user =
+                    this.repository
+                            .findById(id)
+                            .orElseThrow(AssertionFailedError::new);
+            assertEquals("tenant", user.getTenant().getName());
+            assertEquals("subject", user.getSubject());
+            assertNotNull(user.getId());
+        }
     }
 
     @Test
