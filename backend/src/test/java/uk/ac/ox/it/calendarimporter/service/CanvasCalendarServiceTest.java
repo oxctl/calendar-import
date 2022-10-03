@@ -5,6 +5,7 @@ import org.mockito.Mock;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ox.it.calendarimporter.jobs.TestJob;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
 
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(properties = {
     "calendar.reimport.max.retries=3"
 })
+@ActiveProfiles("test")
 public class CanvasCalendarServiceTest {
 
     @Autowired
