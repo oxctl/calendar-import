@@ -1,6 +1,7 @@
 package uk.ac.ox.it.calendarimporter.controller;
 
 import org.quartz.Job;
+import uk.ac.ox.it.calendarimporter.jobs.TestJob;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVImportJob;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVReimportJob;
 import uk.ac.ox.it.calendarimporter.jobs.ical.IcalImportJob;
@@ -13,7 +14,11 @@ public enum ImportType {
      */
     CSV_REIMPORT(CSVReimportJob.class, true),
     
-    ICAL(IcalImportJob.class, false);
+    ICAL(IcalImportJob.class, false),
+
+    TEST(TestJob.class, false),
+
+    TEST_REPEATS(TestJob.class, true);
 
     private final Class<? extends Job> jobClass;
     
