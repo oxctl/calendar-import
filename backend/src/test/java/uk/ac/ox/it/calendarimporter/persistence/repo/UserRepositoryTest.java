@@ -6,6 +6,7 @@ import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 
@@ -34,9 +35,40 @@ public class UserRepositoryTest {
     }
 
     @Test
+    public void testSaveMissingFields() {
+        assertThrows(
+                DataIntegrityViolationException.class,
+                () -> {
+                    repository.save(new User(null, "subject", "username"));
+                    entityManager.flush();
+                    entityManager.clear();
+                });
+    }
+
+    @Test
+    public void testSaveLoad() {
+        long id;
+        {
+            id = repository.save(new User(tenant, "subject", "username")).getId();
+            entityManager.flush();
+            entityManager.clear();
+        }
+        {
+            User user =
+                    this.repository
+                            .findById(id)
+                            .orElseThrow(AssertionFailedError::new);
+            assertEquals("tenant", user.getTenant().getName());
+            assertEquals("subject", user.getSubject());
+            assertNotNull(user.getId());
+        }
+    }
+
+    @Test
     public void testFindByTenantNameAndSubject() {
         entityManager.persist(new User(tenant, "subject", "username"));
         entityManager.flush();
+        entityManager.clear();
         User user =
                 this.repository
                         .findBySubjectAndTenantName("subject", "tenant")
@@ -54,6 +86,8 @@ public class UserRepositoryTest {
         entityManager.persist(other);
         entityManager.persist(new User(tenant, "subject", "username"));
         entityManager.persist(new User(other, "subject", "username"));
+        entityManager.flush();
+        entityManager.clear();
 
         {
             User user =

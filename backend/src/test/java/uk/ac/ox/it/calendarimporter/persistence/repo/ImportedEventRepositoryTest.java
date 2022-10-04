@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.orm.jpa.JpaSystemException;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 
@@ -21,6 +22,47 @@ public class ImportedEventRepositoryTest {
 
     @Autowired
     private ImportedEventRepository repository;
+
+    @Test
+    public void testSaveMissingFields() {
+        assertThrows(
+                JpaSystemException.class,
+                () -> {
+                    ImportedEvent event =
+                            new ImportedEvent(
+                                    null,
+                                    null,
+                                    ImportedEvent.Status.CREATED);
+                    repository.save(event);
+                    entityManager.flush();
+                    entityManager.clear();
+                });
+    }
+
+    @Test
+    public void testSaveLoad() {
+        long id;
+        {
+            CalendarImport calendarImport = new CalendarImport();
+            calendarImport = entityManager.persist(calendarImport);
+            ImportedEvent event =
+                    new ImportedEvent(
+                            new ImportedEvent.ImportedEventIdentity(1L, 1),
+                            calendarImport,
+                            ImportedEvent.Status.CREATED);
+            id = repository.save(event).getId();
+            entityManager.flush();
+            entityManager.clear();
+        }
+        {
+            Optional<ImportedEvent> optional =
+                    repository.findById(new ImportedEvent.ImportedEventIdentity(1L, 1));
+            assertTrue(optional.isPresent());
+            ImportedEvent loaded = optional.get();
+            assertEquals(ImportedEvent.Status.CREATED, loaded.getStatus());
+            assertNotNull(loaded.getCalendarImport());
+        }
+    }
 
     @Test
     public void testSaveEvent() {
@@ -75,10 +117,28 @@ public class ImportedEventRepositoryTest {
             );
             otherCreated = entityManager.persist(otherCreated);
         }
-        
+
         entityManager.flush();
+        entityManager.clear();
         
         List<ImportedEvent> events = repository.findByCalendarImportAndStatusIn(calendarImport, ImportedEvent.Status.CREATED);
+        assertThat(events).containsExactly(created);
+    }
+
+    @Test
+    public void testFindByCalendarImport() {
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport = entityManager.persist(calendarImport);
+        ImportedEvent created = new ImportedEvent(
+                new ImportedEvent.ImportedEventIdentity(1L, 1),
+                calendarImport,
+                ImportedEvent.Status.CREATED
+        );
+        created = entityManager.persist(created);
+        entityManager.flush();
+        entityManager.clear();
+
+        List<ImportedEvent> events = repository.findByCalendarImport(calendarImport);
         assertThat(events).containsExactly(created);
     }
 }
