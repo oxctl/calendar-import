@@ -34,6 +34,8 @@ public class ImportedEventRepositoryTest {
                                     null,
                                     ImportedEvent.Status.CREATED);
                     repository.save(event);
+                    entityManager.flush();
+                    entityManager.clear();
                 });
     }
 
@@ -49,6 +51,8 @@ public class ImportedEventRepositoryTest {
                             calendarImport,
                             ImportedEvent.Status.CREATED);
             id = repository.save(event).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Optional<ImportedEvent> optional =
@@ -113,8 +117,9 @@ public class ImportedEventRepositoryTest {
             );
             otherCreated = entityManager.persist(otherCreated);
         }
-        
+
         entityManager.flush();
+        entityManager.clear();
         
         List<ImportedEvent> events = repository.findByCalendarImportAndStatusIn(calendarImport, ImportedEvent.Status.CREATED);
         assertThat(events).containsExactly(created);
@@ -131,6 +136,7 @@ public class ImportedEventRepositoryTest {
         );
         created = entityManager.persist(created);
         entityManager.flush();
+        entityManager.clear();
 
         List<ImportedEvent> events = repository.findByCalendarImport(calendarImport);
         assertThat(events).containsExactly(created);

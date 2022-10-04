@@ -48,6 +48,8 @@ public class TenantRepositoryTest {
             other.setName("other");
             other.setUrl("http://example.com");
             id = repository.save(other).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Tenant tenant =
@@ -68,6 +70,8 @@ public class TenantRepositoryTest {
             other.setName("other");
             other.setUrl("http://example.com");
             id = repository.save(other).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Tenant tenant =
@@ -89,6 +93,8 @@ public class TenantRepositoryTest {
             other.setLtiClientId("ltiClientId");
             other.setUrl("http://example.com");
             id = repository.save(other).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Tenant tenant =

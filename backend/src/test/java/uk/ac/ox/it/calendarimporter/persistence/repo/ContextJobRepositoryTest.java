@@ -60,6 +60,8 @@ public class ContextJobRepositoryTest {
             job.setCreated(Instant.now());
             job.setCalendarImport(calendarImport);
             id = repository.save(job).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             ContextJob job = repository.findById(id).orElseThrow(AssertionError::new);
@@ -80,6 +82,8 @@ public class ContextJobRepositoryTest {
             job.setCreated(Instant.now());
             job.setCalendarImport(calendarImport);
             id = repository.save(job).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Page<ContextJob> jobs =
@@ -103,6 +107,8 @@ public class ContextJobRepositoryTest {
             job.setCreated(Instant.now());
             job.setCalendarImport(calendarImport);
             id = repository.save(job).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Page<ContextJob> jobs =

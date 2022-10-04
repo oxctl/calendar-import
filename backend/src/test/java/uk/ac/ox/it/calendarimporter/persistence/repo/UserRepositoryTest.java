@@ -41,6 +41,7 @@ public class UserRepositoryTest {
                 () -> {
                     repository.save(new User(null, "subject", "username"));
                     entityManager.flush();
+                    entityManager.clear();
                 });
     }
 
@@ -50,6 +51,7 @@ public class UserRepositoryTest {
         {
             id = repository.save(new User(tenant, "subject", "username")).getId();
             entityManager.flush();
+            entityManager.clear();
         }
         {
             User user =
@@ -66,6 +68,7 @@ public class UserRepositoryTest {
     public void testFindByTenantNameAndSubject() {
         entityManager.persist(new User(tenant, "subject", "username"));
         entityManager.flush();
+        entityManager.clear();
         User user =
                 this.repository
                         .findBySubjectAndTenantName("subject", "tenant")
@@ -83,6 +86,8 @@ public class UserRepositoryTest {
         entityManager.persist(other);
         entityManager.persist(new User(tenant, "subject", "username"));
         entityManager.persist(new User(other, "subject", "username"));
+        entityManager.flush();
+        entityManager.clear();
 
         {
             User user =

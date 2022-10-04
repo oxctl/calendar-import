@@ -3,6 +3,7 @@ package uk.ac.ox.it.calendarimporter.persistence.repo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 
 import java.time.Instant;
@@ -14,6 +15,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CalendarImportRepositoryTest {
 
     @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
     private CalendarImportRepository repository;
 
     @Test
@@ -22,6 +26,8 @@ public class CalendarImportRepositoryTest {
         {
             CalendarImport calendarImport = new CalendarImport();
             id = repository.save(calendarImport).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Optional<CalendarImport> calendarImport = repository.findById(id);
@@ -37,6 +43,8 @@ public class CalendarImportRepositoryTest {
             calendarImport.setContext("context");
             calendarImport.setCreated(Instant.now());
             id = repository.save(calendarImport).getId();
+            entityManager.flush();
+            entityManager.clear();
         }
         {
             Optional<CalendarImport> calendarImport = repository.findById(id);
