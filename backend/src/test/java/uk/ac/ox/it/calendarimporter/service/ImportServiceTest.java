@@ -143,7 +143,7 @@ public class ImportServiceTest {
         SimpleTriggerImpl trigger = (SimpleTriggerImpl) scheduler.getTrigger(triggerKey);
         JobDetail jobDetail = scheduler.getJobDetail(trigger.getJobKey());
 
-        assert(scheduler.checkExists(trigger.getKey()));
+        assertTrue(scheduler.checkExists(trigger.getKey()));
         assertEquals(CleanoutJob.class, jobDetail.getJobClass());
         assertFalse((Boolean) trigger.getJobDataMap().get("all"));
     }
@@ -159,9 +159,9 @@ public class ImportServiceTest {
         SimpleTriggerImpl trigger = (SimpleTriggerImpl) scheduler.getTrigger(triggerKey);
         JobDetail jobDetail = scheduler.getJobDetail(trigger.getJobKey());
 
-        assert(scheduler.checkExists(trigger.getKey()));
+        assertTrue(scheduler.checkExists(trigger.getKey()));
         assertEquals(CleanoutJob.class, jobDetail.getJobClass());
-        assert((Boolean) trigger.getJobDataMap().get("all"));
+        assertTrue((Boolean) trigger.getJobDataMap().get("all"));
     }
 
     @Test
@@ -180,7 +180,7 @@ public class ImportServiceTest {
         assertFalse(contextJob.isHidden());
 
         importService.hideImport(contextJob);
-        assert(contextJob.isHidden());
+        assertTrue(contextJob.isHidden());
     }
 
     // util to get a trigger for when there is only one scheduled
