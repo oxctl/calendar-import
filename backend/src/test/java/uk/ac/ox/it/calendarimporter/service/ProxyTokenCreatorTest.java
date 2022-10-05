@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ProxyTokenCreatorTest {
 
@@ -19,5 +20,17 @@ public class ProxyTokenCreatorTest {
         String url = "http://example.com/login/oauth/token";
         String noLocal = factory.removeLocalPart(url);
         assertEquals("http://example.com", noLocal);
+    }
+
+    @Test
+    public void testNoEndhost(){
+        String url = "http://example.com";
+        String noLocal = factory.removeLocalPart(url);
+        assertEquals("http://example.com", noLocal);
+    }
+
+    @Test
+    public void testNoPROTOCOL_SEP(){
+        assertThrows(IllegalArgumentException.class, () -> factory.removeLocalPart("www.example.com"));
     }
 }

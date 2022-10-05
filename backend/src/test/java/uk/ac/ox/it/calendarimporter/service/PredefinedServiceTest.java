@@ -67,6 +67,12 @@ class PredefinedServiceTest {
 	}
 
 	@Test
+	public void testLookupAcademicYearCodeNull() {
+		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupAcademicYear("unknown");
+		assertNull(academicYearTerms);
+	}
+
+	@Test
 	public void testGenerateTerms() throws IOException {
 		StringWriter writer = new StringWriter();
 		AcademicYearTerm term = new AcademicYearTerm();
@@ -87,6 +93,24 @@ class PredefinedServiceTest {
 						"2nd Week TT,,2000-01-15,00:00,167:59"
 		);
 
+	}
+
+	@Test
+	public void testGetOrdinal(){
+		assertThat(predefinedService.getOrdinal(0)).isEqualTo("th");
+		assertThat(predefinedService.getOrdinal(1)).isEqualTo("st");
+		assertThat(predefinedService.getOrdinal(2)).isEqualTo("nd");
+		assertThat(predefinedService.getOrdinal(3)).isEqualTo("rd");
+		assertThat(predefinedService.getOrdinal(4)).isEqualTo("th");
+		assertThat(predefinedService.getOrdinal(10)).isEqualTo("th");
+		assertThat(predefinedService.getOrdinal(11)).isEqualTo("th");
+		assertThat(predefinedService.getOrdinal(12)).isEqualTo("th");
+		assertThat(predefinedService.getOrdinal(13)).isEqualTo("th");
+		assertThat(predefinedService.getOrdinal(14)).isEqualTo("th");
+		assertThat(predefinedService.getOrdinal(21)).isEqualTo("st");
+		assertThat(predefinedService.getOrdinal(22)).isEqualTo("nd");
+		assertThat(predefinedService.getOrdinal(23)).isEqualTo("rd");
+		assertThat(predefinedService.getOrdinal(24)).isEqualTo("th");
 	}
 
 }
