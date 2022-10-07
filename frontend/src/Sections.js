@@ -32,7 +32,7 @@ export default class Sections extends React.Component {
     loadSections = () => {
         const {proxyServer, courseId, token} = this.props
         this.setState({loading: true})
-        fetch(`${proxyServer}/api/v1/courses/${courseId}/sections`, {
+        fetch(`${proxyServer}/api/v1/courses/${courseId}/sections?per_page=100`, {
             headers: {
                 Authorization: 'Bearer ' + token,
                 Accept: 'application/json'
