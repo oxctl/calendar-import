@@ -9,6 +9,8 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.quartz.impl.triggers.SimpleTriggerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
@@ -19,7 +21,9 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
+import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -171,6 +175,16 @@ public class ImportServiceTest {
 
         ContextJob foundContextJob = importService.getJob(tenant.getName(), contextJob.getContext(), contextJob.getId()).get();
         assertEquals(foundContextJob, contextJob);
+    }
+
+    @Test
+    public void testGetJobs() throws SchedulerException {
+        ImportConfig importConfig = setUpImportConfig(ImportType.TEST);
+        ContextJob contextJob = importService.importNow(importConfig);
+        Page<ContextJob> contextJobs = new PageImpl<>(List.of(contextJob));
+
+        Page<ContextJob> foundContextJobs = importService.getJobs(tenant.getName(), contextJob.getContext(), Pageable.unpaged());
+        assertEquals(foundContextJobs, contextJobs);
     }
 
     @Test
