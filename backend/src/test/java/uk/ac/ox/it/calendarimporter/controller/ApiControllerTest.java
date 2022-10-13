@@ -299,6 +299,29 @@ class ApiControllerTest {
 
     @Test
     @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    public void testRunJobWithNullFilename() throws Exception {
+        when(userService.getUser(any(), any())).thenReturn(user);
+        when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
+        when(depositService.deposit(any(), any())).thenReturn(new URL("http://example.com"));
+        when(importService.importNow(any())).thenReturn(contextJob);
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/run")
+                        .file(new MockMultipartFile("file", null, "text/csv", "content".getBytes())))
+                .andExpect(status().isOk());
+
+        verify(importService).importNow(ArgumentMatchers.refEq(new ImportConfig(
+                ImportType.CSV,
+                "http://example.com",
+                "file.csv",
+                user,
+                "course_1",
+                null,
+                TimeZone.getDefault(),
+                Map.of())));
+    }
+
+    @Test
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
     public void testPurge() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
 

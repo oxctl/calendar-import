@@ -59,7 +59,7 @@ public class ApiDownloadController {
             @PathVariable() Long calendarImportId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']") Number userId
     ) throws IOException {
-        CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow();
+        CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(() -> new NotFoundException(calendarImportId.toString()));
         if(!Utils.userIdToContext(userId).equals(calendarImport.getContext())){
             throw new AccessDeniedException("You don't have permission to view this log.");
         }
@@ -104,14 +104,11 @@ public class ApiDownloadController {
     }
 
     private MediaType toMediaType(ImportType importType) {
-        switch (importType) {
-            case ICAL:
-                return MediaType.parseMediaType("text/calendar");
-            case CSV:
-                return MediaType.parseMediaType("text/csv");
-            default:
-                return MediaType.parseMediaType("application/binary");
-        }
+        return switch (importType) {
+            case ICAL -> MediaType.parseMediaType("text/calendar");
+            case CSV -> MediaType.parseMediaType("text/csv");
+            default -> MediaType.parseMediaType("application/binary");
+        };
     }
 
     /**

@@ -170,7 +170,7 @@ public class ApiController {
         URL deposit = depositService.deposit(tempFile, DepositService.Type.UPLOAD);
 
         String originalFilename = upload.getOriginalFilename();
-        if (originalFilename == null) {
+        if (originalFilename == null || originalFilename.isEmpty()) {
             originalFilename = "file.csv";
         }
 
