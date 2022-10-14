@@ -5,8 +5,8 @@ import org.quartz.SchedulerException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -88,7 +88,7 @@ public class ApiController {
     @DeleteMapping("/imports/{contextJobId}")
     public ResponseEntity<Void> deleteImport(
             @PathVariable Long contextJobId,
-            JwtAuthenticationToken authentication,
+            Authentication authentication,
             Tenant tenant,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
                     Number userId,
@@ -134,7 +134,7 @@ public class ApiController {
     @JsonView(Views.Public.class)
     @PostMapping("/run")
     public ResponseEntity<ContextJob> runJob(
-            JwtAuthenticationToken authentication,
+            Authentication authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
                     Number userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
@@ -170,7 +170,7 @@ public class ApiController {
         URL deposit = depositService.deposit(tempFile, DepositService.Type.UPLOAD);
 
         String originalFilename = upload.getOriginalFilename();
-        if (originalFilename == null) {
+        if (originalFilename == null || originalFilename.isEmpty()) {
             originalFilename = "file.csv";
         }
 
@@ -199,7 +199,7 @@ public class ApiController {
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Number courseId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
-            JwtAuthenticationToken authentication)
+            Authentication authentication)
             throws SchedulerException {
         final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
         Placement placement = toPlacement(type, courseId, userId);
