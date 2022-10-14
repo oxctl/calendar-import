@@ -29,7 +29,7 @@ public class CanvasCalendarServiceTest {
 
     @Test
     public void testRetryOrDeleteJob() throws SchedulerException {
-        Trigger trigger = setUpJob();
+        Trigger trigger = setUpJob("1");
         scheduler.triggerJob(trigger.getJobKey());
         when(context.getTrigger()).thenReturn(trigger);
 
@@ -43,7 +43,7 @@ public class CanvasCalendarServiceTest {
 
     @Test
     public void testRetryOrDeleteJobWithRestartCounter() throws SchedulerException {
-        Trigger trigger = setUpJob();
+        Trigger trigger = setUpJob("2");
         scheduler.triggerJob(trigger.getJobKey());
         when(context.getTrigger()).thenReturn(trigger);
 
@@ -60,7 +60,7 @@ public class CanvasCalendarServiceTest {
         assertFalse(scheduler.checkExists(trigger.getKey()));
     }
 
-    private Trigger setUpJob() throws SchedulerException {
+    private Trigger setUpJob(String triggerKey) throws SchedulerException {
         JobDetail detail = JobBuilder.newJob(TestJob.class)
                 .storeDurably()
                 .requestRecovery()
@@ -70,7 +70,7 @@ public class CanvasCalendarServiceTest {
 
         TriggerBuilder<Trigger> triggerBuilder = TriggerBuilder.newTrigger()
                 .startNow()
-                .withIdentity(TriggerUtils.toTriggerKey("triggerKey", "tenant", "username"))
+                .withIdentity(TriggerUtils.toTriggerKey(triggerKey, "tenant", "username"))
                 .forJob(detail);
 
         triggerBuilder.withSchedule(SimpleScheduleBuilder.simpleSchedule()
