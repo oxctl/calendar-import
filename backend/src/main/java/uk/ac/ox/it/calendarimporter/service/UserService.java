@@ -52,6 +52,6 @@ public class UserService {
 
 			return userRepository.save(user);
 		}
-		throw new IllegalArgumentException();
+		throw new IllegalArgumentException("Principal is of type " + principal.getClass() + "; must be of type JwtClaimAccessor.");
 	}
 }
