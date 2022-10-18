@@ -47,15 +47,24 @@ public class Placement {
 		return type.context.name().toLowerCase() + "_" + id;
 	}
 
-	public static Placement toPlacement(PlacementType type, String courseId, String userId) {
+	/**
+	 * Convert variables to a placement. This needs to support both strings and numbers as some Canvas
+	 * instances pass in Numbers in the JSON and some pass in Strings.
+	 * 
+	 * @param type The type of placement.
+	 * @param courseId The course ID (string or number)
+	 * @param userId The user ID (string or number)
+	 * @return A placement.
+	 */
+	public static Placement toPlacement(PlacementType type, Object courseId, Object userId) {
 		Objects.requireNonNull(type, "type can't be null");
 		if (type.context == ContextType.COURSE) {
 			Objects.requireNonNull(courseId, "courseId can't be null");
-			return new Placement(type, Long.valueOf(courseId));
+			return new Placement(type, Long.valueOf(courseId.toString()));
 		}
 		if (type.context == ContextType.USER) {
 			Objects.requireNonNull(userId, "userId can't be null");
-			return new Placement(type, Long.valueOf(userId));
+			return new Placement(type, Long.valueOf(userId.toString()));
 		}
 		throw new IllegalArgumentException("Unsupported context type: " + type.context);
 	}

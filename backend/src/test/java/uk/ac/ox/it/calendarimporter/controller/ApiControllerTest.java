@@ -126,6 +126,24 @@ class ApiControllerTest {
     }
 
     @Test
+    // This is checking that we still work correctly with numeric values in the JSON.
+    // Instructure did a change for this that changed ann numbers in the LTI JSON to strings.
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    public void testGetImportsContextTypeCourseNumericIds() throws Exception {
+        Page<ContextJob> contextJobs = new PageImpl<>(List.of(contextJob));
+        when(importService.getJobs(any(), any(), any())).thenReturn(contextJobs);
+
+        mockMvc.perform(get("/api/imports"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.content[0].id").value(123))
+                .andExpect(jsonPath("$.content[0].calendarImport.id").value(456))
+                .andExpect(jsonPath("$.content[0].calendarImport.user.id").value(789));
+
+        verify(importService).getJobs("test.instructure.com", "course_1", Pageable.ofSize(20));
+    }
+
+    @Test
     @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testGetImportsContextTypeUser() throws Exception {
         Page<ContextJob> contextJobs = new PageImpl<>(List.of(contextJob));

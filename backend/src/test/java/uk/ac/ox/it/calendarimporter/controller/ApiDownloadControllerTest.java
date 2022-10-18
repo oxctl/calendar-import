@@ -181,6 +181,28 @@ public class ApiDownloadControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 
+    @Test
+    // This is checking that we still work correctly with numeric values in the JSON.
+    // Instructure did a change for this that changed ann numbers in the LTI JSON to strings.
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    public void testDownloadLogfileStillRunningWithNumericId() throws Exception {
+
+        JobProgress progress = new JobProgress();
+        // No log file yet.
+
+        CalendarImport calendarImport = new CalendarImport();
+        calendarImport.setLoad(progress);
+
+        ContextJob job = new ContextJob();
+        job.setId(1234);
+        job.setContext("course_1");
+        job.setTenant(tenant);
+        job.setCalendarImport(calendarImport);
+
+        when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
+    }
+
 
     @Test
     @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_user_id': '1'} }")
