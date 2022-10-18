@@ -43,10 +43,10 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    String courseId,
+                    Object courseId,
             Tenant tenant)
             throws IOException {
-        String courseContext = "course_" + courseId;
+        String courseContext = "course_" + courseId.toString();
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getLoad();
@@ -57,10 +57,10 @@ public class ApiDownloadController {
     @GetMapping("/log/{calendarImportId}/loadByCalendarImportId")
     public ResponseEntity<InputStreamResource> loadByCalendarImportId(
             @PathVariable() Long calendarImportId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']") String userId
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']") Object userId
     ) throws IOException {
         CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(() -> new NotFoundException(calendarImportId.toString()));
-        if(!Utils.userIdToContext(userId).equals(calendarImport.getContext())){
+        if(!Utils.userIdToContext(userId.toString()).equals(calendarImport.getContext())){
             throw new AccessDeniedException("You don't have permission to view this log.");
         }
         JobProgress jobProgress = calendarImport.getLoad();
@@ -74,10 +74,10 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    String courseId,
+                    Object courseId,
             Tenant tenant)
             throws IOException {
-        String courseContext = "course_" + courseId;
+        String courseContext = "course_" + courseId.toString();
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getDelete();
@@ -91,7 +91,7 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    String courseId,
+                    Object courseId,
             Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
