@@ -58,9 +58,9 @@ public class ApiController {
             Pageable pageable,
             Tenant tenant,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement
     ) {
         final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
@@ -74,9 +74,9 @@ public class ApiController {
             @PathVariable Long contextJobId,
             Tenant tenant,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement
     ) {
         final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
@@ -91,9 +91,9 @@ public class ApiController {
             Authentication authentication,
             Tenant tenant,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement
     ) throws SchedulerException {
         final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
@@ -116,9 +116,9 @@ public class ApiController {
             @PathVariable Long contextJobId,
             Tenant tenant,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement
     ) {
         final PlacementType type = PlacementType.valueOf(ltiPlacement.toUpperCase());
@@ -136,9 +136,9 @@ public class ApiController {
     public ResponseEntity<ContextJob> runJob(
             Authentication authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             @AuthenticationPrincipal(
                     expression =
@@ -195,9 +195,9 @@ public class ApiController {
             @RequestParam(name = "all", required = false, defaultValue = "false") boolean all,
             Tenant tenant,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             Authentication authentication)
             throws SchedulerException {

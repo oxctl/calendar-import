@@ -51,7 +51,7 @@ public class Utils {
         return null;
     }
 
-    public static String userIdToContext(Number userId){
+    public static String userIdToContext(String userId){
         return "user_" + userId;
     }
 }

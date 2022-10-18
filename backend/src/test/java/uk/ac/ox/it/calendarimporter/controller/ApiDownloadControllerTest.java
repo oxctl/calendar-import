@@ -51,7 +51,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfile() throws Exception {
 
         JobProgress progress = new JobProgress();
@@ -76,7 +76,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileMissing() throws Exception {
         JobProgress progress = new JobProgress();
         String logfile = "file:///doesnotexist.txt";
@@ -115,7 +115,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 2} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '2'} }")
     public void testDownloadLogfileWrongContext() throws Exception {
         JobProgress progress = new JobProgress();
         String logfile = getClass().getResource("log.txt").toExternalForm();
@@ -135,7 +135,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': 'wrong', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': 'wrong', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileWrongTenant() throws Exception {
         JobProgress progress = new JobProgress();
         String logfile = getClass().getResource("log.txt").toExternalForm();
@@ -155,14 +155,14 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileMissingContext() throws Exception {
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.empty());
         mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileStillRunning() throws Exception {
 
         JobProgress progress = new JobProgress();
@@ -183,7 +183,7 @@ public class ApiDownloadControllerTest {
 
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_user_id': '1'} }")
     public void testDownloadLogfileByCalendarImportId() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -208,7 +208,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_user_id': '1'} }")
     public void testDownloadLogfileByCalendarImportIdNotFound() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -231,7 +231,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_user_id': '1'} }")
     public void testDownloadLogfileByCalendarImportIdContextsNotMatch() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -254,7 +254,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadDeleteLogfile() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -288,7 +288,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadDeleteLogfileContextJobNotFound() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -318,7 +318,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadMediaTypeDefault() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -367,7 +367,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadMediaTypeICal() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -415,7 +415,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadMediaTypeCSV() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -463,7 +463,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadContextJobNotFound() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -497,7 +497,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadContextsNotMatch() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -531,7 +531,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogFileNull() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -564,7 +564,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogFileEmpty() throws Exception {
         User user = new User();
         user.setId(1L);
@@ -597,7 +597,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadNoCalImportFilename() throws Exception {
         User user = new User();
         user.setId(1L);

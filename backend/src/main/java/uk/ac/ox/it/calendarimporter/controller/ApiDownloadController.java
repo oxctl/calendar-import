@@ -43,7 +43,7 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
@@ -57,7 +57,7 @@ public class ApiDownloadController {
     @GetMapping("/log/{calendarImportId}/loadByCalendarImportId")
     public ResponseEntity<InputStreamResource> loadByCalendarImportId(
             @PathVariable() Long calendarImportId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']") Number userId
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']") String userId
     ) throws IOException {
         CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(() -> new NotFoundException(calendarImportId.toString()));
         if(!Utils.userIdToContext(userId).equals(calendarImport.getContext())){
@@ -74,7 +74,7 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;
@@ -91,7 +91,7 @@ public class ApiDownloadController {
             @AuthenticationPrincipal(
                     expression =
                             "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             Tenant tenant)
             throws IOException {
         String courseContext = "course_" + courseId;

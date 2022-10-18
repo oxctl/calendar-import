@@ -110,7 +110,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testGetImportsContextTypeCourse() throws Exception {
         Page<ContextJob> contextJobs = new PageImpl<>(List.of(contextJob));
         when(importService.getJobs(any(), any(), any())).thenReturn(contextJobs);
@@ -126,7 +126,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testGetImportsContextTypeUser() throws Exception {
         Page<ContextJob> contextJobs = new PageImpl<>(List.of(contextJob));
         when(importService.getJobs(any(), any(), any())).thenReturn(contextJobs);
@@ -142,7 +142,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testGetImportContextTypeCourse() throws Exception {
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
 
@@ -157,7 +157,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testGetImportContextTypeUser() throws Exception {
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
 
@@ -172,7 +172,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testDeleteImportFound() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
@@ -185,7 +185,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testDeleteImportNotFound() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.empty());
@@ -198,7 +198,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testHideImportFound() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
@@ -211,7 +211,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testHideImportNotFound() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.empty());
@@ -224,7 +224,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testRunJob() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
@@ -248,7 +248,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1, 'person_address_timezone': 'CST'} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1', 'person_address_timezone': 'CST'} }")
     public void testRunJobWithTimezone() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
@@ -272,7 +272,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testRunJobWithSection() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
@@ -298,7 +298,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testRunJobWithNullFilename() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
@@ -321,7 +321,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testPurge() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
 
@@ -332,7 +332,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testPurgeAll() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
 
@@ -343,7 +343,7 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1, 'canvas_user_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testPurgeNotAll() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
 

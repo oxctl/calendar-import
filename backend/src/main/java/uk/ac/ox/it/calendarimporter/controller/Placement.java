@@ -47,15 +47,15 @@ public class Placement {
 		return type.context.name().toLowerCase() + "_" + id;
 	}
 
-	public static Placement toPlacement(PlacementType type, Number courseId, Number userId) {
+	public static Placement toPlacement(PlacementType type, String courseId, String userId) {
 		Objects.requireNonNull(type, "type can't be null");
 		if (type.context == ContextType.COURSE) {
 			Objects.requireNonNull(courseId, "courseId can't be null");
-			return new Placement(type, courseId);
+			return new Placement(type, Long.valueOf(courseId));
 		}
 		if (type.context == ContextType.USER) {
 			Objects.requireNonNull(userId, "userId can't be null");
-			return new Placement(type, userId);
+			return new Placement(type, Long.valueOf(userId));
 		}
 		throw new IllegalArgumentException("Unsupported context type: " + type.context);
 	}
