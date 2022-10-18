@@ -52,7 +52,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfile() throws Exception {
 
         JobProgress progress = new JobProgress();
@@ -77,7 +77,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileMissing() throws Exception {
         JobProgress progress = new JobProgress();
         String logfile = "file:///doesnotexist.txt";
@@ -116,7 +116,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 2} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '2'} }")
     public void testDownloadLogfileWrongContext() throws Exception {
         JobProgress progress = new JobProgress();
         String logfile = getClass().getResource("log.txt").toExternalForm();
@@ -136,7 +136,7 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': 'wrong', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': 'wrong', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileWrongTenant() throws Exception {
         JobProgress progress = new JobProgress();
         String logfile = getClass().getResource("log.txt").toExternalForm();
@@ -156,14 +156,14 @@ public class ApiDownloadControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileMissingContext() throws Exception {
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.empty());
         mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': 1} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileStillRunning() throws Exception {
 
         JobProgress progress = new JobProgress();

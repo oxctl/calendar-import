@@ -64,7 +64,7 @@ public class ApiCalendarEventImportController {
             Tenant tenant,
             JwtAuthenticationToken authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Number courseId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
@@ -105,7 +105,7 @@ public class ApiCalendarEventImportController {
             Tenant tenant,
             JwtAuthenticationToken authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url)
             throws SchedulerException {
@@ -140,7 +140,7 @@ public class ApiCalendarEventImportController {
             Tenant tenant,
             JwtAuthenticationToken authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url)
             throws SchedulerException {
@@ -168,7 +168,7 @@ public class ApiCalendarEventImportController {
             Tenant tenant,
             JwtAuthenticationToken authentication,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Number userId,
+                    String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url)
             throws SchedulerException {
