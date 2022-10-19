@@ -151,6 +151,10 @@ public class CSVImportJob extends CanvasCalendarJob {
         return event;
     }
 
+    public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
+        this.importedEventRepository = importedEventRepository;
+    }
+
     private class TrackingErrorHandler implements CSVReader.ErrorHandler {
         private int problems = 0;
 
@@ -165,4 +169,7 @@ public class CSVImportJob extends CanvasCalendarJob {
             return problems > 0;
         }
     }
+
+
+
 }

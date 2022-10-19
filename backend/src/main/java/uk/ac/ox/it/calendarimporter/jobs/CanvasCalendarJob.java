@@ -16,6 +16,7 @@ import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
+import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.service.CanvasCalendarService;
@@ -185,4 +186,20 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
 
     public abstract void run() throws IOException, JobExecutionException;
+
+    public void setTenantRepository(TenantRepository tenantRepository) {
+        this.tenantRepository = tenantRepository;
+    }
+
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public void setCalendarImportRepository(CalendarImportRepository calendarImportRepository) {
+        this.calendarImportRespository = calendarImportRepository;
+    }
+
+    public void setCanvasTokenCreator(CanvasTokenCreator canvasTokenCreator) {
+        this.canvasTokenCreator = canvasTokenCreator;
+    }
 }
