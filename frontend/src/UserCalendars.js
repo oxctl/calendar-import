@@ -9,6 +9,7 @@ import {Spinner} from "@instructure/ui-spinner";
 import {Alert} from "@instructure/ui-alerts";
 import {checkOK} from './utils/fetch'
 import {Link} from "@instructure/ui-link";
+import PropTypes from "prop-types";
 
 class UserCalendars extends React.Component {
 
@@ -25,6 +26,22 @@ class UserCalendars extends React.Component {
         nextImportId: null,
         alerts: [],
         loading: false
+    }
+    
+    static propTypes = {
+        token: PropTypes.string.isRequired,
+        proxyServer: PropTypes.string.isRequired,
+        calendarServer: PropTypes.string.isRequired,
+        canvasId: PropTypes.string.isRequired,
+        userId: PropTypes.string.isRequired,
+        returnUrl: PropTypes.string.isRequired,
+        onMissingToken: PropTypes.func.isRequired,
+        // The current date. This allows easy faking of the current time without having to setup fake timers.
+        date: PropTypes.func
+    }
+    
+    static defaultProps = {
+        date: () => new Date()
     }
 
     /**
@@ -51,7 +68,6 @@ class UserCalendars extends React.Component {
         }).then(response => {
             // When expired we will get a 401 back.
             if (response.status !== 200) {
-                debugger
                 if (response.status === 401 || response.type === 'opaqueredirect') {
                     this.props.onMissingToken()
                 } else {
@@ -94,11 +110,12 @@ class UserCalendars extends React.Component {
                     calendar.properties.start = new Date(calendar.properties.start)
                     calendar.properties.end = new Date(calendar.properties.end)
                 });
-                const now = new Date()
+                // To allow testing
+                const now = this.props.date()
                 
                 // Find the current calendar and next year's calendar.
                 const current = predefinedJson.find(calendar => calendar.properties.start < now && calendar.properties.end > now);
-                const future = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                const future = new Date(this.props.date().setFullYear(this.props.date().getFullYear() + 1))
                 const next = predefinedJson.find(calendar => calendar.properties.start < future && calendar.properties.end > future);
                 if (!current || !next ) {
                     throw new Error("Failed to find current or next calendar")
@@ -281,7 +298,7 @@ class UserCalendars extends React.Component {
         return response.blob()
     }
 
-    addAlert(message, variant = 'info') {
+    addAlert = (message, variant = 'info')  => {
         this.setState((state) => ({alerts: [...state.alerts, {message, variant}]}))
     }
 
@@ -333,10 +350,6 @@ class UserCalendars extends React.Component {
 
             <View borderWidth='small none none none' borderColor='primary' as='div'>
                 <Flex justifyItems='end' wrap='wrap'>
-                    {/*<Flex.Item margin='small xx-small'>*/}
-                    {/*    <Button*/}
-                    {/*        onClick={() => this.fetch(this.props.calendarServer + '/api/purge', {method: 'POST'})}>Purge</Button>*/}
-                    {/*</Flex.Item>*/}
                     <Flex.Item margin='small xx-small'>
                         {running &&
                         <Spinner size='x-small' renderTitle='Updating calendar'/>}
