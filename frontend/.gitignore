@@ -9,5 +9,6 @@ yarn-error.log
 localhost-key.pem
 localhost.pem
 .env.development.local
+.env.test.local
 build
 *.iml

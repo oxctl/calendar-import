@@ -9,6 +9,8 @@ env:
   DOCKER_REPO: 211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import
   EB_APPLICATION: calendar-import
   EB_ENVIRONMENT: calendar-import-dev-env
+  CANVAS_HOST: https://universityofoxford.beta.instructure.com
+  OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
 
 on:
   push:
