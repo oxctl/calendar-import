@@ -8,6 +8,8 @@ env:
   S3_DEV_BUCKET: ${{ github.repository_owner }}-calendar-import-dev
   AWS_DEFAULT_REGION: "eu-west-1"
   NODE_VERSION: 14.13.0
+  CANVAS_HOST: https://universityofoxford.beta.instructure.com
+  OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
 
 on:
   push:
