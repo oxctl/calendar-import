@@ -153,7 +153,7 @@ describe("user calendars", () => {
         const saveButton = screen.getByRole("button", {name: /save/i })
         await user.click(saveButton)
         
-        // TODO This should really generate an error, but doesn't at the moment.
+        // TODO This should really generate an error, but doesn't at the moment. AB#64153
         // await screen.findByText(/failed to load predefined calendars: network request failed/i)
     })
 
@@ -187,7 +187,7 @@ describe("user calendars", () => {
         const saveButton = screen.getByRole("button", {name: /save/i })
         await user.click(saveButton)
 
-        // TODO This should really generate an error, but doesn't at the moment.
+        // TODO This should really generate an error, but doesn't at the moment. AB#64153
         // await screen.findByText(/failed to load predefined calendars: network request failed/i)
     })
 })
