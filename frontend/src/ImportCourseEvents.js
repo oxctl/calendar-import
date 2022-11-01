@@ -114,6 +114,7 @@ class ImportCourseEvents extends React.Component {
       <View as="div" margin="0 0 small 0">
         <TextInput
             renderLabel={urlLabel}
+            value={this.state.url}
             onChange={this.handleUrlChange}
         />
       </View>
@@ -133,7 +134,7 @@ class ImportCourseEvents extends React.Component {
           {this.state.submitting && <Spinner size='small' renderTitle='Adding'/>}
         </Flex.Item>
       </Flex>
-      <form name="deepLinkingForm" id="deepLinkingForm" method="post" action={this.props.deepLinkReturnUrl}>
+      <form name="deepLinkingForm" id="deepLinkingForm" data-testid="deepLinkingForm" method="post" action={this.props.deepLinkReturnUrl}>
         <input type="hidden" name="JWT" value={this.state.deepLinkingJwt} />
       </form>
     </>
@@ -141,12 +142,13 @@ class ImportCourseEvents extends React.Component {
 }
 
 ImportCourseEvents.propTypes = {
-  token: PropTypes.string,
-  courseName: PropTypes.string,
-  deepLinkReturnUrl: PropTypes.string,
-  ltiServer: PropTypes.string,
-  targetLinkUri: PropTypes.string,
-  timezone: PropTypes.string
+  token: PropTypes.string.isRequired,
+  courseName: PropTypes.string.isRequired,
+  deepLinkReturnUrl: PropTypes.string.isRequired,
+  ltiServer: PropTypes.string.isRequired,
+  onMessage: PropTypes.func.isRequired,
+  targetLinkUri: PropTypes.string.isRequired,
+  timezone: PropTypes.string.isRequired
 }
 
 const mapStateToProps = state => {
