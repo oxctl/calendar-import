@@ -66,7 +66,7 @@ public class ApiCalendarEventImportController {
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
                     String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Number courseId,
+                    String courseId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url,
             // This isn't the timezone of the user, but that of the user who setup the import.
@@ -91,7 +91,7 @@ public class ApiCalendarEventImportController {
                                     Utils.userIdToContext(userId),
                                     null,
                                     importTimezone,
-                                    Map.of("course.id", courseId.toString(), "user.sis_id", user.getUsername())));
+                                    Map.of("course.id", courseId, "user.sis_id", user.getUsername())));
             return ResponseEntity.ok(contextJob);
         }
         else {
