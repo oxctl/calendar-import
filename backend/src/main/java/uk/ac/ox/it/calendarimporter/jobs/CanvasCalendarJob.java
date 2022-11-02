@@ -163,8 +163,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
                                         new JobExecutionException(
                                                 "Failed to find calendar import: " + calendarImportId));
 
-        canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
-
         try {
             oauthToken = canvasTokenCreator.getToken(tenant, user.getSubject());
             run();
@@ -201,5 +199,13 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     public void setCanvasTokenCreator(CanvasTokenCreator canvasTokenCreator) {
         this.canvasTokenCreator = canvasTokenCreator;
+    }
+
+    public void setCanvasCalendarService(CanvasCalendarService canvasCalendarService){
+        this.canvasCalendarService = canvasCalendarService;
+    }
+
+    public void setCanvasApiFactory(CanvasApiFactory canvasApiFactory) {
+        this.canvasApiFactory = canvasApiFactory;
     }
 }

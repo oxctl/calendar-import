@@ -64,6 +64,8 @@ public class IcalImportJob extends CanvasCalendarJob {
         this.inputLimit = inputLimit;
     }
 
+    private CalendarBuilder builder;
+
     public void run() throws IOException, JobExecutionException {
 
         URL url = new URL(this.url);
@@ -73,7 +75,9 @@ public class IcalImportJob extends CanvasCalendarJob {
 
         log("Import started.");
 
-        CalendarBuilder builder = new CalendarBuilder();
+        if (builder==null){
+            builder = new CalendarBuilder();
+        }
 
         String hiddenData =
                 HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
@@ -217,5 +221,13 @@ public class IcalImportJob extends CanvasCalendarJob {
         event.setEndAt(null);
         event.setChildEventsData(Collections.singletonList(childEvent));
         return event;
+    }
+
+    public void setCalendarBuilder(CalendarBuilder calendarBuilder) {
+        this.builder = calendarBuilder;
+    }
+
+    public void setImportEventService(ImportEventService importEventService) {
+        this.importEventService = importEventService;
     }
 }

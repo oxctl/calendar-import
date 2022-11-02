@@ -201,6 +201,22 @@ public class CSVReimportJob extends CanvasCalendarJob {
         );
     }
 
+    public void setCalendarUrlConfiguration(CalendarUrlConfiguration calendarUrlConfiguration) {
+        this.calendarUrlConfiguration = calendarUrlConfiguration;
+    }
+
+    public void setCSVReader(CSVReader csvReader) {
+        this.reader = csvReader;
+    }
+
+    public void setMaxEventsCSV(int i) {
+        this.maxEventsInCsv = i;
+    }
+
+    public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
+        this.importedEventRepository = importedEventRepository;
+    }
+
     private class TrackingErrorHandler implements CSVReader.ErrorHandler {
         private int problems = 0;
 

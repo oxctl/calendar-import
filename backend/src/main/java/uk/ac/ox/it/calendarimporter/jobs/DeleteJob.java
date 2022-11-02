@@ -52,6 +52,8 @@ public class DeleteJob extends LoggingJob implements Job {
     private CanvasTokenCreator canvasTokenCreator;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CanvasApiFactory canvasApiFactory;
 
     public void executeLogged(JobExecutionContext jobContext) throws JobExecutionException {
         JobDataMap config = jobContext.getMergedJobDataMap();
@@ -70,7 +72,6 @@ public class DeleteJob extends LoggingJob implements Job {
         String context = calendarImport.getContext();
 
         log.debug("Cleaning out events in {} of {}", context, tenant);
-        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
         User user =
                 userRepository
@@ -131,5 +132,30 @@ public class DeleteJob extends LoggingJob implements Job {
         } catch (IOException e) {
             throw new JobExecutionException("Problem connecting to Canvas.");
         }
+    }
+
+    public void setTenantRepository(TenantRepository tenantRepository) {
+        this.tenantRepository = tenantRepository;
+    }
+
+    public void setCalendarImportRepository(CalendarImportRepository calendarImportRepository) {
+        this.calendarImportRepository = calendarImportRepository;
+    }
+
+    public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
+        this.importedEventRepository = importedEventRepository;
+    }
+
+    public void setUserRepository(UserRepository userRepository) {
+
+        this.userRepository = userRepository;
+    }
+
+    public void setCanvasTokenCreator(CanvasTokenCreator canvasTokenCreator) {
+        this.canvasTokenCreator = canvasTokenCreator;
+    }
+
+    public void setCanvasApiFactory(CanvasApiFactory canvasApiFactory) {
+        this.canvasApiFactory = canvasApiFactory;
     }
 }

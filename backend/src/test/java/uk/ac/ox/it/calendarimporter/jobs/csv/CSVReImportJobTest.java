@@ -2,6 +2,7 @@ package uk.ac.ox.it.calendarimporter.jobs.csv;
 
 import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
+import edu.ksu.canvas.interfaces.CalendarReader;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import edu.ksu.canvas.oauth.OauthToken;
@@ -13,7 +14,9 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import uk.ac.ox.it.calendarimporter.CalendarUrlConfiguration;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
@@ -23,8 +26,8 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.service.CanvasCalendarService;
 import uk.ac.ox.it.calendarimporter.service.CanvasTokenCreator;
 import uk.ac.ox.it.calendarimporter.service.DepositService;
+import uk.ac.ox.it.calendarimporter.service.ImportEventService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
-
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,12 +40,12 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-class CSVImportJobTest {
+class CSVReImportJobTest {
 
     @Test
     public void testValidCall() throws JobExecutionException, IOException, JOSEException, HeaderException {
 
-        CSVImportJob csvImportJob = new CSVImportJob();
+        CSVReimportJob csvReimportJob = new CSVReimportJob();
         CalendarImport calendarImport = new CalendarImport();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
@@ -61,6 +64,12 @@ class CSVImportJobTest {
         calendarEvent.setEndAt(Instant.now());
         calendarEvents.add(calendarEvent);
 
+        ImportedEvent.ImportedEventIdentity identity =
+                new ImportedEvent.ImportedEventIdentity(5678L, calendarEvent.getId());
+        ImportedEvent event = new ImportedEvent(identity, calendarImport, ImportedEvent.Status.CREATED);
+        List< ImportedEvent > importedEvents = new ArrayList<>();
+        importedEvents.add(event);
+
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
         CalendarImportRepository calendarImportRepository = mock(CalendarImportRepository.class);
@@ -69,9 +78,11 @@ class CSVImportJobTest {
         ImportedEventRepository importedEventRepository = mock(ImportedEventRepository.class);
         ProgressService progressService = mock(ProgressService.class);
         CSVReader csvReader = mock(CSVReader.class);
+        CalendarReader calendarReader = mock(CalendarReader.class);
         CalendarWriter calendarWriter = mock(CalendarWriter.class);
         CanvasCalendarService canvasCalendarService = mock(CanvasCalendarService.class);
         DepositService depositService = mock(DepositService.class);
+        CalendarUrlConfiguration calendarUrlConfiguration = mock(CalendarUrlConfiguration.class);
         CanvasApiFactory canvasApiFactory = mock(CanvasApiFactory.class);
 
         when(context.getMergedJobDataMap()).thenReturn(map);
@@ -82,54 +93,45 @@ class CSVImportJobTest {
                 .findBySubjectAndTenantName(any(), any())).thenReturn(Optional.of(new User()));
         when(calendarImportRepository
                 .findById(any())).thenReturn(Optional.of(calendarImport));
-        when(canvasApiFactory.getWriter(any(), any())).thenReturn(calendarWriter);
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
+        when(canvasApiFactory.getWriter(any(), any())).thenReturn(calendarWriter);
+        when(canvasApiFactory.getReader(any(), any())).thenReturn(calendarReader);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
         when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
         when(csvReader.parseCSV(any(), any(), any())).thenReturn(calendarEvents);
+        when(importedEventRepository.findByCalendarImportAndStatusIn(any(), any())).thenReturn(importedEvents);
+        when(calendarReader.getCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
 
-        csvImportJob.setTenantRepository(tenantRepository);
-        csvImportJob.setUserRepository(userRepository);
-        csvImportJob.setCalendarImportRepository(calendarImportRepository);
-        csvImportJob.setCanvasTokenCreator(canvasTokenCreator);
-        csvImportJob.setImportedEventRepository(importedEventRepository);
-        csvImportJob.setCSVReader(csvReader);
-        csvImportJob.setProgressService(progressService);
-        csvImportJob.setCanvasCalendarService(canvasCalendarService);
-        csvImportJob.setDepositService(depositService);
-        csvImportJob.setCanvasApiFactory(canvasApiFactory);
+        csvReimportJob.setTenantRepository(tenantRepository);
+        csvReimportJob.setUserRepository(userRepository);
+        csvReimportJob.setCalendarImportRepository(calendarImportRepository);
+        csvReimportJob.setCanvasTokenCreator(canvasTokenCreator);
+        csvReimportJob.setCalendarUrlConfiguration(calendarUrlConfiguration);
+        csvReimportJob.setCSVReader(csvReader);
+        csvReimportJob.setImportedEventRepository(importedEventRepository);
+        csvReimportJob.setProgressService(progressService);
+        csvReimportJob.setCanvasCalendarService(canvasCalendarService);
+        csvReimportJob.setDepositService(depositService);
+        csvReimportJob.setMaxEventsCSV(1000);
+        csvReimportJob.setCanvasApiFactory(canvasApiFactory);
 
-        csvImportJob.execute(context);
+        csvReimportJob.execute(context);
         verify(csvReader, times(1)).parseCSV(any(), any(), any());
-        verify(calendarWriter, times(1)).createCalendarEvent(calendarEvent);
+        verify(calendarReader, times(1)).getCalendarEvent(any());
     }
 
     @Test
     public void testCallNoTrigger() {
-        CSVImportJob csvImportJob = new CSVImportJob();
+        CSVReimportJob csvReimportJob = new CSVReimportJob();
         JobExecutionContext context = mock(JobExecutionContext.class);
-
-        assertThrows(NullPointerException.class, () -> csvImportJob.execute(context));
-    }
-
-    @Test
-    public void testCallNoConfig() {
-        CSVImportJob csvImportJob = new CSVImportJob();
-        JobExecutionContext context = mock(JobExecutionContext.class);
-
-        Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
-        JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
-
-        when(context.getJobDetail()).thenReturn(job);
-        when(context.getTrigger()).thenReturn(trigger);
-
-        assertThrows(NullPointerException.class, () -> csvImportJob.execute(context));
+        assertThrows(Exception.class, () -> csvReimportJob.execute(context));
     }
 
     @Test
     public void testCallNoCalendarImport() throws JOSEException, IOException {
-        CSVImportJob csvImportJob = new CSVImportJob();
+        CSVReimportJob csvReimportJob = new CSVReimportJob();
+
         CalendarImport calendarImport = new CalendarImport();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
@@ -147,7 +149,6 @@ class CSVImportJobTest {
         ImportedEventRepository importedEventRepository = mock(ImportedEventRepository.class);
         ProgressService progressService = mock(ProgressService.class);
         CSVReader csvReader = mock(CSVReader.class);
-        CalendarWriter calendarWriter = mock(CalendarWriter.class);
         CanvasCalendarService canvasCalendarService = mock(CanvasCalendarService.class);
         DepositService depositService = mock(DepositService.class);
 
@@ -164,17 +165,17 @@ class CSVImportJobTest {
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
         when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
 
-        csvImportJob.setTenantRepository(tenantRepository);
-        csvImportJob.setUserRepository(userRepository);
-        csvImportJob.setCalendarImportRepository(calendarImportRepository);
-        csvImportJob.setCanvasTokenCreator(canvasTokenCreator);
-        csvImportJob.setImportedEventRepository(importedEventRepository);
-        csvImportJob.setCSVReader(csvReader);
-        csvImportJob.setProgressService(progressService);
-        csvImportJob.setCanvasCalendarService(canvasCalendarService);
-        csvImportJob.setDepositService(depositService);
+        csvReimportJob.setTenantRepository(tenantRepository);
+        csvReimportJob.setUserRepository(userRepository);
+        csvReimportJob.setCalendarImportRepository(calendarImportRepository);
+        csvReimportJob.setCanvasTokenCreator(canvasTokenCreator);
+        csvReimportJob.setImportedEventRepository(importedEventRepository);
+        csvReimportJob.setCSVReader(csvReader);
+        csvReimportJob.setProgressService(progressService);
+        csvReimportJob.setCanvasCalendarService(canvasCalendarService);
+        csvReimportJob.setDepositService(depositService);
 
-        assertThrows(ClassCastException.class, () -> csvImportJob.execute(context));
+        assertThrows(ClassCastException.class, () -> csvReimportJob.execute(context));
     }
 
     @Test
@@ -197,6 +198,7 @@ class CSVImportJobTest {
         ImportedEventRepository importedEventRepository = mock(ImportedEventRepository.class);
         ProgressService progressService = mock(ProgressService.class);
         CSVReader csvReader = mock(CSVReader.class);
+        CalendarWriter calendarWriter = mock(CalendarWriter.class);
         CanvasCalendarService canvasCalendarService = mock(CanvasCalendarService.class);
         DepositService depositService = mock(DepositService.class);
 
@@ -227,15 +229,28 @@ class CSVImportJobTest {
     }
 
     @Test
-    public void testCallNoUser() {
-        CSVImportJob csvImportJob = new CSVImportJob();
-        Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
+    public void testCallNoConfig() {
 
+        CSVReimportJob csvReimportJob = new CSVReimportJob();
+        JobExecutionContext context = mock(JobExecutionContext.class);
+
+        Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
+        JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
+
+        when(context.getJobDetail()).thenReturn(job);
+        when(context.getTrigger()).thenReturn(trigger);
+        assertThrows(NullPointerException.class, () -> csvReimportJob.execute(context));
+    }
+
+    @Test
+    public void testCallNoUser() {
+        CSVReimportJob csvReimportJob = new CSVReimportJob();
+        Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
         CalendarImportRepository calendarImportRepository = mock(CalendarImportRepository.class);
 
-        JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
+        JobDetail job = JobBuilder.newJob(CSVReimportJob.class).build();
 
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
@@ -248,10 +263,10 @@ class CSVImportJobTest {
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(tenantRepository.findByName(any())).thenReturn(Optional.of(new Tenant()));
 
-        csvImportJob.setUserRepository(userRepository);
-        csvImportJob.setCalendarImportRepository(calendarImportRepository);
-        csvImportJob.setTenantRepository(tenantRepository);
+        csvReimportJob.setUserRepository(userRepository);
+        csvReimportJob.setCalendarImportRepository(calendarImportRepository);
+        csvReimportJob.setTenantRepository(tenantRepository);
 
-        assertThrows(NullPointerException.class, () -> csvImportJob.execute(context));
+        assertThrows(NullPointerException.class, () -> csvReimportJob.execute(context));
     }
 }

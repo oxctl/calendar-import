@@ -170,6 +170,11 @@ public class CSVImportJob extends CanvasCalendarJob {
         }
     }
 
+    public void setCSVReader(CSVReader csvReader){
+        this.reader = csvReader;
+    }
 
-
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
 }

@@ -54,6 +54,8 @@ public class CleanoutJob implements Job {
     private CanvasTokenCreator canvasTokenCreator;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CanvasApiFactory canvasApiFactory;
 
     public void execute(JobExecutionContext jobContext) throws JobExecutionException {
         JobDataMap config = jobContext.getMergedJobDataMap();
@@ -77,7 +79,6 @@ public class CleanoutJob implements Job {
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to create JWT.", e);
         }
-        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
         CalendarReader calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);
         CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
@@ -137,5 +138,21 @@ public class CleanoutJob implements Job {
     private boolean isChildEvent(CalendarEvent event) {
         return event.getEffectiveContextCode() != null
                 && !event.getEffectiveContextCode().equals(event.getContextCode());
+    }
+
+    public void setTenantRepository(TenantRepository tenantRepository) {
+        this.tenantRepository=  tenantRepository;
+    }
+
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository=  userRepository;
+    }
+
+    public void setCanvasTokenCreator(CanvasTokenCreator canvasTokenCreator) {
+        this.canvasTokenCreator = canvasTokenCreator;
+    }
+
+    public void setCanvasApiFactory(CanvasApiFactory canvasApiFactory) {
+        this.canvasApiFactory = canvasApiFactory;
     }
 }

@@ -81,6 +81,8 @@ public class IcalSyncJob extends CanvasCalendarJob {
         this.inputLimit = inputLimit;
     }
 
+    private CalendarBuilder builder;
+
     public void run() throws IOException {
 
         URL url = new URL(this.url);
@@ -118,7 +120,9 @@ public class IcalSyncJob extends CanvasCalendarJob {
 
         int seen = 0, newEvents = 0, updatedEvents = 0;
 
-        CalendarBuilder builder = new CalendarBuilder();
+        if (builder==null){
+            builder = new CalendarBuilder();
+        }
 
         URLConnection urlConnection = url.openConnection();
         urlConnection.setReadTimeout(10000);
@@ -272,5 +276,9 @@ public class IcalSyncJob extends CanvasCalendarJob {
             instant = date.toInstant();
         }
         return instant;
+    }
+
+    public void setCalendarBuilder(CalendarBuilder calendarBuilder) {
+        this.builder = calendarBuilder;
     }
 }
