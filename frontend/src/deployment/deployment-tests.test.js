@@ -1,12 +1,13 @@
 import {afterEach, beforeAll, beforeEach} from '@jest/globals'
 import adapter from 'axios/lib/adapters/http'
-const puppeteer = require('puppeteer')
+import puppeteer from 'puppeteer'
 const axios = require('axios').default
 const {expect, test, describe} = require('@jest/globals')
 const dotenv = require('dotenv')
 
 const options = {
   args: [
+    // these are needed for cross frame access as LTI tools are in an iFrame
     '--disable-web-security',
     '--disable-features=IsolateOrigins,site-per-process'
   ],
@@ -16,8 +17,9 @@ dotenv.config()
 
 const token = process.env.OAUTH_TOKEN
 const host = process.env.CANVAS_HOST
+const courseId = process.env.COURSE_ID
 
-jest.setTimeout(1200000)
+jest.setTimeout(300000)
 
 describe('Test that the correct data is present.', () => {
   let browser
@@ -92,7 +94,7 @@ describe('Test that the correct data is present.', () => {
     await page.setDefaultNavigationTimeout(0)
     await page.setDefaultTimeout(90000)
 
-    await page.goto(host + '/courses/39056/external_tools/38603?launch_type=course_home_sub_navigation')
+    await page.goto(host + '/courses/' + courseId + '/external_tools/38603?launch_type=course_home_sub_navigation')
 
     const elementHandle = await page.$('div.tool_content_wrapper iframe')
     return await elementHandle.contentFrame()
