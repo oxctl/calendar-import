@@ -102,15 +102,15 @@ describe('Test that the correct data is present.', () => {
     const page = (await browser.pages())[0]
     const frame = await getFrame(page)
 
-    // Need to wait here, possibly for spinner to disappear and data to load?
-    // TODO: Find a better approach than sleep
-    await new Promise(r => setTimeout(r, 30000))
-    const content = await frame.content()
+    const importEl = await frame.waitForXPath("//*[@id=\"app\"]/div/div/div[3]/div[1]/div/div[1]")
+    const importText = await importEl.evaluate(e => e.textContent)
+    const loadTitleEl = await frame.waitForXPath("//*[@id=\"app\"]/div/div/div[3]/div[2]/span/div[1]/div[1]")
+    const loadTitleText = await loadTitleEl.evaluate(e => e.textContent)
+    const loadMessageEl = await frame.waitForXPath("//*[@id=\"app\"]/div/div/div[3]/div[2]/span/div[1]/div[2]")
+    const loadMessageText = await loadMessageEl.evaluate(e => e.textContent)
 
-    await expect(content.match('Import File')).not.toBeNull()
-    await expect(content.match('Previous Imports')).not.toBeNull()
-    // TODO: this is placeholder data against course 39056 - change when live test data is set up
-    await expect(content.match('Import: Completed')).not.toBeNull()
-    await expect(content.match('Completed import, found 2 events, imported 2 events into calendar.')).not.toBeNull()
+    await expect(importText).toBe("Deployment Tester imported example.csv into the course")
+    await expect(loadTitleText).toBe("Import: Completed")
+    await expect(loadMessageText).toBe("Last message: Completed import, found 2 events, imported 2 events into calendar.")
   })
 })
