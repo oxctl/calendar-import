@@ -18,6 +18,7 @@ dotenv.config()
 const token = process.env.OAUTH_TOKEN
 const host = process.env.CANVAS_HOST
 const courseId = process.env.COURSE_ID
+const toolId = process.env.TOOL_ID
 
 jest.setTimeout(300000)
 
@@ -32,9 +33,8 @@ describe('Test that the correct data is present.', () => {
     const page = (await browser.pages())[0]
     const frame = await getFrame(page)
 
-    // Need to wait here - 'Import File' appears briefly before the spinner so it will always be first.
-    // TODO: This should probably be fixed
-    await new Promise(r => setTimeout(r, 2000))
+    await frame.waitForXPath('//*[contains(text(), "Loading sections...")]', {timeout: 30000})
+    await frame.waitForXPath('//*[contains(text(), "Loading sections...")]', {hidden: true, timeout: 30000})
 
     const startElementHandle = await Promise.race([
       frame.waitForXPath('//*[contains(text(), "Please Grant Access")]', {timeout: 30000})
@@ -46,9 +46,7 @@ describe('Test that the correct data is present.', () => {
     const pageStartText = await startElementHandle.evaluate(e => e.textContent)
 
     if(pageStartText === 'Please Grant Access') {
-      // Can't find a "cleaner" way of locating the button, so this is dependent on the class not changing
-      const button = await frame.waitForSelector('.css-z0pc6h-view-billboard')
-
+      const button = await frame.waitForXPath('//*[@id="app"]/div/div/button')
       const pageTarget = page.target()
       await button.click()
       const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget)
@@ -94,7 +92,7 @@ describe('Test that the correct data is present.', () => {
     await page.setDefaultNavigationTimeout(0)
     await page.setDefaultTimeout(90000)
 
-    await page.goto(host + '/courses/' + courseId + '/external_tools/38603?launch_type=course_home_sub_navigation')
+    await page.goto(`${host}/courses/${courseId}/external_tools/${toolId}?launch_type=course_home_sub_navigation`)
 
     const elementHandle = await page.$('div.tool_content_wrapper iframe')
     return await elementHandle.contentFrame()

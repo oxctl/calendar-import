@@ -5,8 +5,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test jest src/*.test.js '!src/deployment/*.js' --passWithNoTests",
-    "test-deployed": "react-scripts test jest src/deployment/*.js --passWithNoTests",
+    "test": "react-scripts test jest src/*.test.js '!src/deployment/*.js'",
+    "test-deployed": "react-scripts test jest src/deployment/*.js",
     "eject": "react-scripts eject"
   },
   "dependencies": {
