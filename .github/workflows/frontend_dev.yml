@@ -10,6 +10,8 @@ env:
   NODE_VERSION: 14.13.0
   CANVAS_HOST: https://universityofoxford.beta.instructure.com
   OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
+  COURSE_ID: 186507
+  TOOL_ID: 55353
 
 on:
   push:
