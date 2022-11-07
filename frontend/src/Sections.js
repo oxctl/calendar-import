@@ -1,8 +1,9 @@
-import React from "react"
-import {SimpleSelect} from "@instructure/ui-simple-select";
-import PropTypes from "prop-types"
-import {View} from "@instructure/ui-view";
-import {handleErrors, LoginError} from "./utils/fetch";
+import React from 'react'
+import { SimpleSelect } from '@instructure/ui-simple-select'
+import PropTypes from 'prop-types'
+import { View } from '@instructure/ui-view'
+import { handleErrors, LoginError } from './utils/fetch'
+import { Spinner } from '@instructure/ui-spinner'
 
 /**
  * Displays a list of sections in the course and allows the user to select the whole course
@@ -67,6 +68,7 @@ export default class Sections extends React.Component {
     render() {
         const {section} = this.state
         return <View as="div" margin='small none'>
+            {this.state.loading ? <><Spinner size="small" margin="large" renderTitle="Loading data..."/>Loading sections...</> :
             <SimpleSelect renderLabel='Section' label={''}
                           messages={this.state.messages}
                           onChange={(e, {id, value}) => {
@@ -75,27 +77,24 @@ export default class Sections extends React.Component {
                           }}
                           value={section}>
                 {this.renderOptions()}
-            </SimpleSelect>
+            </SimpleSelect>}
         </View>
     } 
 
     renderOptions = () => {
-        const {loading, sections} = this.state
+        const {sections} = this.state
         const {courseName} = this.props
-        if (loading) {
-            return <SimpleSelect.Option id='loading' key='loading' value='' isDisabled>Loading....</SimpleSelect.Option>
-        } else {
-            // If you put multiple words as the children then spaces would have commas added in them ?
-            // So 'Course: Test Course' would become 'Course:, Test Course' when displayed (wrapping fixes it).
-            const options = [<SimpleSelect.Option id='course' key='course'
-                                                  value=''>{`Course: ${courseName}`}</SimpleSelect.Option>]
-            if (sections) {
-                options.push(...sections.map(section => <SimpleSelect.Option
-                    id={section.id.toString()} key={section.id}
-                    value={`course_section_${section.id}`}>{`Section: ${section.name}`}</SimpleSelect.Option>)
-                )
-            }
-            return options
+
+        // If you put multiple words as the children then spaces would have commas added in them ?
+        // So 'Course: Test Course' would become 'Course:, Test Course' when displayed (wrapping fixes it).
+        const options = [<SimpleSelect.Option id='course' key='course'
+                                              value=''>{`Course: ${courseName}`}</SimpleSelect.Option>]
+        if (sections) {
+            options.push(...sections.map(section => <SimpleSelect.Option
+                id={section.id.toString()} key={section.id}
+                value={`course_section_${section.id}`}>{`Section: ${section.name}`}</SimpleSelect.Option>)
+            )
         }
+        return options
     }
 }
