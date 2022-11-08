@@ -48,8 +48,6 @@ class CleanoutJobTest {
     public void testValidCall() throws JobExecutionException, IOException, JOSEException, HeaderException, URISyntaxException {
 
         CleanoutJob cleanoutJob = new CleanoutJob();
-        User user = new User();
-        CalendarImport calendarImport = new CalendarImport();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CleanoutJob.class).build();
 
@@ -64,38 +62,20 @@ class CleanoutJobTest {
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-        CalendarImportRepository calendarImportRepository = mock(CalendarImportRepository.class);
         CanvasTokenCreator canvasTokenCreator = mock(CanvasTokenCreator.class);
-        ProgressService progressService = mock(ProgressService.class);
-        CSVReader csvReader = mock(CSVReader.class);
-        ImportEventService importEventService = mock(ImportEventService.class);
-        CanvasCalendarService canvasCalendarService = mock(CanvasCalendarService.class);
-        DepositService depositService = mock(DepositService.class);
         CalendarWriter calendarWriter = mock(CalendarWriter.class);
         CalendarReader calendarReader = mock(CalendarReader.class);
-        OauthToken oauthToken = mock(OauthToken.class);
 
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
-        map.put("calendar_import_id", 118L);
-        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
         map.put("all", true);
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
         when(tenantRepository.findByName(any())).thenReturn(Optional.of(new Tenant()));
         when(userRepository
-                .findBySubjectAndTenantName(any(), any())).thenReturn(Optional.of(user));
-        when(calendarImportRepository
-                .findById(any())).thenReturn(Optional.of(calendarImport));
-        when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
-        when(progressService.updateJob(any(), any(), any())).thenReturn(null);
-        when(csvReader.parseCSV(any(), any(), any())).thenReturn(calendarEvents);
+                .findBySubjectAndTenantName(any(), any())).thenReturn(Optional.of(new User()));
         when(calendarReader.listCurrentUserCalendarEvents(any())).thenReturn(calendarEvents);
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
-        doNothing().when(importEventService).eventCreated(any(), any(), any());
-        doNothing().when(canvasCalendarService).resetRetryCounter(any());
 
         cleanoutJob.setTenantRepository(tenantRepository);
         cleanoutJob.setUserRepository(userRepository);

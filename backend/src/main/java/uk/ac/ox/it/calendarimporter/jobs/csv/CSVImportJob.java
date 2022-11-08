@@ -1,6 +1,5 @@
 package uk.ac.ox.it.calendarimporter.jobs.csv;
 
-import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
@@ -8,7 +7,6 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;

@@ -54,7 +54,7 @@ public class ApiWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${jwt.audience:}")
     private String audience;
 
-    @Value("${frontend.origins:*}")
+    @Value("${frontend.origins}")
     private String[] origins;
 
     @Autowired

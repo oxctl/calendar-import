@@ -280,10 +280,6 @@ public class IcalSyncJob extends CanvasCalendarJob {
         return instant;
     }
 
-//    public void setCalendarBuilder(CalendarBuilder calendarBuilder) {
-//        this.builder = calendarBuilder;
-//    }
-
     public void setCalendarReader(CalendarReader calendarReader) {
         this.reader = calendarReader;
     }
