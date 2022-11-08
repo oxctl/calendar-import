@@ -1,7 +1,6 @@
 package uk.ac.ox.it.calendarimporter.jobs;
 
 import com.nimbusds.jose.JOSEException;
-import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import edu.ksu.canvas.oauth.OauthToken;
@@ -13,8 +12,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.springframework.boot.test.context.SpringBootTest;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVImportJob;
-import uk.ac.ox.it.calendarimporter.jobs.csv.HeaderException;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
@@ -28,7 +27,8 @@ import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +38,11 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 class DeleteJobTest {
 
     @Test
-    public void testValidCall() throws JobExecutionException, IOException, JOSEException, HeaderException {
+    public void testValidCall() throws JobExecutionException, IOException, JOSEException, URISyntaxException {
 
         DeleteJob deleteJob = new DeleteJob();
         User user = new User();
@@ -72,13 +73,12 @@ class DeleteJobTest {
         CalendarWriter calendarWriter = mock(CalendarWriter.class);
         DepositService depositService = mock(DepositService.class);
         OauthToken oauthToken = mock(OauthToken.class);
-        CanvasApiFactory canvasApiFactory = mock(CanvasApiFactory.class);
 
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "http://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
@@ -91,17 +91,16 @@ class DeleteJobTest {
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         when(importedEventRepository.findByCalendarImport(any())).thenReturn(importedEvents);
         when(calendarWriter.deleteCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
-        when(canvasApiFactory.getWriter(any(), any())).thenReturn(calendarWriter);
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
 
         deleteJob.setTenantRepository(tenantRepository);
         deleteJob.setUserRepository(userRepository);
         deleteJob.setCalendarImportRepository(calendarImportRepository);
         deleteJob.setCanvasTokenCreator(canvasTokenCreator);
         deleteJob.setImportedEventRepository(importedEventRepository);
-        deleteJob.setCanvasApiFactory(canvasApiFactory);
         deleteJob.setProgressService(progressService);
         deleteJob.setDepositService(depositService);
+        deleteJob.setCalendarWriter(calendarWriter);
 
         deleteJob.execute(context);
         verify(importedEventRepository, times(1)).save(any());
@@ -130,7 +129,7 @@ class DeleteJobTest {
     }
 
     @Test
-    public void testCallNoUser() {
+    public void testCallNoUser() throws URISyntaxException, MalformedURLException {
         DeleteJob deleteJob = new DeleteJob();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
 
@@ -142,8 +141,8 @@ class DeleteJobTest {
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "http://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);

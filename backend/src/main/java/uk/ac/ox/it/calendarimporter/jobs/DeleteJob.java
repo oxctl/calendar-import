@@ -52,8 +52,8 @@ public class DeleteJob extends LoggingJob implements Job {
     private CanvasTokenCreator canvasTokenCreator;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private CanvasApiFactory canvasApiFactory;
+
+    private CalendarWriter calendarWriter;
 
     public void executeLogged(JobExecutionContext jobContext) throws JobExecutionException {
         JobDataMap config = jobContext.getMergedJobDataMap();
@@ -72,6 +72,7 @@ public class DeleteJob extends LoggingJob implements Job {
         String context = calendarImport.getContext();
 
         log.debug("Cleaning out events in {} of {}", context, tenant);
+        CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
         User user =
                 userRepository
@@ -85,7 +86,9 @@ public class DeleteJob extends LoggingJob implements Job {
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to create JWT.", e);
         }
-        CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (calendarWriter==null){
+            calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
 
         try {
             int deleted = 0;
@@ -155,7 +158,7 @@ public class DeleteJob extends LoggingJob implements Job {
         this.canvasTokenCreator = canvasTokenCreator;
     }
 
-    public void setCanvasApiFactory(CanvasApiFactory canvasApiFactory) {
-        this.canvasApiFactory = canvasApiFactory;
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.calendarWriter = calendarWriter;
     }
 }

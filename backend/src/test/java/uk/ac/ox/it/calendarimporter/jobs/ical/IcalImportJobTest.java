@@ -1,12 +1,10 @@
 package uk.ac.ox.it.calendarimporter.jobs.ical;
 
 import com.nimbusds.jose.JOSEException;
-import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.CalendarReader;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import edu.ksu.canvas.oauth.OauthToken;
-import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.component.VEvent;
@@ -20,6 +18,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.springframework.boot.test.context.SpringBootTest;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVImportJob;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVReader;
 import uk.ac.ox.it.calendarimporter.jobs.csv.HeaderException;
@@ -36,8 +35,8 @@ import uk.ac.ox.it.calendarimporter.service.ImportEventService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -48,10 +47,11 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 class IcalImportJobTest {
 
     @Test
-    public void testValidCall() throws JobExecutionException, IOException, JOSEException, HeaderException, ParserException, ParseException {
+    public void testValidCall() throws JobExecutionException, IOException, JOSEException, HeaderException, ParserException, ParseException, URISyntaxException {
 
         IcalImportJob icalImportJob = new IcalImportJob();
         CalendarImport calendarImport = new CalendarImport();
@@ -83,14 +83,13 @@ class IcalImportJobTest {
         CalendarWriter calendarWriter = mock(CalendarWriter.class);
         CanvasCalendarService canvasCalendarService = mock(CanvasCalendarService.class);
         DepositService depositService = mock(DepositService.class);
-        CalendarBuilder calendarBuilder = mock(CalendarBuilder.class);
-        CanvasApiFactory canvasApiFactory = mock(CanvasApiFactory.class);
 
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "http://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/calendar-one-event.ics").toURI().toURL().toString());
+
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
@@ -103,12 +102,10 @@ class IcalImportJobTest {
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         when(csvReader.parseCSV(any(), any(), any())).thenReturn(calendarEvents);
         when(calendarWriter.createCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
-        when(calendarBuilder.build((InputStream) any())).thenReturn(calendar);
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
         doNothing().when(importEventService).eventCreated(any(), any(), any());
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
         doNothing().when(importEventService).eventCreated(any(), any(), any());
-        when(canvasApiFactory.getWriter(any(), any())).thenReturn(calendarWriter);
 
         icalImportJob.setTenantRepository(tenantRepository);
         icalImportJob.setUserRepository(userRepository);
@@ -117,9 +114,9 @@ class IcalImportJobTest {
         icalImportJob.setCanvasCalendarService(canvasCalendarService);
         icalImportJob.setProgressService(progressService);
         icalImportJob.setDepositService(depositService);
-        icalImportJob.setCalendarBuilder(calendarBuilder);
         icalImportJob.setImportEventService(importEventService);
-        icalImportJob.setCanvasApiFactory(canvasApiFactory);
+        icalImportJob.setCalendarWriter(calendarWriter);
+
 
         icalImportJob.execute(context);
         verify(calendarWriter, times(1)).createCalendarEvent(any());
@@ -147,7 +144,7 @@ class IcalImportJobTest {
     }
 
     @Test
-    public void testCallNoUser() {
+    public void testCallNoUser() throws URISyntaxException, MalformedURLException {
         IcalImportJob IcalImportJob = new IcalImportJob();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
 
@@ -160,8 +157,8 @@ class IcalImportJobTest {
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "http://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
@@ -176,7 +173,7 @@ class IcalImportJobTest {
     }
 
     @Test
-    public void testCallNoCalendarImport() throws JOSEException, IOException, HeaderException {
+    public void testCallNoCalendarImport() throws JOSEException, IOException, HeaderException, URISyntaxException {
         IcalImportJob icalImportJob = new IcalImportJob();
         CalendarImport calendarImport = new CalendarImport();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
@@ -184,8 +181,8 @@ class IcalImportJobTest {
         JobExecutionContext context = mock(JobExecutionContext.class);
 
         JobDataMap map = new JobDataMap();
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "https://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -197,7 +194,6 @@ class IcalImportJobTest {
         CalendarReader calendarReader = mock(CalendarReader.class);
         CanvasCalendarService canvasCalendarService = mock(CanvasCalendarService.class);
         DepositService depositService = mock(DepositService.class);
-        CanvasApiFactory canvasApiFactory = mock(CanvasApiFactory.class);
 
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
@@ -210,9 +206,7 @@ class IcalImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
-        when(canvasApiFactory.getReader(any(), any())).thenReturn(calendarReader);
-        when(canvasApiFactory.getWriter(any(), any())).thenReturn(calendarWriter);
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
 
         icalImportJob.setTenantRepository(tenantRepository);
         icalImportJob.setUserRepository(userRepository);
@@ -221,7 +215,6 @@ class IcalImportJobTest {
         icalImportJob.setProgressService(progressService);
         icalImportJob.setCanvasCalendarService(canvasCalendarService);
         icalImportJob.setDepositService(depositService);
-        icalImportJob.setCanvasApiFactory(canvasApiFactory);
 
         assertThrows(ClassCastException.class, () -> icalImportJob.execute(context));
     }

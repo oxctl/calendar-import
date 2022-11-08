@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.jobs.csv;
 
+import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
 import edu.ksu.canvas.requestOptions.DeleteCalendarEventOptions;
@@ -7,6 +8,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
@@ -40,10 +42,14 @@ public class CSVImportJob extends CanvasCalendarJob {
     @Autowired
     private CSVReader reader;
 
+    private CalendarWriter calendarWriter;
+
     @Override
     public void run() throws IOException, JobExecutionException {
 
-        CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (calendarWriter==null){
+            calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
         runJobRecovery(calendarWriter);
 
         TimeZone timeZone = TimeZone.getTimeZone(this.timeZone);
@@ -153,6 +159,10 @@ public class CSVImportJob extends CanvasCalendarJob {
 
     public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
         this.importedEventRepository = importedEventRepository;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.calendarWriter = calendarWriter;
     }
 
     private class TrackingErrorHandler implements CSVReader.ErrorHandler {

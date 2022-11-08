@@ -1,7 +1,6 @@
 package uk.ac.ox.it.calendarimporter.jobs.ical;
 
 import com.nimbusds.jose.JOSEException;
-import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.interfaces.CalendarReader;
 import edu.ksu.canvas.interfaces.CalendarWriter;
 import edu.ksu.canvas.model.CalendarEvent;
@@ -24,6 +23,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.springframework.boot.test.context.SpringBootTest;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVImportJob;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVReader;
 import uk.ac.ox.it.calendarimporter.jobs.csv.HeaderException;
@@ -42,8 +42,8 @@ import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.text.ParseException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,10 +53,11 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 class IcalSyncJobTest {
 
     @Test
-    public void testValidCall() throws JobExecutionException, IOException, JOSEException, HeaderException, ParserException, ParseException {
+    public void testValidCall() throws JobExecutionException, IOException, JOSEException, ParserException, URISyntaxException {
 
         IcalSyncJob icalSyncJob = new IcalSyncJob();
         CalendarImport calendarImport = new CalendarImport();
@@ -69,6 +70,8 @@ class IcalSyncJobTest {
         calendarEvent.setContextCode("user_105");
         calendarEvent.setStartAt(Instant.now());
         calendarEvent.setEndAt(Instant.now());
+        calendarEvent.setDescription("<div class=\"calendar-data-1\" style=\"display: none;\" data-calendar=\"" +
+                "1234" + "\"></div>");
         calendarEvents.add(calendarEvent);
 
         VEvent vEvent = mock(VEvent.class);
@@ -80,7 +83,7 @@ class IcalSyncJobTest {
         VEvent e = new VEvent();
         e.getProperties().add(new DtStart(new Date()));
         e.getProperties().add(new DtEnd(new Date()));
-        e.getProperties().add(new Uid("some_uid"));
+        e.getProperties().add(new Uid("5FC53010-1267-4F8E-BC28-1D7AE55A7C99"));
         calendar.getComponents().add(e);
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
@@ -89,20 +92,18 @@ class IcalSyncJobTest {
         CalendarImportRepository calendarImportRepository = mock(CalendarImportRepository.class);
         CanvasTokenCreator canvasTokenCreator = mock(CanvasTokenCreator.class);
         ProgressService progressService = mock(ProgressService.class);
-        CSVReader csvReader = mock(CSVReader.class);
         ImportEventService importEventService = mock(ImportEventService.class);
         CalendarWriter calendarWriter = mock(CalendarWriter.class);
         CalendarReader calendarReader = mock(CalendarReader.class);
         CanvasCalendarService canvasCalendarService = mock(CanvasCalendarService.class);
         DepositService depositService = mock(DepositService.class);
         CalendarBuilder calendarBuilder = mock(CalendarBuilder.class);
-        CanvasApiFactory canvasApiFactory = mock(CanvasApiFactory.class);
 
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "http://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/calendar-one-event.ics").toURI().toURL().toString());
 
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
@@ -114,12 +115,9 @@ class IcalSyncJobTest {
                 .findById(any())).thenReturn(Optional.of(calendarImport));
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
-        when(csvReader.parseCSV(any(), any(), any())).thenReturn(calendarEvents);
         when(calendarWriter.createCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
-        when(canvasApiFactory.getReader(any(), any(), any())).thenReturn(calendarReader);
-        when(canvasApiFactory.getWriter(any(), any())).thenReturn(calendarWriter);
         when(calendarReader.listCurrentUserCalendarEvents(any())).thenReturn(calendarEvents);
-        when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
         when(calendarBuilder.build((InputStream) any())).thenReturn(calendar);
         doNothing().when(importEventService).eventCreated(any(), any(), any());
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
@@ -132,8 +130,8 @@ class IcalSyncJobTest {
         icalSyncJob.setCanvasCalendarService(canvasCalendarService);
         icalSyncJob.setProgressService(progressService);
         icalSyncJob.setDepositService(depositService);
-        icalSyncJob.setCalendarBuilder(calendarBuilder);
-        icalSyncJob.setCanvasApiFactory(canvasApiFactory);
+        icalSyncJob.setCalendarReader(calendarReader);
+        icalSyncJob.setCalendarWriter(calendarWriter);
 
         icalSyncJob.execute(context);
         verify(calendarWriter, times(1)).createCalendarEvent(any());
@@ -161,7 +159,7 @@ class IcalSyncJobTest {
     }
 
     @Test
-    public void testCallNoUser() {
+    public void testCallNoUser() throws URISyntaxException, MalformedURLException {
         IcalSyncJob IcalSyncJob = new IcalSyncJob();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
 
@@ -174,8 +172,8 @@ class IcalSyncJobTest {
         JobExecutionContext context = mock(JobExecutionContext.class);
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "http://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
@@ -190,7 +188,7 @@ class IcalSyncJobTest {
     }
 
     @Test
-    public void testCallNoCalendarImport() throws JOSEException, IOException, HeaderException {
+    public void testCallNoCalendarImport() throws JOSEException, IOException, HeaderException, URISyntaxException {
         IcalSyncJob icalSyncJob = new IcalSyncJob();
         CalendarImport calendarImport = new CalendarImport();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
@@ -198,8 +196,8 @@ class IcalSyncJobTest {
         JobExecutionContext context = mock(JobExecutionContext.class);
 
         JobDataMap map = new JobDataMap();
-        map.put("time_zone", TimeZone.getDefault().toString());
-        map.put("url", "https://bbc.co.uk");
+        map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
+        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -224,7 +222,7 @@ class IcalSyncJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
 
         icalSyncJob.setTenantRepository(tenantRepository);
         icalSyncJob.setUserRepository(userRepository);
@@ -238,7 +236,7 @@ class IcalSyncJobTest {
     }
 
     @Test
-    public void testCallNoTimeZone() throws JOSEException, IOException {
+    public void testCallNoTimeZone() throws JOSEException, IOException, URISyntaxException {
         IcalSyncJob icalSyncJob = new IcalSyncJob();
         CalendarImport calendarImport = new CalendarImport();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
@@ -247,7 +245,7 @@ class IcalSyncJobTest {
 
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("url", "https://bbc.co.uk");
+        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -270,7 +268,7 @@ class IcalSyncJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(new URL("https://bbc.co.uk"));
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
 
         icalSyncJob.setTenantRepository(tenantRepository);
         icalSyncJob.setUserRepository(userRepository);

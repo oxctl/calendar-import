@@ -81,15 +81,19 @@ public class IcalSyncJob extends CanvasCalendarJob {
         this.inputLimit = inputLimit;
     }
 
-    private CalendarBuilder builder;
+    private CalendarReader reader;
+    private CalendarWriter writer;
 
     public void run() throws IOException {
 
         URL url = new URL(this.url);
 
-        CalendarReader reader =
-                canvasApiFactory.getReader(CalendarReader.class, oauthToken, PAGINATION_PAGE_SIZE);
-        CalendarWriter writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (reader==null){
+            reader = canvasApiFactory.getReader(CalendarReader.class, oauthToken, PAGINATION_PAGE_SIZE);
+        }
+        if (writer==null){
+            writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
 
         ListCalendarEventsOptions listCalendarEventsOptions = new ListCalendarEventsOptions();
         listCalendarEventsOptions.contextCodes(Collections.singletonList(context));
@@ -120,9 +124,7 @@ public class IcalSyncJob extends CanvasCalendarJob {
 
         int seen = 0, newEvents = 0, updatedEvents = 0;
 
-        if (builder==null){
-            builder = new CalendarBuilder();
-        }
+        CalendarBuilder builder = new CalendarBuilder();
 
         URLConnection urlConnection = url.openConnection();
         urlConnection.setReadTimeout(10000);
@@ -278,7 +280,15 @@ public class IcalSyncJob extends CanvasCalendarJob {
         return instant;
     }
 
-    public void setCalendarBuilder(CalendarBuilder calendarBuilder) {
-        this.builder = calendarBuilder;
+//    public void setCalendarBuilder(CalendarBuilder calendarBuilder) {
+//        this.builder = calendarBuilder;
+//    }
+
+    public void setCalendarReader(CalendarReader calendarReader) {
+        this.reader = calendarReader;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.writer = calendarWriter;
     }
 }
