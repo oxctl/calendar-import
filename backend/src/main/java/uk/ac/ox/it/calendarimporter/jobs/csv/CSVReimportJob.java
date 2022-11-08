@@ -216,8 +216,8 @@ public class CSVReimportJob extends CanvasCalendarJob {
         this.reader = csvReader;
     }
 
-    public void setMaxEventsCSV(int maxEventsCSV) {
-        this.maxEventsInCsv = maxEventsCSV;
+    public void setMaxEventsCSV(int maxEventsInCSV) {
+        this.maxEventsInCsv = maxEventsInCSV;
     }
 
     public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
