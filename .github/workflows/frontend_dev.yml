@@ -119,7 +119,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - run: npm ci
-      - run: npx playwright test
+      - run: npm test
 
   cleanup-artifacts:
     runs-on: ubuntu-20.04
