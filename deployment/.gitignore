@@ -1,0 +1,13 @@
+../frontend/node_modules/
+npm-debug.log
+yarn-error.log
+.yarnclean
+.babel-cache
+.DS_Store
+.npmrc
+.tmp/
+localhost-key.pem
+localhost.pem
+.env
+build
+*.iml

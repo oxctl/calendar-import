@@ -61,7 +61,10 @@ jobs:
   deployment-tests:
     runs-on: ubuntu-20.04
     timeout-minutes: 5
-    needs: deploy-prod
+    needs: deploy-dev
+    defaults:
+      run:
+        working-directory: deployment
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ env.NODE_VERSION }}
@@ -75,4 +78,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - run: npm ci
-      - run: npm run test-deployed
+      - run: npx playwright test

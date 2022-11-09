@@ -1,0 +1,11 @@
+{
+  "name": "deployment",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "npx playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.27.1",
+    "dotenv": "^16.0.3"
+  }
+}
