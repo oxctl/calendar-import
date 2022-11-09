@@ -57,7 +57,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-      - run: npm run test-deployed
 
   deployment-tests:
     runs-on: ubuntu-20.04
