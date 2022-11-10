@@ -117,6 +117,7 @@ public abstract class LoggingJob implements Job {
         }
     }
 
+
     /**
      * Simple object to pass back the results of the Job.
      */
@@ -180,5 +181,13 @@ public abstract class LoggingJob implements Job {
         public int getSeen() {
             return this.seen;
         }
+    }
+
+    public void setProgressService(ProgressService progressService){
+        this.progressService = progressService;
+    }
+
+    public void setDepositService(DepositService depositService){
+        this.depositService=  depositService;
     }
 }

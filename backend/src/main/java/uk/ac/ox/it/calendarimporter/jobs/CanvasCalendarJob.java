@@ -185,4 +185,24 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
 
     public abstract void run() throws IOException, JobExecutionException;
+
+    public void setTenantRepository(TenantRepository tenantRepository) {
+        this.tenantRepository = tenantRepository;
+    }
+
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public void setCalendarImportRepository(CalendarImportRepository calendarImportRepository) {
+        this.calendarImportRespository = calendarImportRepository;
+    }
+
+    public void setCanvasTokenCreator(CanvasTokenCreator canvasTokenCreator) {
+        this.canvasTokenCreator = canvasTokenCreator;
+    }
+
+    public void setCanvasCalendarService(CanvasCalendarService canvasCalendarService){
+        this.canvasCalendarService = canvasCalendarService;
+    }
 }

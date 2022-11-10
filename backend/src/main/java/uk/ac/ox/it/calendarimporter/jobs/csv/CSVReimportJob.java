@@ -54,14 +54,21 @@ public class CSVReimportJob extends CanvasCalendarJob {
     
     @Value("${calendar.reimport.max.events}")
     private int maxEventsInCsv;
-    
+
+    private CalendarWriter calendarWriter;
+    private  CalendarReader calendarReader;
+
     @Override
     public void run() throws IOException, JobExecutionException {
         // Reset the progress.
         reset();
 
-        CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
-        CalendarReader calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);
+        if (calendarWriter==null){
+            calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
+        if (calendarReader==null){
+            calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);
+        }
 
         TimeZone timeZone = TimeZone.getTimeZone(this.timeZone);
 
@@ -199,6 +206,30 @@ public class CSVReimportJob extends CanvasCalendarJob {
                 event.getStartAt(),
                 event.getEndAt()
         );
+    }
+
+    public void setCalendarUrlConfiguration(CalendarUrlConfiguration calendarUrlConfiguration) {
+        this.calendarUrlConfiguration = calendarUrlConfiguration;
+    }
+
+    public void setCSVReader(CSVReader csvReader) {
+        this.reader = csvReader;
+    }
+
+    public void setMaxEventsCSV(int maxEventsInCSV) {
+        this.maxEventsInCsv = maxEventsInCSV;
+    }
+
+    public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
+        this.importedEventRepository = importedEventRepository;
+    }
+
+    public void setCalendarReader(CalendarReader calendarReader) {
+        this.calendarReader = calendarReader;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.calendarWriter = calendarWriter;
     }
 
     private class TrackingErrorHandler implements CSVReader.ErrorHandler {

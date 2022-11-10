@@ -40,10 +40,14 @@ public class CSVImportJob extends CanvasCalendarJob {
     @Autowired
     private CSVReader reader;
 
+    private CalendarWriter calendarWriter;
+
     @Override
     public void run() throws IOException, JobExecutionException {
 
-        CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (calendarWriter==null){
+            calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
         runJobRecovery(calendarWriter);
 
         TimeZone timeZone = TimeZone.getTimeZone(this.timeZone);
@@ -151,6 +155,14 @@ public class CSVImportJob extends CanvasCalendarJob {
         return event;
     }
 
+    public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
+        this.importedEventRepository = importedEventRepository;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.calendarWriter = calendarWriter;
+    }
+
     private class TrackingErrorHandler implements CSVReader.ErrorHandler {
         private int problems = 0;
 
@@ -164,5 +176,13 @@ public class CSVImportJob extends CanvasCalendarJob {
         public boolean hasProblems() {
             return problems > 0;
         }
+    }
+
+    public void setCSVReader(CSVReader csvReader){
+        this.reader = csvReader;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 }

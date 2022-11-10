@@ -81,13 +81,19 @@ public class IcalSyncJob extends CanvasCalendarJob {
         this.inputLimit = inputLimit;
     }
 
+    private CalendarReader reader;
+    private CalendarWriter writer;
+
     public void run() throws IOException {
 
         URL url = new URL(this.url);
 
-        CalendarReader reader =
-                canvasApiFactory.getReader(CalendarReader.class, oauthToken, PAGINATION_PAGE_SIZE);
-        CalendarWriter writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (reader==null){
+            reader = canvasApiFactory.getReader(CalendarReader.class, oauthToken, PAGINATION_PAGE_SIZE);
+        }
+        if (writer==null){
+            writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
 
         ListCalendarEventsOptions listCalendarEventsOptions = new ListCalendarEventsOptions();
         listCalendarEventsOptions.contextCodes(Collections.singletonList(context));
@@ -272,5 +278,13 @@ public class IcalSyncJob extends CanvasCalendarJob {
             instant = date.toInstant();
         }
         return instant;
+    }
+
+    public void setCalendarReader(CalendarReader calendarReader) {
+        this.reader = calendarReader;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.writer = calendarWriter;
     }
 }

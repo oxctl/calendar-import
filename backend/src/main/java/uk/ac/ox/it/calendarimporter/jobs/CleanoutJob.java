@@ -55,6 +55,9 @@ public class CleanoutJob implements Job {
     @Autowired
     private UserRepository userRepository;
 
+    private CalendarReader calendarReader;
+    private CalendarWriter calendarWriter;
+
     public void execute(JobExecutionContext jobContext) throws JobExecutionException {
         JobDataMap config = jobContext.getMergedJobDataMap();
         boolean all = config.getBoolean(ALL);
@@ -79,8 +82,12 @@ public class CleanoutJob implements Job {
         }
         CanvasApiFactory canvasApiFactory = new CanvasApiFactory(tenant.getProxyHost());
 
-        CalendarReader calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);
-        CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (calendarReader==null){
+            calendarReader = canvasApiFactory.getReader(CalendarReader.class, oauthToken);
+        }
+        if (calendarWriter==null){
+            calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
 
         ListCalendarEventsOptions options = new ListCalendarEventsOptions();
         options.contextCodes(Collections.singletonList(context));
@@ -137,5 +144,25 @@ public class CleanoutJob implements Job {
     private boolean isChildEvent(CalendarEvent event) {
         return event.getEffectiveContextCode() != null
                 && !event.getEffectiveContextCode().equals(event.getContextCode());
+    }
+
+    public void setTenantRepository(TenantRepository tenantRepository) {
+        this.tenantRepository=  tenantRepository;
+    }
+
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository=  userRepository;
+    }
+
+    public void setCanvasTokenCreator(CanvasTokenCreator canvasTokenCreator) {
+        this.canvasTokenCreator = canvasTokenCreator;
+    }
+
+    public void setCalendarReader(CalendarReader calendarReader) {
+        this.calendarReader = calendarReader;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.calendarWriter = calendarWriter;
     }
 }

@@ -64,10 +64,14 @@ public class IcalImportJob extends CanvasCalendarJob {
         this.inputLimit = inputLimit;
     }
 
+    private CalendarWriter writer;
+
     public void run() throws IOException, JobExecutionException {
 
         URL url = new URL(this.url);
-        CalendarWriter writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (writer==null){
+            writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
 
         AtomicInteger created = new AtomicInteger(0);
 
@@ -217,5 +221,13 @@ public class IcalImportJob extends CanvasCalendarJob {
         event.setEndAt(null);
         event.setChildEventsData(Collections.singletonList(childEvent));
         return event;
+    }
+
+    public void setImportEventService(ImportEventService importEventService) {
+        this.importEventService = importEventService;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.writer = calendarWriter;
     }
 }

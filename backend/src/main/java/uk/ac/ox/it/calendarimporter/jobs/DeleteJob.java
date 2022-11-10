@@ -53,6 +53,8 @@ public class DeleteJob extends LoggingJob implements Job {
     @Autowired
     private UserRepository userRepository;
 
+    private CalendarWriter calendarWriter;
+
     public void executeLogged(JobExecutionContext jobContext) throws JobExecutionException {
         JobDataMap config = jobContext.getMergedJobDataMap();
         Tenant tenant =
@@ -84,7 +86,9 @@ public class DeleteJob extends LoggingJob implements Job {
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to create JWT.", e);
         }
-        CalendarWriter calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        if (calendarWriter==null){
+            calendarWriter = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
+        }
 
         try {
             int deleted = 0;
@@ -131,5 +135,30 @@ public class DeleteJob extends LoggingJob implements Job {
         } catch (IOException e) {
             throw new JobExecutionException("Problem connecting to Canvas.");
         }
+    }
+
+    public void setTenantRepository(TenantRepository tenantRepository) {
+        this.tenantRepository = tenantRepository;
+    }
+
+    public void setCalendarImportRepository(CalendarImportRepository calendarImportRepository) {
+        this.calendarImportRepository = calendarImportRepository;
+    }
+
+    public void setImportedEventRepository(ImportedEventRepository importedEventRepository) {
+        this.importedEventRepository = importedEventRepository;
+    }
+
+    public void setUserRepository(UserRepository userRepository) {
+
+        this.userRepository = userRepository;
+    }
+
+    public void setCanvasTokenCreator(CanvasTokenCreator canvasTokenCreator) {
+        this.canvasTokenCreator = canvasTokenCreator;
+    }
+
+    public void setCalendarWriter(CalendarWriter calendarWriter) {
+        this.calendarWriter = calendarWriter;
     }
 }
