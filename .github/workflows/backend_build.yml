@@ -9,6 +9,10 @@ env:
   DOCKER_REPO: 211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import
   EB_APPLICATION: calendar-import
   EB_ENVIRONMENT: calendar-import-dev-env
+  CANVAS_HOST: https://universityofoxford.beta.instructure.com
+  OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
+  COURSE_ID: 186507
+  TOOL_ID: 55353
 
 on:
   push:
@@ -124,3 +128,25 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+
+  deployment-tests:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    needs: deploy-dev
+    defaults:
+      run:
+        working-directory: deployment
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - run: npm ci
+      - run: npm test
