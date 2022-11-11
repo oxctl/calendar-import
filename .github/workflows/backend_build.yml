@@ -149,5 +149,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - run: npm ci
-      - run: npm install-browsers
+      - run: npm run install-browsers
       - run: npm test
