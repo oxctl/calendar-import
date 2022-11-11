@@ -1,10 +1,18 @@
-const { test } = require('@playwright/test');
+const { test } = require('@playwright/test')
+const assert = require('assert')
 require('dotenv').config()
 
 const token = process.env.OAUTH_TOKEN
 const host = process.env.CANVAS_HOST
 const courseId = process.env.COURSE_ID
 const toolId = process.env.TOOL_ID
+
+test.beforeAll(async () => {
+  assert(token, 'You must set the environmental variable OAUTH_TOKEN')
+  assert(host, 'You must set the environmental variable CANVAS_HOST')
+  assert(courseId, 'You must set the environmental variable COURSE_ID')
+  assert(toolId, 'You must set the environmental variable TOOL_ID')
+})
 
 const login = async (request, page) => {
   await Promise.all([
