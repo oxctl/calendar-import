@@ -2,6 +2,7 @@
   "name": "deployment",
   "version": "1.0.0",
   "scripts": {
+    "install-browsers": "npx playwright install",
     "test": "npx playwright test"
   },
   "devDependencies": {
