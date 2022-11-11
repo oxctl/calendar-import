@@ -62,9 +62,8 @@ jobs:
     runs-on: ubuntu-20.04
     timeout-minutes: 5
     needs: deploy-dev
-    environment: frontend-prod
     env:
-      OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
+      OAUTH_TOKEN: ${{ secrets.DEPLOYMENT_TESTS_OAUTH_TOKEN }}
     defaults:
       run:
         working-directory: deployment
