@@ -61,7 +61,7 @@ jobs:
   deployment-tests:
     runs-on: ubuntu-20.04
     timeout-minutes: 5
-    needs: deploy-dev
+    needs: deploy-prod
     env:
       OAUTH_TOKEN: ${{ secrets.DEPLOYMENT_TESTS_OAUTH_TOKEN }}
     defaults:
