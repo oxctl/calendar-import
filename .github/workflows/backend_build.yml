@@ -11,8 +11,8 @@ env:
   EB_ENVIRONMENT: calendar-import-dev-env
   CANVAS_HOST: https://universityofoxford.beta.instructure.com
   OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
-  COURSE_ID: 186507
-  TOOL_ID: 55353
+  COURSE_ID: 186641
+  TOOL_ID: 55607
 
 on:
   push:
