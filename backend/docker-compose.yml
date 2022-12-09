@@ -16,7 +16,7 @@ services:
       # config from the config folder relative to the current directory
       - ./docker-config:/config
   db:
-    image: mysql:8.0.15
+    image: mysql:8.0.31
     ports:
       - 3306
     environment:
@@ -25,5 +25,3 @@ services:
       MYSQL_USER: import
       MYSQL_PASSWORD: import
       MYSQL_DATABASE: import
-    command:
-     - --character-set-server=utf8
