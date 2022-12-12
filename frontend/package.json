@@ -1,6 +1,6 @@
 {
   "name": "calendar-import-frontend",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "homepage": "./",
   "scripts": {
     "start": "react-scripts start",
