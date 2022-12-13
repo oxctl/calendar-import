@@ -168,7 +168,10 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
             oauthToken = canvasTokenCreator.getToken(tenant, user.getSubject());
             run();
             canvasCalendarService.resetRetryCounter(context);
-        } catch (IOException e) {
+        } catch(CalendarUrlForbiddenException e) {
+            canvasCalendarService.retryOrDeleteJob(context);
+            throw new CalendarUrlForbiddenException(e);
+        } catch(IOException e) {
             throw new JobExecutionException(e);
         } catch (JOSEException e) {
             throw new JobExecutionException("Failed to get signed JWT", e);
