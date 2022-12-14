@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import uk.ac.ox.it.calendarimporter.CalendarUrlConfiguration;
 import uk.ac.ox.it.calendarimporter.URLMapper;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
-import uk.ac.ox.it.calendarimporter.jobs.CalendarUrlForbiddenException;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.service.ImportEventService;
@@ -93,8 +92,8 @@ public class CSVReimportJob extends CanvasCalendarJob {
             failure("Failed to read file: " + he.getLocalizedMessage());
             return;
         } catch(IOException e){
-            log(e.getMessage());
-            throw new CalendarUrlForbiddenException(e);
+            failure("Failed to download data: " + e.getMessage());
+            return;
         }
         log.trace("Parsed {} rows.", importingEvents.size());
         log("Source file read.");
