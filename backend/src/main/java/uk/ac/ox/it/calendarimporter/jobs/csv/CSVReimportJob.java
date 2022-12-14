@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.UUID;
 
 /**
  * This job supports re-importing events into a calendar on a regular basis.
@@ -91,6 +90,9 @@ public class CSVReimportJob extends CanvasCalendarJob {
             importingEvents = reader.parseCSV(connection.getInputStream(), timeZone, errorHandler);
         } catch (HeaderException he) {
             failure("Failed to read file: " + he.getLocalizedMessage());
+            return;
+        } catch(IOException e){
+            failure("Failed to download data: " + e.getMessage());
             return;
         }
         log.trace("Parsed {} rows.", importingEvents.size());
