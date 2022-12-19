@@ -3,25 +3,33 @@ package uk.ac.ox.it.calendarimporter.service;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.Mock;
-import org.quartz.*;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.quartz.impl.triggers.SimpleTriggerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.jobs.CleanoutJob;
-import uk.ac.ox.it.calendarimporter.persistence.model.*;
+import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
+import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @ActiveProfiles("test")
+@DirtiesContext
 public class ImportServiceTest {
 
     @Autowired
@@ -52,9 +61,6 @@ public class ImportServiceTest {
 
     @Autowired
     CalendarImportRepository calendarImportRepository;
-
-    @Mock
-    JobExecutionContext context;
 
     Tenant tenant;
 
