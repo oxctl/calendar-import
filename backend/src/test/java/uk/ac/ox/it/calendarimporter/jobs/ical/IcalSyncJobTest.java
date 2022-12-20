@@ -53,7 +53,6 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
 class IcalSyncJobTest {
 
     @Test

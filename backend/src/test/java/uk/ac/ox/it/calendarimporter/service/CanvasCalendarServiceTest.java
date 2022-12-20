@@ -5,9 +5,12 @@ import org.mockito.Mock;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ox.it.calendarimporter.jobs.TestJob;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
+
+import javax.transaction.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -16,6 +19,8 @@ import static org.mockito.Mockito.when;
     "calendar.reimport.max.retries=3"
 })
 @ActiveProfiles("test")
+@Transactional
+@DirtiesContext
 public class CanvasCalendarServiceTest {
 
     @Autowired
