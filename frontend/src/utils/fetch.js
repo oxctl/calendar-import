@@ -31,6 +31,8 @@ export const handleErrors = (response) => {
           throw new LoginError('Token isn\'t valid for this operation.')
         }
       })
+    } else {
+      throw new Error(`${response.status} error`)
     }
   }
   return response
