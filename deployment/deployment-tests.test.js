@@ -42,7 +42,7 @@ const grantAccess = async (context, frameLocator) => {
   await close.click()
 }
 
-test('Test that Import Complete data is present.', async ({ context, page, request }) => {
+test('Calendar import loads and shows the previous imports or that there are none.', async ({ context, page, request }) => {
   await login(request, page)
   await page.goto(`${host}/courses/${courseId}/external_tools/${toolId}?launch_type=course_home_sub_navigation`)
   const frameLocator = await page.frameLocator('#tool_content')
@@ -58,7 +58,12 @@ test('Test that Import Complete data is present.', async ({ context, page, reque
     await grantAccess(context, frameLocator)
   }
 
-  await frameLocator.getByText('Deployment Tester imported example.csv into the course').first().waitFor()
-  await frameLocator.getByText('Import: Completed').first().waitFor()
-  await frameLocator.getByText('Last message: Completed import, found 2 events, imported 2 events into calendar.').first().waitFor()
+  // We could shortcut this if we see an error message, but I think it's reasonable to just wait on the timeout
+  // instead of complicating the code.
+  
+  // Wait until we either load an import or find that there's no imports in the course.
+  await Promise.race([
+      frameLocator.getByText(/.* imported .* into the/).first().waitFor(),
+      frameLocator.getByText("No previous imports found").waitFor(),
+  ])
 })

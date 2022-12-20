@@ -80,6 +80,12 @@ class ImportView extends React.Component {
     }
 
     renderItems = () => {
+        if (this.props.data?.content.length === 0) {
+            return <View as='div' background='primary' margin='medium' borderWidth='small' padding='small' textAlign='center'>
+                  <Heading level='h3'>No previous imports found</Heading>
+              </View>
+            return 
+        }
         return this.props.data?.content.map(({id, calendarImport}) => {
                 return <React.Fragment key={id}>
                     <View as='div' background='primary' margin='small' borderWidth='small' padding='small'>
