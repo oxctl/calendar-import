@@ -2,14 +2,20 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import { configureStore } from '@reduxjs/toolkit'
 import { Provider } from 'react-redux'
-import messageReducer from '../reducers/messages'
+import importsReducer from "../reducers/imports";
+import ltiReducer from "../reducers/lti";
+import messagesReducer from "../reducers/messages";
 
 export function renderWithProviders(
     ui,
     {
         preloadedState = {},
         // Automatically create a store instance if no store was passed in
-        store = configureStore({reducer: { messages: messageReducer }, preloadedState}),
+        store = configureStore({reducer: {
+                imports: importsReducer,
+                lti: ltiReducer,
+                messages: messagesReducer
+            }, preloadedState}),
         ...renderOptions
     } = {}
 ) {

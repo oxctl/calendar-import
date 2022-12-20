@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "install-browsers": "npx playwright install",
-    "test": "npx playwright test"
+    "test": "npx playwright test --retries=2"
   },
   "devDependencies": {
     "@playwright/test": "^1.27.1",
