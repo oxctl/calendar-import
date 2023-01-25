@@ -126,6 +126,7 @@ class AuthoriseCalendarEvents extends React.Component {
   }
 
   renderStatus = (status) => {
+    if(!status) return "Unable to get status"
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   }
 
