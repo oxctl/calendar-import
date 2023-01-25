@@ -58,8 +58,12 @@ class AuthoriseCalendarEvents extends React.Component {
         lastCalendarImport: json
       })
     }).catch((error) => {
-      this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
-      throw error
+      if(error.message === '401'){
+        this.props.onMessage({text: 'Session has timed out, please relaunch the tool. Error: '+ error.message, type: 'error'})
+      }else {
+        this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
+        throw error
+      }
     })
   }
 
