@@ -17,6 +17,7 @@ import Messages from './Messages'
 import { addMessage } from './actions/messages'
 import { Loading } from './Loading'
 import { getRelativeTime } from './relativeTime'
+import { CalendarError } from './CalendarError'
 
 class AuthoriseCalendarEvents extends React.Component {
 
@@ -48,8 +49,7 @@ class AuthoriseCalendarEvents extends React.Component {
     ).then((response) => {
       if (!response.ok) {
         if(response.status === 401){
-          this.props.onMessage({text: 'Session has timed out, please relaunch the tool. Error: '+ response.status, type: 'error'})
-          return
+          throw new CalendarError('Session has timed out, please relaunch the tool. Error: '+ response.status)
         }else {
           throw Error("" + response.status);
         }
@@ -63,8 +63,12 @@ class AuthoriseCalendarEvents extends React.Component {
         lastCalendarImport: json
       })
     }).catch((error) => {
-      this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
-      throw error
+      if(error instanceof CalendarError){
+        this.props.onMessage({text: error.message, type: 'error'})
+      }else {
+        this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
+        throw error
+      }
     })
   }
 
