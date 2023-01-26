@@ -47,10 +47,10 @@ class AuthoriseCalendarEvents extends React.Component {
       }
     ).then((response) => {
       if (!response.ok) {
-        if(response.status === 401){
-          this.props.onMessage({text: 'Session has timed out, please relaunch the tool. Error: '+ response.status, type: 'error'})
-          return
-        }else {
+        if(response.status === 401 || response.type === 'opaqueredirect'){
+          this.props.onMissingToken()
+        }
+        else {
           throw Error("" + response.status);
         }
       }
