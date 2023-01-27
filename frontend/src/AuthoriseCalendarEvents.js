@@ -50,8 +50,8 @@ class AuthoriseCalendarEvents extends React.Component {
       if (!response.ok) {
         if(response.status === 401){
           throw new CalendarError('Session has timed out, please relaunch the tool. Error: '+ response.status)
-        }else {
-          throw Error("" + response.status);
+        }else{
+          throw Error("" + response.status)
         }
       }
       return response.json()
@@ -136,7 +136,7 @@ class AuthoriseCalendarEvents extends React.Component {
 
   renderStatus = (status) => {
     if(!status) return "Unable to get status"
-    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
   }
 
   handleRefresh = () => {

@@ -1,15 +1,16 @@
-import React, {Fragment} from 'react'
-import {Heading} from '@instructure/ui-heading'
-import {Checkbox} from '@instructure/ui-checkbox'
-import {Text} from "@instructure/ui-text";
-import {Button} from '@instructure/ui-buttons'
-import {Flex} from '@instructure/ui-flex'
-import {View} from '@instructure/ui-view'
-import {Spinner} from "@instructure/ui-spinner";
-import {Alert} from "@instructure/ui-alerts";
-import {checkOK} from './utils/fetch'
-import {Link} from "@instructure/ui-link";
-import PropTypes from "prop-types";
+import React, { Fragment } from 'react'
+import { Heading } from '@instructure/ui-heading'
+import { Checkbox } from '@instructure/ui-checkbox'
+import { Text } from '@instructure/ui-text'
+import { Button } from '@instructure/ui-buttons'
+import { Flex } from '@instructure/ui-flex'
+import { View } from '@instructure/ui-view'
+import { Spinner } from '@instructure/ui-spinner'
+import { Alert } from '@instructure/ui-alerts'
+import { checkOK } from './utils/fetch'
+import { Link } from '@instructure/ui-link'
+import PropTypes from 'prop-types'
+import { CalendarError } from './CalendarError'
 
 class UserCalendars extends React.Component {
 
@@ -241,9 +242,7 @@ class UserCalendars extends React.Component {
 
     doDelete = async (id, calendar) => {
         const {calendarServer} = this.props
-        const newState = {}
-        newState[calendar + "Running"] = true
-        this.setState(newState)
+        this.setCalendarState(calendar, true)
         await this.fetch(calendarServer + "/api/imports/" + id, {
             method: 'DELETE'
         })
@@ -252,9 +251,7 @@ class UserCalendars extends React.Component {
 
     doImport = async (filename, blob, calendar) => {
         const {calendarServer} = this.props
-        const newState = {}
-        newState[calendar + "Running"] = true
-        this.setState(newState)
+        this.setCalendarState(calendar, true)
         const formData = new FormData();
         formData.append("file", blob, filename)
 
@@ -268,26 +265,46 @@ class UserCalendars extends React.Component {
 
     doPoll = async (id, calendar) => {
         const {calendarServer} = this.props
-        const response = await this.fetch(calendarServer + "/api/imports/" + id)
-        const json = await response.json()
-
-        const {calendarImport} = json
-        const newState = {}
-        newState[calendar + "Import"] = calendarImport
-        newState[calendar + "ImportId"] = id
-        newState[calendar] = !calendarImport.delete
-        this.setState(newState)
-        const running = (calendarImport.delete) ?
-            this.isRunning(calendarImport.delete.status) :
-            this.isRunning(calendarImport.load.status)
-        if (running) {
-            setTimeout(() => this.doPoll(id, calendar), 5000)
-        } else {
+        return await this.fetch(calendarServer + "/api/imports/" + id).then((response) => {
+            if(!response.ok){
+                if(response.status === 401){
+                    throw new CalendarError('Session has timed out, please relaunch the tool. Error: '+ response.status)
+                }else{
+                    throw Error("" + response.status)
+                }
+            }
+            return response.json()
+        }).then((json) => {
+            const {calendarImport} = json
             const newState = {}
-            newState[calendar + "Running"] = false
+            newState[calendar + "Import"] = calendarImport
+            newState[calendar + "ImportId"] = id
+            newState[calendar] = !calendarImport.delete
             this.setState(newState)
-            this.addAlert("Update of "+ calendar+ " year calendar complete.", 'success')
-        }
+            const running = (calendarImport.delete) ?
+                this.isRunning(calendarImport.delete.status) :
+                this.isRunning(calendarImport.load.status)
+            if (running) {
+                setTimeout(() => this.doPoll(id, calendar), 5000)
+            } else {
+                this.setCalendarState(calendar, false)
+                this.addAlert("Update of "+ calendar+ " year calendar complete.", 'success')
+            }
+        }).catch((error) => {
+            this.setCalendarState(calendar, false)
+            if(error instanceof CalendarError){
+                this.addAlert(error.message, 'error')
+            }else {
+                this.addAlert('Failed to get data, status: ' + error, 'error')
+                throw error
+            }
+        })
+    }
+
+    setCalendarState = (calendar, running) => {
+        const newState = {}
+        newState[calendar + "Running"] = running
+        this.setState(newState)
     }
 
     doDownload = async (filename) => {
