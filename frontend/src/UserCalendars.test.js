@@ -103,7 +103,7 @@ describe("user calendars", () => {
     })
     
     test('displays an error when predefined calendar fails to load', async () => {
-        server.use(rest.get('/calendar/api/predefined', (req, res, ctx) => {
+        server.use(rest.get('/calendar/api/predefined', (req, res) => {
             return res(cts.status(500))
         }))
         render(
@@ -125,7 +125,7 @@ describe("user calendars", () => {
 
 
     test('displays an error when predefined CSV fails to load', async () => {
-        server.use(    rest.get('/calendar/api/predefined/2000-filename.csv', (req, res, ctx) => {
+        server.use(rest.get('/calendar/api/predefined/2000-filename.csv', (req, res, ctx) => {
                 return res(ctx.status(500))
             }),
         )
@@ -151,15 +151,14 @@ describe("user calendars", () => {
         await user.click(currentCalendar)
 
         const saveButton = screen.getByRole("button", {name: /save/i })
-        // await user.click(saveButton)
-        
-        // TODO This should really generate an error, but doesn't at the moment. AB#64153
-        // await screen.findByText(/failed to load predefined calendars: network request failed/i)
+        await user.click(saveButton)
+
+        await screen.findByText(/network request failed/i)
     })
 
 
     test('displays an error when starting the job fails', async () => {
-        server.use(    rest.post('/calendar/api/imports/run', (req, res, ctx) => {
+        server.use(rest.post('/calendar/api/run', (req, res, ctx) => {
                 return res(ctx.status(500))
             }),
         )
@@ -185,9 +184,41 @@ describe("user calendars", () => {
         await user.click(currentCalendar)
 
         const saveButton = screen.getByRole("button", {name: /save/i })
-        // await user.click(saveButton)
+        await user.click(saveButton)
 
-        // TODO This should really generate an error, but doesn't at the moment. AB#64153
-        // await screen.findByText(/failed to load predefined calendars: network request failed/i)
+        await screen.findByText(/network request failed/i)
+    })
+
+    test('displays an error when polling fails', async () => {
+        server.use(
+            rest.get('/calendar/api/imports/1', (req, res, ctx) => {
+                return res(ctx.status(401))
+            })
+        )
+        render(
+            <UserCalendars
+                token='token'
+                returnUrl='/return-url'
+                proxyServer='/proxy'
+                calendarServer='/calendar'
+                canvasId='canvasId'
+                userId='userId'
+                onMissingToken={() => {}}
+                date={() => new Date('2000-06-01')}
+            />
+        )
+
+        await screen.findByRole('heading', {name: /University Terms/})
+        await waitForElementToBeRemoved(() => screen.queryByTitle(/loading calendars/i))
+
+        const currentCalendar = screen.getByRole("checkbox", {name: /2000 Calendar/})
+
+        const user = userEvent.setup()
+        await user.click(currentCalendar)
+
+        const saveButton = screen.getByRole("button", {name: /save/i })
+        await user.click(saveButton)
+
+        await screen.findByText(/session has timed out, please relaunch the tool/i)
     })
 })

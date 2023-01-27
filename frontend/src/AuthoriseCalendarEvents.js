@@ -48,11 +48,7 @@ class AuthoriseCalendarEvents extends React.Component {
       }
     ).then((response) => {
       if (!response.ok) {
-        if(response.status === 401){
-          throw new CalendarError('Session has timed out, please relaunch the tool. Error: '+ response.status)
-        }else{
-          throw Error("" + response.status)
-        }
+        throw new CalendarError(response.status)
       }
       return response.json()
     }).then((json) => {
@@ -63,11 +59,12 @@ class AuthoriseCalendarEvents extends React.Component {
         lastCalendarImport: json
       })
     }).catch((error) => {
-      if(error instanceof CalendarError){
-        this.props.onMessage({text: error.message, type: 'error'})
-      }else {
+      if(error.status === 401){
+        this.props.onMessage({text: 'Session has timed out, please relaunch the tool. Error: '+ error.status, type: 'error'})
+      }else if(error.status === 500){
+        this.props.onMessage({text: 'Network request failed. Error: ' + error.status, type: 'error'})
+      }else{
         this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
-        throw error
       }
     })
   }

@@ -191,40 +191,50 @@ class UserCalendars extends React.Component {
   }
 
   doSave = async () => {
-    const {current, currentCalendar, currentImport, currentImportId} = this.state
-    // Is it already imported?
-    const currentAlready = currentImport && !currentImport.delete
-    if (current) {
-      if (!currentAlready) {
-        // If there's already an import hide it, this is so that the list of imports doesn't grow
-        if (currentImportId) {
-          await this.doHide(currentImportId)
+    try{
+      const {current, currentCalendar, currentImport, currentImportId} = this.state
+      // Is it already imported?
+      const currentAlready = currentImport && !currentImport.delete
+      if (current) {
+        if (!currentAlready) {
+          // If there's already an import hide it, this is so that the list of imports doesn't grow
+          if (currentImportId) {
+            await this.doHide(currentImportId)
+          }
+          const filename = currentCalendar.filename
+          const blob = await this.doDownload(filename)
+          await this.doImport(filename, blob, "current")
         }
-        const filename = currentCalendar.filename
-        const blob = await this.doDownload(filename)
-        await this.doImport(filename, blob, "current")
+      } else {
+        if (currentAlready) {
+          await this.doDelete(currentImportId, "current")
+        }
       }
-    } else {
-      if (currentAlready) {
-        await this.doDelete(currentImportId, "current")
-      }
-    }
 
-    const {next, nextCalendar, nextImport, nextImportId} = this.state
-    const nextAlready = nextImport && !nextImport.delete
-    if (next) {
-      if (!nextAlready) {
-        // If there's already an import hide it.
-        if (nextImportId) {
-          await this.doHide(nextImportId)
+      const {next, nextCalendar, nextImport, nextImportId} = this.state
+      const nextAlready = nextImport && !nextImport.delete
+      if (next) {
+        if (!nextAlready) {
+          // If there's already an import hide it.
+          if (nextImportId) {
+            await this.doHide(nextImportId)
+          }
+          const filename = nextCalendar.filename
+          const blob = await this.doDownload(filename)
+          await this.doImport(filename, blob, "next")
         }
-        const filename = nextCalendar.filename
-        const blob = await this.doDownload(filename)
-        await this.doImport(filename, blob, "next")
+      } else {
+        if (nextAlready) {
+          await this.doDelete(nextImportId, "next")
+        }
       }
-    } else {
-      if (nextAlready) {
-        await this.doDelete(nextImportId, "next")
+    }catch(error){
+      if(error.status === 401){
+        this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
+      }else if(error.status === 500){
+        this.addAlert('Network request failed. Error: ' + error.status, 'error')
+      }else{
+        this.addAlert('Failed to get data, status: ' + error, 'error')
       }
     }
   }
@@ -245,6 +255,10 @@ class UserCalendars extends React.Component {
     this.setCalendarState(calendar, true)
     await this.fetch(calendarServer + "/api/imports/" + id, {
       method: 'DELETE'
+    }).then((response) => {
+      if(!response.ok){
+        throw new CalendarError(response.status)
+      }
     })
     this.doPoll(id, calendar)
   }
@@ -255,23 +269,24 @@ class UserCalendars extends React.Component {
     const formData = new FormData();
     formData.append("file", blob, filename)
 
-    const response = await this.fetch(calendarServer + "/api/run", {
+    await this.fetch(calendarServer + "/api/run", {
       body: formData,
       method: 'POST'
+    }).then((response) => {
+      if(!response.ok){
+        throw new CalendarError(response.status)
+      }
+      return response.json()
+    }).then((json) => {
+      this.doPoll(json.id, calendar)
     })
-    const json = await response.json()
-    this.doPoll(json.id, calendar)
   }
 
   doPoll = async (id, calendar) => {
     const {calendarServer} = this.props
     return await this.fetch(calendarServer + "/api/imports/" + id).then((response) => {
       if(!response.ok){
-        if(response.status === 401){
-          throw new CalendarError('Session has timed out, please relaunch the tool. Error: '+ response.status)
-        }else{
-          throw Error("" + response.status)
-        }
+        throw new CalendarError(response.status)
       }
       return response.json()
     }).then((json) => {
@@ -292,9 +307,11 @@ class UserCalendars extends React.Component {
       }
     }).catch((error) => {
       this.setCalendarState(calendar, false)
-      if(error instanceof CalendarError){
-        this.addAlert(error.message, 'error')
-      }else {
+      if(error.status === 401){
+        this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
+      }else if(error.status === 500){
+        this.addAlert('Network request failed. Error: ' + error.status, 'error')
+      }else{
         this.addAlert('Failed to get data, status: ' + error, 'error')
         throw error
       }
@@ -309,10 +326,14 @@ class UserCalendars extends React.Component {
 
   doDownload = async (filename) => {
     const {calendarServer} = this.props
-    const response = await this.fetch(calendarServer + "/api/predefined/" + filename, {
+    return await this.fetch(calendarServer + "/api/predefined/" + filename, {
       headers: {Accept: 'text/csv'}
+    }).then((response) => {
+      if(!response.ok){
+        throw new CalendarError(response.status)
+      }
+      return response.blob()
     })
-    return response.blob()
   }
 
   addAlert = (message, variant = 'info')  => {
