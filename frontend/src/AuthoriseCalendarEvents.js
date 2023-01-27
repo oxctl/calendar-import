@@ -64,7 +64,7 @@ class AuthoriseCalendarEvents extends React.Component {
       }else if(error.status === 500){
         this.props.onMessage({text: 'Network request failed. Error: ' + error.status, type: 'error'})
       }else{
-        this.props.onMessage({text: 'Failed to get data, status: ' + error, type: 'error'})
+        this.props.onMessage({text: 'Failed to get data. Error: ' + error.status, type: 'error'})
       }
     })
   }
