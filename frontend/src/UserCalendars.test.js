@@ -99,7 +99,7 @@ describe("user calendars", () => {
         )
 
         await screen.findByRole('heading', {name: /University Terms/})
-        await screen.findByText(/failed to process calendars: request failed/i)
+        await screen.findByText(/network request failed/i)
     })
     
     test('displays an error when predefined calendar fails to load', async () => {
@@ -120,7 +120,7 @@ describe("user calendars", () => {
         )
 
         await screen.findByRole('heading', {name: /University Terms/})
-        await screen.findByText(/failed to load predefined calendars: network request failed/i)
+        await screen.findByText(/network request failed/i)
     })
 
 

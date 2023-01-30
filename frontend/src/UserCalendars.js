@@ -87,20 +87,20 @@ class UserCalendars extends React.Component {
   loadData = () => {
     const {calendarServer} = this.props
     const predefinedFetch = this.fetch(calendarServer + "/api/predefined")
-        .then(checkOK)
-        .then(response => response.json())
-        .catch(reason => {
-          this.addAlert("Failed to load predefined calendars: " + reason.message, 'error')
-          throw reason
+        .then((response) => {
+          if (!response.ok) {
+            throw new CalendarError(response.status)
+          }
+          return response.json()
         })
 
 
     const importsFetch = this.fetch(calendarServer + "/api/imports")
-        .then(checkOK)
-        .then(response => response.json())
-        .catch(reason => {
-          this.addAlert("Failed to load existing imports: " + reason.message, 'error')
-          throw reason
+        .then((response) => {
+          if (!response.ok) {
+            throw new CalendarError(response.status)
+          }
+          return response.json()
         })
 
     // Wait for both promises to resolve before working things out.
@@ -119,7 +119,7 @@ class UserCalendars extends React.Component {
           const future = new Date(this.props.date().setFullYear(this.props.date().getFullYear() + 1))
           const next = predefinedJson.find(calendar => calendar.properties.start < future && calendar.properties.end > future);
           if (!current || !next ) {
-            throw new Error("Failed to find current or next calendar")
+            throw new CalendarError()
           }
           this.setState({
             currentCalendar: current,
@@ -161,8 +161,14 @@ class UserCalendars extends React.Component {
               })
             }
           })
-        }).catch(reason => {
-          this.addAlert("Failed to process calendars: "+ reason.message, 'error')
+        }).catch((error) => {
+          if(error.status === 401){
+            this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
+          }else if(error.status === 500){
+            this.addAlert('Network request failed. Error: ' + error.status, 'error')
+          }else{
+            this.addAlert('Failed to get data, status: ' + error, 'error')
+          }
         })
   }
 
@@ -278,7 +284,7 @@ class UserCalendars extends React.Component {
       }
       return response.json()
     }).then((json) => {
-      this.doPoll(json.id, calendar)
+      return this.doPoll(json.id, calendar)
     })
   }
 
@@ -302,19 +308,10 @@ class UserCalendars extends React.Component {
       if (running) {
         setTimeout(() => this.doPoll(id, calendar), 5000)
       } else {
-        this.setCalendarState(calendar, false)
         this.addAlert("Update of "+ calendar+ " year calendar complete.", 'success')
       }
-    }).catch((error) => {
+    }).finally(() => {
       this.setCalendarState(calendar, false)
-      if(error.status === 401){
-        this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
-      }else if(error.status === 500){
-        this.addAlert('Network request failed. Error: ' + error.status, 'error')
-      }else{
-        this.addAlert('Failed to get data, status: ' + error, 'error')
-        throw error
-      }
     })
   }
 
