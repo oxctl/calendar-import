@@ -1,5 +1,6 @@
 export class CalendarError extends Error {
-  constructor(message) {
-    super(message)
+  constructor(status) {
+    super()
+    this.status = status
   }
 }
