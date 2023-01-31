@@ -242,6 +242,8 @@ class UserCalendars extends React.Component {
       }else{
         this.addAlert('Failed to get data, status: ' + error, 'error')
       }
+    }finally{
+      this.setState(({currentRunning: false, nextRunning: false}))
     }
   }
 
@@ -285,8 +287,6 @@ class UserCalendars extends React.Component {
       return response.json()
     }).then((json) => {
       return this.doPoll(json.id, calendar)
-    }).finally(() => {
-      this.setCalendarState(calendar, false)
     })
   }
 
