@@ -285,6 +285,8 @@ class UserCalendars extends React.Component {
       return response.json()
     }).then((json) => {
       return this.doPoll(json.id, calendar)
+    }).finally(() => {
+      this.setCalendarState(calendar, false)
     })
   }
 
