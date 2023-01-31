@@ -187,6 +187,7 @@ describe("user calendars", () => {
         await user.click(saveButton)
 
         await screen.findByText(/network request failed/i)
+        expect(saveButton).not.toBeDisabled()
     })
 
     test('displays an error when polling fails', async () => {
