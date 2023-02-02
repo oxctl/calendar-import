@@ -272,7 +272,7 @@ class UserCalendars extends React.Component {
     const {calendarServer} = this.props
     this.setCalendarState(calendar, true)
     await this.fetch(calendarServer + "/api/imports/" + id, {
-      method: 'GET'
+      method: 'DELETE'
     }).then((response) => {
       if(!response.ok){
         throw new CalendarError(response.status)
