@@ -235,6 +235,14 @@ class UserCalendars extends React.Component {
         }
       }
     }catch(error){
+      if(error.status === 401){
+        this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
+      }else if(error.status === 500){
+        this.addAlert('Network request failed. Error: ' + error.status, 'error')
+      }else{
+        this.addAlert('Failed to get data, status: ' + error, 'error')
+      }
+
       const {current, currentImport, next, nextImport} = this.state
       const currentAlready = currentImport && !currentImport.delete
       const nextAlready = nextImport && !nextImport.delete
@@ -246,15 +254,6 @@ class UserCalendars extends React.Component {
       if( (next && !nextAlready) || (!next && nextAlready) ) {
         this.setState({nextRunning: false})
       }
-
-      if(error.status === 401){
-        this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
-      }else if(error.status === 500){
-        this.addAlert('Network request failed. Error: ' + error.status, 'error')
-      }else{
-        this.addAlert('Failed to get data, status: ' + error, 'error')
-      }
-
     }
   }
 
