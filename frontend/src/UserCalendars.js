@@ -235,6 +235,18 @@ class UserCalendars extends React.Component {
         }
       }
     }catch(error){
+      const {current, currentImport, next, nextImport} = this.state
+      const currentAlready = currentImport && !currentImport.delete
+      const nextAlready = nextImport && !nextImport.delete
+
+      if( (current && !currentAlready) || (!current && currentAlready) ) {
+        this.setState({currentRunning: false})
+      }
+
+      if( (next && !nextAlready) || (!next && nextAlready) ) {
+        this.setState({nextRunning: false})
+      }
+
       if(error.status === 401){
         this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
       }else if(error.status === 500){
@@ -242,7 +254,7 @@ class UserCalendars extends React.Component {
       }else{
         this.addAlert('Failed to get data, status: ' + error, 'error')
       }
-      this.setState(({currentRunning: false, nextRunning: false}))
+
     }
   }
 
@@ -261,7 +273,7 @@ class UserCalendars extends React.Component {
     const {calendarServer} = this.props
     this.setCalendarState(calendar, true)
     await this.fetch(calendarServer + "/api/imports/" + id, {
-      method: 'DELETE'
+      method: 'GET'
     }).then((response) => {
       if(!response.ok){
         throw new CalendarError(response.status)
