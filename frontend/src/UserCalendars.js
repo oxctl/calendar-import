@@ -26,7 +26,8 @@ class UserCalendars extends React.Component {
     nextImport: {delete: true},
     nextImportId: null,
     alerts: [],
-    loading: false
+    loading: false,
+    isRunning: false // are any imports running
   }
 
   static propTypes = {
@@ -162,13 +163,7 @@ class UserCalendars extends React.Component {
             }
           })
         }).catch((error) => {
-          if(error.status === 401){
-            this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
-          }else if(error.status === 500){
-            this.addAlert('Network request failed. Error: ' + error.status, 'error')
-          }else{
-            this.addAlert('Failed to get data, status: ' + error, 'error')
-          }
+          this.handleCalendarError(error)
         })
   }
 
@@ -197,6 +192,7 @@ class UserCalendars extends React.Component {
   }
 
   doSave = async () => {
+    this.setState({isRunning: true})
     try{
       const {current, currentCalendar, currentImport, currentImportId} = this.state
       // Is it already imported?
@@ -216,7 +212,11 @@ class UserCalendars extends React.Component {
           await this.doDelete(currentImportId, "current")
         }
       }
+    }catch(error){
+      this.handleCalendarError(error)
+    }
 
+    try{
       const {next, nextCalendar, nextImport, nextImportId} = this.state
       const nextAlready = nextImport && !nextImport.delete
       if (next) {
@@ -235,14 +235,18 @@ class UserCalendars extends React.Component {
         }
       }
     }catch(error){
-      if(error.status === 401){
-        this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
-      }else if(error.status === 500){
-        this.addAlert('Network request failed. Error: ' + error.status, 'error')
-      }else{
-        this.addAlert('Failed to get data, status: ' + error, 'error')
-      }
-      this.setState(({currentRunning: false, nextRunning: false}))
+      this.handleCalendarError(error)
+    }
+    this.setState({isRunning: false})
+  }
+
+  handleCalendarError = (error) => {
+    if(error.status === 401){
+      this.addAlert('Session has timed out, please relaunch the tool. Error: ' + error.status, 'error')
+    }else if(error.status === 500){
+      this.addAlert('Network request failed. Error: ' + error.status, 'error')
+    }else{
+      this.addAlert('Failed to get data, status: ' + error, 'error')
     }
   }
 
@@ -264,10 +268,11 @@ class UserCalendars extends React.Component {
       method: 'DELETE'
     }).then((response) => {
       if(!response.ok){
+        this.setCalendarState(calendar, false)
         throw new CalendarError(response.status)
       }
     })
-    this.doPoll(id, calendar)
+    return await this.doPoll(id, calendar)
   }
 
   doImport = async (filename, blob, calendar) => {
@@ -281,11 +286,12 @@ class UserCalendars extends React.Component {
       method: 'POST'
     }).then((response) => {
       if(!response.ok){
+        this.setCalendarState(calendar, false)
         throw new CalendarError(response.status)
       }
       return response.json()
-    }).then((json) => {
-      return this.doPoll(json.id, calendar)
+    }).then(async (json) => {
+      return await this.doPoll(json.id, calendar)
     })
   }
 
@@ -293,6 +299,7 @@ class UserCalendars extends React.Component {
     const {calendarServer} = this.props
     return await this.fetch(calendarServer + "/api/imports/" + id).then((response) => {
       if(!response.ok){
+        this.setCalendarState(calendar, false)
         throw new CalendarError(response.status)
       }
       return response.json()
@@ -346,7 +353,7 @@ class UserCalendars extends React.Component {
   renderSaveButton(running) {
     // Only enable it when a value has changed
     const disabled = running ||
-        (this.state.next === !(!!this.state.nextImport.delete) && this.state.current === !(!!this.state.currentImport.delete))
+        (this.state.isRunning || this.state.next === !(!!this.state.nextImport.delete) && this.state.current === !(!!this.state.currentImport.delete))
     return <Button color="primary" interaction={disabled ? 'disabled' : 'enabled'} onClick={this.doSave}>
       Save
     </Button>;
