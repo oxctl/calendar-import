@@ -62,13 +62,13 @@ class PredefinedServiceTest {
 		term.setAcademicTermCode("TT");
 		when(termService.getTerms()).thenReturn(List.of(term));
 		predefinedService.setValidTermCodes(List.of("TT"));
-		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupAcademicYear("academic-year-21-22.csv");
+		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("academic-year-21-22.csv");
 		assertThat(academicYearTerms).hasSize(1);
 	}
 
 	@Test
 	public void testLookupAcademicYearCodeNull() {
-		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupAcademicYear("unknown");
+		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("unknown");
 		assertNull(academicYearTerms);
 	}
 

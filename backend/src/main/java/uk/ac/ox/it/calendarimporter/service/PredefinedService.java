@@ -19,8 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This is just a placeholder service so that we can continue with development until we have
- * an official feed of dates.
+ * The handles the predefined calendar 
  */
 @Service
 public class PredefinedService {
@@ -78,7 +77,7 @@ public class PredefinedService {
 	 * Find all the terms for a filename.
 	 * @return A list of terms for the filename
 	 */
-	public List<AcademicYearTerm> lookupAcademicYear(String filename) {
+	public List<AcademicYearTerm> lookupTerms(String filename) {
 		String yearCode = fromFilename(filename);
 		if (yearCode == null) {
 			return null;

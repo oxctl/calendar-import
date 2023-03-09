@@ -16,7 +16,9 @@ import java.util.List;
  * This controller hands back the list of predefined calendars that can be imported.
  */
 @RestController
-@RequestMapping("/api/predefined")
+// We want to allow access to this controller through both an authenticated endpoint (/api, older method used by the tool)
+// and a public endpoint (/public, embedded in documentation and directly accessed by users) 
+@RequestMapping({"/api/predefined", "/public/predefined"})
 public class PredefinedController {
 
 	private final PredefinedService predefinedService;
@@ -38,7 +40,7 @@ public class PredefinedController {
 	 */
 	@GetMapping("/{filename}")
 	public void getFile(@PathVariable() String filename, HttpServletResponse response) throws IOException {
-		List<AcademicYearTerm> terms = predefinedService.lookupAcademicYear(filename);
+		List<AcademicYearTerm> terms = predefinedService.lookupTerms(filename);
 		if (terms == null || terms.isEmpty()) {
 			throw new NotFoundException("No calendar for "+ filename);
 		}
