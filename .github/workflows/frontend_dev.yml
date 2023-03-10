@@ -32,17 +32,13 @@ jobs:
     outputs:
       artifact: ${{ steps.upload.outputs.artifact }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - run: npm ci
       - run: npm run build --if-present
       - run: npm test
@@ -73,11 +69,10 @@ jobs:
       ARCHIVE: ${{ needs.build.outputs.artifact }}
     steps:
       - name: Start deployment
-        uses: bobheadxi/deployments@v0.4.3
+        uses: bobheadxi/deployments@v1.4.0
         id: deployment
         with:
           step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
           env: frontend-dev
       - name: Download ${{ env.ARCHIVE }} build from S3
         run: aws s3 cp s3://${S3_ARTIFACT_BUCKET}/${ARCHIVE} build.tgz
@@ -91,11 +86,11 @@ jobs:
         # This removes the old files.
         run: aws s3 sync files "s3://${S3_DEV_BUCKET}/" --delete --no-progress
       - name: Update deployment status
-        uses: bobheadxi/deployments@v0.4.3
+        uses: bobheadxi/deployments@v1.4.0
         if: always()
         with:
           step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
+          env: frontend-dev
           status: ${{ job.status }}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
 
@@ -109,17 +104,13 @@ jobs:
       run:
         working-directory: deployment
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - run: npm ci
       - run: npm run install-browsers
       - run: npm test
