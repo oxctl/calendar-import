@@ -73,6 +73,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - run: npm ci
       - run: npm run install-browsers
       - run: npm test
