@@ -49,6 +49,8 @@ jobs:
           environment_name: ${{ env.EB_ENVIRONMENT }}
           version_label: calendar-import.${{ env.TAG }}
           region: ${{ env.AWS_REGION }}
+      - name: Save version in secrets manager
+        run: aws secretsmanager update-secret --secret-id ${{ vars.VERSION_SECRET }} --secret-string calendar-import.${{ env.TAG }}
       - name: Update deployment status
         uses: bobheadxi/deployments@v0.4.3
         if: always()
