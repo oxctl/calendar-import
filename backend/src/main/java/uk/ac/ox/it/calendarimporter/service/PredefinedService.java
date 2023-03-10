@@ -5,22 +5,24 @@ import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.controller.PredefinedCalendar;
+import uk.ac.ox.it.calendarimporter.termdata.AcademicYear;
 import uk.ac.ox.it.calendarimporter.termdata.AcademicYearTerm;
 import uk.ac.ox.it.calendarimporter.termdata.TermService;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This is just a placeholder service so that we can continue with development until we have
- * an official feed of dates.
+ * The handles the predefined calendar 
  */
 @Service
 public class PredefinedService {
@@ -33,8 +35,15 @@ public class PredefinedService {
 
 	private final TermService termService;
 
+	private Clock clock = Clock.systemUTC();
+
 	public void setValidTermCodes(Collection<String> validTermCodes) {
 		this.validTermCodes = validTermCodes;
+	}
+
+	public void setClock(Clock clock) {
+		// Just used for testing
+		this.clock = clock;
 	}
 
 	// We only want to include some terms in the output
@@ -78,16 +87,39 @@ public class PredefinedService {
 	 * Find all the terms for a filename.
 	 * @return A list of terms for the filename
 	 */
-	public List<AcademicYearTerm> lookupAcademicYear(String filename) {
+	public List<AcademicYearTerm> lookupTerms(String filename) {
+		Set<String> yearCodes;
 		String yearCode = fromFilename(filename);
-		if (yearCode == null) {
+		if (yearCode != null) {
+			yearCodes = Set.of(yearCode);
+		} else {
+			yearCodes = fromDynamicFilename(filename);
+		}
+		if (yearCodes == null) {
 			return null;
 		}
 		List<AcademicYearTerm> terms = termService.getTerms();
 		return terms.stream()
-				.filter(term -> yearCode.equals(term.getAcademicYear()))
+				.filter(term -> yearCodes.contains(term.getAcademicYear()))
 				.filter(term -> validTermCodes.contains(term.getAcademicTermCode()))
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * This supports a filename that always just includes the last 2 years.
+	 * @param filename The requested filename to check against.
+	 * @return A set of academic term strings or null if it wasn't found.
+	 */
+	private Set<String> fromDynamicFilename(String filename) {
+		if("last2years.csv".equals(filename)) {
+			LocalDate current = LocalDate.now(clock);
+			LocalDate future = current.plus(1, ChronoUnit.YEARS);
+			return termService.getYears().stream()
+					.filter(academicYear -> academicYear.isWithin(current) || academicYear.isWithin(future))
+					.map(AcademicYear::getAcademicYear)
+					.collect(Collectors.toSet());
+		}
+		return null;
 	}
 	
 	public void generateTerms(Writer writer, List<AcademicYearTerm> terms) throws IOException {

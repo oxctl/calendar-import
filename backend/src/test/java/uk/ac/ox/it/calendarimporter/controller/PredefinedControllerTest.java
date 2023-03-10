@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.security.WithMockClaims;
 import uk.ac.ox.it.calendarimporter.service.PredefinedService;
@@ -76,9 +75,29 @@ public class PredefinedControllerTest {
 	@WithMockClaims
 	public void testFileFound() throws Exception {
 		List<AcademicYearTerm> terms =  List.of(new AcademicYearTerm());
-		Mockito.when(predefinedService.lookupAcademicYear("filename.csv"))
+		Mockito.when(predefinedService.lookupTerms("filename.csv"))
 						.thenReturn(terms);
 		mockMvc.perform(get("/api/predefined/filename.csv"))
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	public void testPublicEndpoint() throws Exception {
+		// This is an unauthenticated endpoint, check we don't require authentication
+		List<AcademicYearTerm> terms =  List.of(new AcademicYearTerm());
+		Mockito.when(predefinedService.lookupTerms("filename.csv"))
+				.thenReturn(terms);
+		mockMvc.perform(get("/public/predefined/filename.csv"))
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	public void testLast2Years() throws Exception {
+		// This is an unauthenticated endpoint, check we don't require authentication
+		List<AcademicYearTerm> terms =  List.of(new AcademicYearTerm());
+		Mockito.when(predefinedService.lookupTerms("last2years.csv"))
+				.thenReturn(terms);
+		mockMvc.perform(get("/public/predefined/last2years.csv"))
 				.andExpect(status().isOk());
 	}
 }

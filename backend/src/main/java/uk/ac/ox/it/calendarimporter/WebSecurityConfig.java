@@ -45,7 +45,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         entryPointMap.put(new AntPathRequestMatcher(apiPath + "/**"), basicAuthenticationEntryPoint);
 
         http.authorizeRequests()
-                .antMatchers("/", "/resources/**", "/favicon.ico", "/icon.png")
+                .antMatchers("/", "/resources/**", "/favicon.ico", "/icon.png", "/public/**")
                 .permitAll()
                 .and()
                 // TODO Should prevent LTI from working here so that even if a user comes across with this

@@ -9,7 +9,10 @@ import uk.ac.ox.it.calendarimporter.termdata.TermService;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,13 +65,77 @@ class PredefinedServiceTest {
 		term.setAcademicTermCode("TT");
 		when(termService.getTerms()).thenReturn(List.of(term));
 		predefinedService.setValidTermCodes(List.of("TT"));
-		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupAcademicYear("academic-year-21-22.csv");
+		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("academic-year-21-22.csv");
 		assertThat(academicYearTerms).hasSize(1);
 	}
 
 	@Test
+	public void testLookupTermsDynamic() {
+		AcademicYear y2020 = new AcademicYear();
+		y2020.setAcademicYear("y2020");
+		y2020.setStartDate(LocalDate.parse("2020-01-01"));
+		y2020.setEndDate(LocalDate.parse("2020-12-31"));
+		AcademicYear y2021 = new AcademicYear();
+		y2021.setAcademicYear("y2021");
+		y2021.setStartDate(LocalDate.parse("2021-01-01"));
+		y2021.setEndDate(LocalDate.parse("2021-12-31"));
+		AcademicYear y2022 = new AcademicYear();
+		y2022.setAcademicYear("y2022");
+		y2022.setStartDate(LocalDate.parse("2022-01-01"));
+		y2022.setEndDate(LocalDate.parse("2022-12-31"));
+		AcademicYear y2023 = new AcademicYear();
+		y2023.setAcademicYear("y2023");
+		y2023.setStartDate(LocalDate.parse("2023-01-01"));
+		y2023.setEndDate(LocalDate.parse("2023-12-31"));
+		
+		when(termService.getYears()).thenReturn(List.of(y2020, y2021, y2022, y2023));
+		predefinedService.setClock(Clock.fixed(Instant.parse("2021-02-15T00:00:00.00Z"), ZoneId.of("UTC")));
+		predefinedService.setValidTermCodes(List.of("TT"));
+		
+		// No terms so nothing should be found
+		{
+			List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("last2years.csv");
+			assertThat(academicYearTerms).isEmpty();
+		}
+		
+		AcademicYearTerm y2020Jan = new AcademicYearTerm();
+		y2020Jan.setAcademicTermName("y2020Jan");
+		y2020Jan.setAcademicYear("y2020");
+		y2020Jan.setAcademicTermCode("TT");
+		AcademicYearTerm y2021Jan = new AcademicYearTerm();
+		y2021Jan.setAcademicTermName("y2021Jan");
+		y2021Jan.setAcademicYear("y2021");
+		y2021Jan.setAcademicTermCode("TT");
+		AcademicYearTerm y2022Jan = new AcademicYearTerm();
+		y2022Jan.setAcademicTermName("y2022Jan");
+		y2022Jan.setAcademicYear("y2022");
+		y2022Jan.setAcademicTermCode("TT");
+		AcademicYearTerm y2023Jan = new AcademicYearTerm();
+		y2023Jan.setAcademicTermName("y2023Jan");
+		y2023Jan.setAcademicYear("y2023");
+		y2023Jan.setAcademicTermCode("TT");
+		
+		// Only one term
+		when(termService.getTerms()).thenReturn(List.of(y2020Jan));
+
+		// No wrong year so nothing should be found
+		{
+			List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("last2years.csv");
+			assertThat(academicYearTerms).isEmpty();
+		}
+		
+		when(termService.getTerms()).thenReturn(List.of(y2020Jan, y2021Jan, y2022Jan, y2023Jan));
+
+		// Now we should get the term for now and next year
+		{
+			List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("last2years.csv");
+			assertThat(academicYearTerms).contains(y2021Jan, y2022Jan);
+		}
+	}
+
+	@Test
 	public void testLookupAcademicYearCodeNull() {
-		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupAcademicYear("unknown");
+		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("unknown");
 		assertNull(academicYearTerms);
 	}
 
@@ -92,7 +159,6 @@ class PredefinedServiceTest {
 						// This is the week after term ends.
 						"2nd Week TT,,2000-01-15,00:00,167:59"
 		);
-
 	}
 
 	@Test
