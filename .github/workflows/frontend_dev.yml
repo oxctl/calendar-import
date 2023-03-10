@@ -57,7 +57,7 @@ jobs:
           echo "$ARCHIVE"
           tar -C build -zcvf $ARCHIVE .
           aws s3 cp $ARCHIVE s3://${S3_ARTIFACT_BUCKET}/
-          echo "::set-output name=artifact::$ARCHIVE"
+          echo artifact="$ARCHIVE" >> $GITHUB_OUTPUT
 
   deploy-dev:
     runs-on: ubuntu-20.04
