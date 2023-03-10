@@ -83,11 +83,21 @@ public class PredefinedControllerTest {
 	
 	@Test
 	public void testPublicEndpoint() throws Exception {
-		// This is an unauthenticated endpoint
+		// This is an unauthenticated endpoint, check we don't require authentication
 		List<AcademicYearTerm> terms =  List.of(new AcademicYearTerm());
 		Mockito.when(predefinedService.lookupTerms("filename.csv"))
 				.thenReturn(terms);
 		mockMvc.perform(get("/public/predefined/filename.csv"))
+				.andExpect(status().isOk());
+	}
+	
+	@Test
+	public void testLast2Years() throws Exception {
+		// This is an unauthenticated endpoint, check we don't require authentication
+		List<AcademicYearTerm> terms =  List.of(new AcademicYearTerm());
+		Mockito.when(predefinedService.lookupTerms("last2years.csv"))
+				.thenReturn(terms);
+		mockMvc.perform(get("/public/predefined/last2years.csv"))
 				.andExpect(status().isOk());
 	}
 }
