@@ -18,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -100,6 +101,7 @@ public class PredefinedService {
 		}
 		List<AcademicYearTerm> terms = termService.getTerms();
 		return terms.stream()
+				.filter(term -> term.getAcademicYear() != null && term.getAcademicTermCode() != null)
 				.filter(term -> yearCodes.contains(term.getAcademicYear()))
 				.filter(term -> validTermCodes.contains(term.getAcademicTermCode()))
 				.collect(Collectors.toList());
@@ -117,6 +119,7 @@ public class PredefinedService {
 			return termService.getYears().stream()
 					.filter(academicYear -> academicYear.isWithin(current) || academicYear.isWithin(future))
 					.map(AcademicYear::getAcademicYear)
+					.filter(Objects::nonNull)
 					.collect(Collectors.toSet());
 		}
 		return null;
@@ -162,11 +165,11 @@ public class PredefinedService {
 		if ( (number % 100) / 10 == 1) {
 			return "th";
 		}
-		switch (number % 10) {
-			case 1: return "st";
-			case 2: return "nd";
-			case 3: return "rd";
-			default: return "th";
-		}
+		return switch (number % 10) {
+			case 1 -> "st";
+			case 2 -> "nd";
+			case 3 -> "rd";
+			default -> "th";
+		};
 	}
 }

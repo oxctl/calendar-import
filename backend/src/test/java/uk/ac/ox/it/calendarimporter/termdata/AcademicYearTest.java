@@ -61,4 +61,12 @@ class AcademicYearTest {
 		assertTrue(year.isWithin(LocalDate.parse("1980-06-15")));
 	}
 
+	@Test
+	public void testIsWithinNull() {
+		AcademicYear year = new AcademicYear();
+		// Check we handle nulls in the start/end dates.
+		assertFalse(year.isWithin(LocalDate.parse("1970-06-30")));
+		assertFalse(year.isWithin(LocalDate.parse("2040-06-30")));
+	}
+
 }
