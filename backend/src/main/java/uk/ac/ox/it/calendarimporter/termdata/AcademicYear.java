@@ -27,7 +27,8 @@ public class AcademicYear {
 	 * @return true if the supplied date is inside the start/end dates.
 	 */
 	public boolean isWithin(LocalDate date) {
+		boolean goodData = startDate != null && endDate != null;
 		// We want the dates to be inclusive of the start and end dates.
-		return !(date.isBefore(startDate) || date.isAfter(endDate));
+		return goodData && !(date.isBefore(startDate) || date.isAfter(endDate));
 	}
 }
