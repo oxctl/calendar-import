@@ -63,7 +63,9 @@ class PredefinedServiceTest {
 		AcademicYearTerm term = new AcademicYearTerm();
 		term.setAcademicYear("21/22");
 		term.setAcademicTermCode("TT");
-		when(termService.getTerms()).thenReturn(List.of(term));
+		// This term has bad data and should just be ignored.
+		AcademicYearTerm nullTerm = new AcademicYearTerm();
+		when(termService.getTerms()).thenReturn(List.of(term, nullTerm));
 		predefinedService.setValidTermCodes(List.of("TT"));
 		List<AcademicYearTerm> academicYearTerms = predefinedService.lookupTerms("academic-year-21-22.csv");
 		assertThat(academicYearTerms).hasSize(1);
@@ -87,8 +89,10 @@ class PredefinedServiceTest {
 		y2023.setAcademicYear("y2023");
 		y2023.setStartDate(LocalDate.parse("2023-01-01"));
 		y2023.setEndDate(LocalDate.parse("2023-12-31"));
+		// This year has no data and should be ignored.
+		AcademicYear nullYear = new AcademicYear();
 		
-		when(termService.getYears()).thenReturn(List.of(y2020, y2021, y2022, y2023));
+		when(termService.getYears()).thenReturn(List.of(y2020, y2021, y2022, y2023, nullYear));
 		predefinedService.setClock(Clock.fixed(Instant.parse("2021-02-15T00:00:00.00Z"), ZoneId.of("UTC")));
 		predefinedService.setValidTermCodes(List.of("TT"));
 		
