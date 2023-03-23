@@ -65,30 +65,48 @@ Both a LTI developer key and an API developer key need to be created for this to
     ```
     canvas_course_id=$Canvas.course.id
     canvas_user_id=$Canvas.user.id
+    canvas_account_id=$Canvas.account.id
     canvas_course_name=$Canvas.course.name
+    canvas_account_name=$Canvas.account.name
     canvas_api_base_url=$Canvas.api.baseUrl
     person_address_timezone=$Person.address.timezone
     com_instructure_brand_config_json_url=$com.instructure.brandConfigJSON.url
     canvas_user_prefers_high_contrast=$Canvas.user.prefersHighContrast
     ```
 * Privacy Level: Public
-* Placements: Course Home Sub Navigation, User Navigation, Link Selection (set the message type to LtiDeepLinkingRequest and the Title to "Import Events Into Personal Calendar")
+* Placements: Course Home Sub Navigation, Account Navigation, User Navigation, Link Selection (set the message type to LtiDeepLinkingRequest and the Title to "Import Events Into Personal Calendar")
 
-Then once the key is entered switch to the JSON view and update the placement for course_home_sub_navigation to include an icon, and for link_selection to set the height (this is so all the content in the modal will display):
-
-    "placements": [
-          {
-          "placement": "course_home_sub_navigation",
-          "message_type": "LtiResourceLinkRequest",
-          "canvas_icon_class": "icon-calendar-add"
-          },
-          {
-            "text": "Import Events Into Personal Calendar",
-            "placement": "link_selection",
-            "message_type": "LtiDeepLinkingRequest",
-            "selection_height": 500
-          }
-    ]
+Then once the key is entered switch to the JSON view and update the placement course_home_sub_navigation and account_navigation to have permission checks, for course_home_sub_navigation to include an icon, and for link_selection to set the height (this is so all the content in the modal will display):
+```json
+[
+  {
+    "text": "Calendar Import",
+    "placement": "course_home_sub_navigation",
+    "message_type": "LtiResourceLinkRequest",
+    "required_permissions": "manage_calendar",
+    "visibility": "admins",
+    "canvas_icon_class": "icon-calendar-add"
+  },
+  {
+    "text": "University Terms",
+    "placement": "user_navigation",
+    "message_type": "LtiResourceLinkRequest"
+  },
+  {
+    "text": "Import Events Into Personal Calendar",
+    "placement": "link_selection",
+    "message_type": "LtiDeepLinkingRequest",
+    "selection_height": 500
+  },
+  {
+    "text": "Calendar Import",
+    "placement": "account_navigation",
+    "message_type": "LtiResourceLinkRequest",
+    "required_permissions": "manage_account_calendar_events"
+  }
+]
+```
+NB: The `required_permissions` on the `course_home_sub_navigation` doesn't currently work, but hopefully it will get supported by Instructure in the future.
 
 ### API Key
 
