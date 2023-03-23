@@ -84,6 +84,7 @@ Then once the key is entered switch to the JSON view and update the placement co
     "placement": "course_home_sub_navigation",
     "message_type": "LtiResourceLinkRequest",
     "required_permissions": "manage_calendar",
+    "visibility": "admins",
     "canvas_icon_class": "icon-calendar-add"
   },
   {
@@ -105,6 +106,7 @@ Then once the key is entered switch to the JSON view and update the placement co
   }
 ]
 ```
+NB: The `required_permissions` on the `course_home_sub_navigation` doesn't currently work, but hopefully it will get supported by Instructure in the future.
 
 ### API Key
 
