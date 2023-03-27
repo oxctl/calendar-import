@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import static uk.ac.ox.it.calendarimporter.controller.Placement.toPlacement;
+
 /**
  * This just serves up the log as a plain text response.
  */
@@ -40,14 +42,18 @@ public class ApiDownloadController {
     @GetMapping("/log/{contextJobId}/load")
     public ResponseEntity<InputStreamResource> load(
             @PathVariable() Long contextJobId,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+                    Object userId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
                     Object courseId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']")
+                    Object accountId,
+            @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             Tenant tenant)
             throws IOException {
-        String courseContext = "course_" + courseId.toString();
-        TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
+        final Placement.PlacementType type = Placement.PlacementType.valueOf(ltiPlacement.toUpperCase());
+        Placement placement = toPlacement(type, courseId, userId, accountId);
+        TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), placement.toContext());
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getLoad();
         String logfile = jobProgress.getLogfile();
@@ -71,14 +77,18 @@ public class ApiDownloadController {
     @GetMapping("/log/{contextJobId}/delete")
     public ResponseEntity<InputStreamResource> delete(
             @PathVariable() Long contextJobId,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Object courseId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+            Object userId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            Object courseId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']")
+            Object accountId,
+            @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             Tenant tenant)
             throws IOException {
-        String courseContext = "course_" + courseId.toString();
-        TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
+        final Placement.PlacementType type = Placement.PlacementType.valueOf(ltiPlacement.toUpperCase());
+        Placement placement = toPlacement(type, courseId, userId, accountId);
+        TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), placement.toContext());
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getDelete();
         String logfile = jobProgress.getLogfile();
@@ -88,14 +98,18 @@ public class ApiDownloadController {
     @GetMapping("/download/{contextJobId}")
     public ResponseEntity<InputStreamResource> download(
             @PathVariable() Long contextJobId,
-            @AuthenticationPrincipal(
-                    expression =
-                            "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Object courseId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+            Object userId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            Object courseId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']")
+            Object accountId,
+            @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             Tenant tenant)
             throws IOException {
-        String courseContext = "course_" + courseId;
-        TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), courseContext);
+        Placement.PlacementType type = Placement.PlacementType.valueOf(ltiPlacement.toUpperCase());
+        Placement placement = toPlacement(type, courseId, userId, accountId);
+        TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), placement.toContext());
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         CalendarImport calendarImport = contextJob.getCalendarImport();
         String file = calendarImport.getUrl();
