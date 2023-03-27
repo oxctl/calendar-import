@@ -14,6 +14,7 @@ import {load} from "./actions/imports";
 class UploadJob extends React.Component {
 
     static propTypes = {
+        contextType: PropTypes.string,
         courseId: PropTypes.number,
         courseName: PropTypes.string,
         token: PropTypes.string,
@@ -87,17 +88,19 @@ class UploadJob extends React.Component {
     }
 
     render() {
-        const {courseId, courseName, proxyServer, token, handleProxyRefresh} = this.props
+        const {courseId, courseName, contextType, proxyServer, token, handleProxyRefresh} = this.props
 
         return <View as="div" margin='small none'>
-            <Sections
-                token={token}
-                proxyServer={proxyServer}
-                courseId={courseId}
-                courseName={courseName}
-                onChange={(section) => this.setState({section})}
-                handleProxyRefresh={handleProxyRefresh}
-            />
+            {contextType === 'course' &&
+                <Sections
+                    token={token}
+                    proxyServer={proxyServer}
+                    courseId={courseId}
+                    courseName={courseName}
+                    onChange={(section) => this.setState({section})}
+                    handleProxyRefresh={handleProxyRefresh}
+                />
+            }
             <FileDrop
                 accept=".csv,.ics"
                 onDropAccepted={this.updateFile}

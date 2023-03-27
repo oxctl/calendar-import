@@ -35,7 +35,7 @@ import {addMessage} from "./actions/messages";
 import LtiApplyTheme from "./LtiApplyTheme";
 import {settings} from "./utils/settings";
 import UserCalendars from './UserCalendars'
-import CourseCalendars from "./CourseCalendars";
+import ContextCalendars from "./ContextCalendars";
 import ImportCourseEvents from './ImportCourseEvents'
 import AuthoriseCalendarEvents from './AuthoriseCalendarEvents'
 
@@ -72,6 +72,7 @@ class App extends React.Component {
             comInstructureBrandConfigJsonUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].com_instructure_brand_config_json_url,
             canvasUserPrefersHighContrast: (this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_user_prefers_high_contrast === 'true'),
             courseId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_id),
+            accountId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_account_id),
             courseName: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_name,
             canvasBaseUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_api_base_url,
             placement: this.jwt['https://www.instructure.com/placement'],
@@ -94,7 +95,7 @@ class App extends React.Component {
 
     calendarImportRender = () => {
 
-        const {placement, courseId, courseName, canvasBaseUrl, ltiMessageType, calendarUrl} = this.state
+        const {placement, courseId, courseName, canvasBaseUrl, ltiMessageType, calendarUrl, accountId} = this.state
 
         if(ltiMessageType === 'LtiDeepLinkingRequest'){
             return <ImportCourseEvents
@@ -129,9 +130,26 @@ class App extends React.Component {
                     onMissingToken={() => this.setState({prompt: true})}
                 />
         }
-        return(<CourseCalendars canvasBaseUrl={canvasBaseUrl} courseId={courseId} servers={this.servers}
-                                token={this.token} handleProxyRefresh={() => this.setState({prompt: true})}
-                                courseName={courseName} />)
+        if (placement === "account_navigation") {
+            return <ContextCalendars
+                canvasBaseUrl={canvasBaseUrl}
+                contextType='account'
+                accountId={accountId}
+                servers={this.servers}
+                token={this.token}
+                handleProxyRefresh={() => this.setState({prompt: true})}
+            />
+        }
+        
+        return <ContextCalendars
+            canvasBaseUrl={canvasBaseUrl}
+            contextType='course'
+            courseId={courseId}
+            courseName={courseName}
+            servers={this.servers}
+            token={this.token}
+            handleProxyRefresh={() => this.setState({prompt: true})}
+        />
     }
 
     
