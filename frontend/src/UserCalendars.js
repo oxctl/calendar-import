@@ -38,7 +38,9 @@ class UserCalendars extends React.Component {
     userId: PropTypes.string.isRequired,
     returnUrl: PropTypes.string.isRequired,
     // The current date. This allows easy faking of the current time without having to setup fake timers.
-    date: PropTypes.func
+    date: PropTypes.func,
+    // AB#65852 Disables the ability to import new calendars.
+    disableCalendarImport: PropTypes.bool.isRequired
   }
 
   static defaultProps = {
@@ -344,8 +346,19 @@ class UserCalendars extends React.Component {
   render() {
 
     const running = this.state.nextRunning || this.state.currentRunning
-
     const personalCalendarLink = `${this.props.canvasUrl}/calendar?include_contexts=user_${this.props.userId}`
+
+    // AB#65852 Checkboxes are disabled if any import is running or they are unchecked, new imports are disabled because Canvas has a new functionality.
+    let disableCurrentImport = running
+    let disableNextImport = running
+    const {disableCalendarImport} = this.props
+    if (disableCalendarImport) {
+      const isCurrentImportDisabled = !(!!this.state.currentImport.delete)
+      disableCurrentImport = running || !isCurrentImportDisabled
+
+      const isNextImportDisabled = !(!!this.state.nextImport.delete)
+      disableNextImport = running || !isNextImportDisabled
+    }
 
     return <Fragment>
       <Heading level="h1">University Terms</Heading>
@@ -360,13 +373,13 @@ class UserCalendars extends React.Component {
             <View as="div" margin="small none">
               <Checkbox label={this.state.currentCalendar.title + " (current)"} variant="toggle"
                         labelPlacement="end"
-                        checked={this.state.current} disabled={running}
+                        checked={this.state.current} disabled={disableCurrentImport}
                         onChange={() => this.setState((state) => ({current: !state.current}))}/>
             </View>
             <View as="div" margin="small none">
               <Checkbox label={this.state.nextCalendar.title + " (next)"} variant="toggle"
                         labelPlacement="end"
-                        checked={this.state.next} disabled={running}
+                        checked={this.state.next} disabled={disableNextImport}
                         onChange={() => this.setState((state) => ({next: !state.next}))}/>
             </View>
           </>

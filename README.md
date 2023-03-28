@@ -72,7 +72,11 @@ Both a LTI developer key and an API developer key need to be created for this to
     person_address_timezone=$Person.address.timezone
     com_instructure_brand_config_json_url=$com.instructure.brandConfigJSON.url
     canvas_user_prefers_high_contrast=$Canvas.user.prefersHighContrast
+    user_only_delete=true
     ```
+
+The last LTI custom field `user_only_delete` disables the possibility of importing new calendars in the Users' settings since there is a new Canvas feature that has to be used instead.
+
 * Privacy Level: Public
 * Placements: Course Home Sub Navigation, Account Navigation, User Navigation, Link Selection (set the message type to LtiDeepLinkingRequest and the Title to "Import Events Into Personal Calendar")
 

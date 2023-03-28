@@ -63,6 +63,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 userId='userId'
                 onMissingToken={() => {}}
+                disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -94,6 +95,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 userId='userId'
                 onMissingToken={() => {}}
+                disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -115,6 +117,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 userId='userId'
                 onMissingToken={() => {}}
+                disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -138,6 +141,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 userId='userId'
                 onMissingToken={() => {}}
+                disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -171,6 +175,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 userId='userId'
                 onMissingToken={() => {}}
+                disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -205,6 +210,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 userId='userId'
                 onMissingToken={() => {}}
+                disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -222,4 +228,39 @@ describe("user calendars", () => {
 
         await screen.findByText(/session has timed out, please relaunch the tool/i)
     })
+
+
+    test('Calendar Import cannot be enabled if it is disabled', async () => {
+        server.use(rest.get('/calendar/api/predefined/2000-filename.csv', (req, res, ctx) => {
+                return res(ctx.status(500))
+            }),
+        )
+        render(
+            <UserCalendars
+                token='token'
+                returnUrl='/return-url'
+                proxyServer='/proxy'
+                calendarServer='/calendar'
+                canvasId='canvasId'
+                userId='userId'
+                onMissingToken={() => {}}
+                disableCalendarImport={true}
+                date={() => new Date('2000-06-01')}
+            />
+        )
+
+        await screen.findByRole('heading', {name: /University Terms/})
+        await waitForElementToBeRemoved(() => screen.queryByTitle(/loading calendars/i))
+
+        const currentCalendar = screen.getByRole("checkbox", {name: /2000 Calendar/})
+        expect(currentCalendar).toBeDisabled()
+
+        const nextCalendar = screen.getByRole("checkbox", {name: /2001 Calendar/})
+        expect(nextCalendar).toBeDisabled()
+
+        const saveButton = screen.getByRole("button", {name: /save/i })
+        expect(saveButton).toBeDisabled()
+    })
+
+
 })

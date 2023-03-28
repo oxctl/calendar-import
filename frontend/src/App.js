@@ -85,7 +85,8 @@ class App extends React.Component {
             deepLinkReturnUrl: this.jwt['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings']?.deep_link_return_url,
             targetLinkUri: this.jwt['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'],
             calendarUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].url,
-            timezone: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].person_address_timezone
+            timezone: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].person_address_timezone,
+            disableCalendarImport: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].user_only_delete === 'true',
         })
         this.props.setToken(token)
     }
@@ -138,6 +139,7 @@ class App extends React.Component {
                     canvasUrl={this.state.canvasBaseUrl}
                     userId={this.state.userId}
                     onMissingToken={this.proxyTokenGet}
+                    disableCalendarImport={this.state.disableCalendarImport}
                 />
             </RefreshProxyToken>
         }
