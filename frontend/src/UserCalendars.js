@@ -27,7 +27,9 @@ class UserCalendars extends React.Component {
     nextImportId: null,
     alerts: [],
     loading: false,
-    isRunning: false // are any imports running
+    isRunning: false, // are any imports running
+    // AB#65853 Prevent enabling the account calendars multiple times.
+    accountCalendarsAlreadyEnabled: false
   }
 
   static propTypes = {
@@ -67,6 +69,18 @@ class UserCalendars extends React.Component {
     this.loadData().finally(() => {
       this.setState({loading: false})
     })
+
+    // AB#65853 Display functionality change message
+    const {disableCalendarImport} = this.props
+    if (disableCalendarImport) {
+      const alertFirstPart = `Canvas is introducing an improved feature to allow users to import University of Oxford Terms into account calendars in Canvas. The current process will be removed in due course and we recommend that you begin using the improved method as soon as possible.`
+      const alertSecondPart = `To use the new method access the Calendar via the Global Navigation menu. Within Other Calendars there is an option for University of Oxford Calendar. There is new guidance on how to import the Oxford Terms in to Canvas in the Canvas guides.`
+      const alertThirdPart = `Oxford terms can still be removed from your personal Canvas calendars using the current tool. However, you will not be able to reimport them using this method once they have been removed.`
+      const alertMessageArray = [alertFirstPart, alertSecondPart, alertThirdPart]
+      const alertMessage = alertMessageArray.map((line, idx) => <p key={idx}>{line}</p>)
+      this.addAlert(alertMessage, 'warning')
+    }
+
   }
 
   loadData = () => {
@@ -343,6 +357,76 @@ class UserCalendars extends React.Component {
     </Button>;
   }
 
+  renderEnableAccountCalendarsButton = () => {
+    return <Button color="primary" onClick={this.doEnableAccountCalendars}>
+      Subscribe to all my account calendars
+    </Button>
+  }
+
+  doEnableAccountCalendars = async () => {
+
+    const successMessage = `The University of Oxford calendar has been added to your global calendar.`
+    const errorMessage = `Error adding the University of Oxford calendar to your global calendar, please try again later.`
+
+    if (this.state.accountCalendarsAlreadyEnabled === false) {
+      const {proxyServer} = this.props
+      // First at all, we need to fetch all the account calendars, it's paged but Canvas also requests 100 which is a big number of calendars.
+      const getAccountCalendarsUrl = `${proxyServer}/api/v1/account_calendars?per_page=100`
+      const accountCalendarArray = await this.fetch(getAccountCalendarsUrl).then(response => {
+        if (!response.ok) {
+          throw new CalendarError(response.status)
+        }
+        return response.json()
+      }).then(json => {
+        return json.account_calendars
+      }).catch(error => {
+        this.addAlert(errorMessage, 'error')
+      })
+
+      // This URL enables the account calendars but does not make it visible
+      let saveEnableAccountCalendarsUrl = `${proxyServer}/api/v1/calendar_events/save_enabled_account_calendars?`;
+      
+      // This URL makes the account calendar visible.
+      const makeAccountCalendarVisible = `${proxyServer}/api/v1/calendar_events/save_selected_contexts`
+      const formData = new FormData()
+
+      // For each account calendar, append the id to the requests.
+      accountCalendarArray
+         // Unnecessary but could be good for the future if they make a change to the object......
+        .filter(accountCalendar => accountCalendar.type === 'account')
+        .forEach (accountCalendar => {
+          // Append other subaccount calendars
+          formData.append("selected_contexts[]", accountCalendar.asset_string)
+          saveEnableAccountCalendarsUrl += encodeURI(`enabled_account_calendars[]=${accountCalendar.id}&`)
+      })
+
+      this.fetch(saveEnableAccountCalendarsUrl, {
+        method: 'POST'
+      }).then(response => {
+        if (!response.ok) {
+          throw new CalendarError(response.status)
+        }
+
+        this.fetch(makeAccountCalendarVisible, {
+          body: formData,
+          method: 'POST'
+        }).then(response => {
+          if (!response.ok) {
+            throw new CalendarError(response.status)
+          }
+
+          this.addAlert(successMessage, 'success')
+          this.setState({accountCalendarsAlreadyEnabled: true})
+
+        }).catch(error => {
+          this.addAlert(errorMessage, 'error')
+        })
+      })
+
+    }
+
+  }
+
   render() {
 
     const running = this.state.nextRunning || this.state.currentRunning
@@ -364,7 +448,6 @@ class UserCalendars extends React.Component {
       <Heading level="h1">University Terms</Heading>
       {this.renderAlerts()}
       <Text as="p">Show University Term Names and Week Numbers in my <Link target='_top' href={personalCalendarLink}>personal Canvas calendar</Link>.
-        Selecting a year will import the Oxford Terms and Weeks for the academic year into your personal Canvas calendar.
         If you deselect a year this will remove the Oxford Terms and Weeks for the academic year from your personal Canvas calendar.
       </Text>
       {this.state.loading ?
@@ -390,6 +473,9 @@ class UserCalendars extends React.Component {
           <Flex.Item margin='small xx-small'>
             {running &&
                 <Spinner size='x-small' renderTitle='Updating calendar'/>}
+          </Flex.Item>
+          <Flex.Item margin='small xx-small'>
+            {this.renderEnableAccountCalendarsButton()}
           </Flex.Item>
           <Flex.Item margin='small xx-small'>
             {this.renderSaveButton(running)}
