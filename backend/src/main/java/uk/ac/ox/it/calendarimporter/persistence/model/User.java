@@ -19,6 +19,7 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 @Table(
+        name = "`user`",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"tenant", "subject"})
         })
