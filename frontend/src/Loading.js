@@ -25,6 +25,8 @@
 import React from 'react'
 import { Spinner } from '@instructure/ui-spinner'
 
-export function Loading() {
-  return <Spinner size="large" margin="large" renderTitle="Loading data..."/>
+export function Loading({loading, children}) {
+  return loading ?
+      <Spinner size="large" margin="large" renderTitle="Loading data..."/> :
+      children
 }

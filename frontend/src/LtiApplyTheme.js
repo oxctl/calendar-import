@@ -17,7 +17,13 @@ class LtiApplyTheme extends React.Component {
          * The URL to load the theme variables from.
          */
         url: PropTypes.string,
+        /**
+         * If true then use the high contrast version of the theme.
+         */
         highContrast: PropTypes.bool,
+        /**
+         * The content to apply the theme to.
+         */
         children: PropTypes.node.isRequired
     }
 
