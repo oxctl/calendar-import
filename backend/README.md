@@ -1,7 +1,7 @@
 
 # Java
 
-This currently runs with Java 11.
+This currently runs with Java 17.
 
 # docker
 
