@@ -35,9 +35,10 @@ import {addMessage} from "./actions/messages";
 import LtiApplyTheme from "./LtiApplyTheme";
 import {settings} from "./utils/settings";
 import UserCalendars from './UserCalendars'
-import CourseCalendars from "./CourseCalendars";
+import ContextCalendars from "./ContextCalendars";
 import ImportCourseEvents from './ImportCourseEvents'
 import AuthoriseCalendarEvents from './AuthoriseCalendarEvents'
+import RefreshProxyToken from "./RefreshProxyToken";
 
 
 class App extends React.Component {
@@ -72,6 +73,7 @@ class App extends React.Component {
             comInstructureBrandConfigJsonUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].com_instructure_brand_config_json_url,
             canvasUserPrefersHighContrast: (this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_user_prefers_high_contrast === 'true'),
             courseId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_id),
+            accountId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_account_id),
             courseName: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_name,
             canvasBaseUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_api_base_url,
             placement: this.jwt['https://www.instructure.com/placement'],
@@ -88,14 +90,18 @@ class App extends React.Component {
         this.props.setToken(token)
     }
 
-    proxyGotToken = () => {
+    proxyTokenOk = () => {
         this.setState({prompt: false})
+    }
+    
+    proxyTokenGet = () => {
+        this.setState({prompt: true})
     }
 
     calendarImportRender = () => {
 
-        const {placement, courseId, courseName, canvasBaseUrl, ltiMessageType, calendarUrl} = this.state
-
+        const {placement, courseId, courseName, canvasBaseUrl, ltiMessageType, calendarUrl, accountId} = this.state
+        
         if(ltiMessageType === 'LtiDeepLinkingRequest'){
             return <ImportCourseEvents
                 token={this.state.token}
@@ -108,30 +114,56 @@ class App extends React.Component {
         }
 
         if(calendarUrl){
-            return <AuthoriseCalendarEvents
-                calendarServer={this.servers.calendarServer}
-                onMissingToken={() => this.setState({prompt: true})}
-                personalCalendarLink={this.state.canvasBaseUrl + '/calendar?include_contexts=user_' + this.state.userId}
-                proxyServer={this.servers.proxyServer}
-                returnUrl={this.state.returnUrl}
-                token={this.state.token}
-            />
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.servers.proxyServer}
+                                      onMissingToken={this.proxyTokenGet}>
+                <AuthoriseCalendarEvents
+                    calendarServer={this.servers.calendarServer}
+                    onMissingToken={this.proxyTokenGet}
+                    personalCalendarLink={this.state.canvasBaseUrl + '/calendar?include_contexts=user_' + this.state.userId}
+                    proxyServer={this.servers.proxyServer}
+                    returnUrl={this.state.returnUrl}
+                    token={this.state.token}
+                />
+            </RefreshProxyToken>
         }
 
         if(placement === "user_navigation") {
-            return <UserCalendars
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.servers.proxyServer}
+                                      onMissingToken={this.proxyTokenGet}>
+                <UserCalendars
                     calendarServer={this.servers.calendarServer}
                     proxyServer={this.servers.proxyServer}
                     token={this.state.token}
                     returnUrl={this.state.returnUrl}
                     canvasUrl={this.state.canvasBaseUrl}
                     userId={this.state.userId}
-                    onMissingToken={() => this.setState({prompt: true})}
+                    onMissingToken={this.proxyTokenGet}
                 />
+            </RefreshProxyToken>
         }
-        return(<CourseCalendars canvasBaseUrl={canvasBaseUrl} courseId={courseId} servers={this.servers}
-                                token={this.token} handleProxyRefresh={() => this.setState({prompt: true})}
-                                courseName={courseName} />)
+        if (placement === "account_navigation") {
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.servers.proxyServer}
+                                      onMissingToken={this.proxyTokenGet}>
+                <ContextCalendars
+                    canvasBaseUrl={canvasBaseUrl}
+                    contextType='account'
+                    accountId={accountId}
+                    servers={this.servers}
+                    token={this.token}
+                    handleProxyRefresh={this.proxyTokenGet}
+                />
+            </RefreshProxyToken>
+        }
+        
+        return <ContextCalendars
+            canvasBaseUrl={canvasBaseUrl}
+            contextType='course'
+            courseId={courseId}
+            courseName={courseName}
+            servers={this.servers}
+            token={this.token}
+            handleProxyRefresh={this.proxyTokenGet}
+        />
     }
 
     
@@ -143,13 +175,13 @@ class App extends React.Component {
             <LtiTokenRetriever ltiServer={servers.ltiServer} handleJwt={this.updateToken}>
                 <LtiApplyTheme url={comInstructureBrandConfigJsonUrl} highContrast={canvasUserPrefersHighContrast}>
                     <LtiHeightLimit>
-                        <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyGotToken}
+                        <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyTokenOk}
                                      promptLogin={this.state.prompt} server={{proxyServer: this.servers.proxyServer}}>
                             <View padding="small" as="div">
                             <Error message={error}>
-                            {(this.state.loading) ? <Loading/> : <>
+                            <Loading loading={this.state.loading}> 
                                 {this.calendarImportRender()}
-                            </>}
+                            </Loading>
                             </Error>
                             </View>
                         </LaunchOAuth>

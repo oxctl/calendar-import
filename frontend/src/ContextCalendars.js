@@ -10,9 +10,9 @@ import {addMessage} from "./actions/messages";
 import {connect} from "react-redux";
 
 /**
- * Renders the UI for a course.
+ * Renders the UI for a Course or Account.
  */
-class CourseCalendars extends React.Component {
+class ContextCalendars extends React.Component {
     
     state = {
         messages: []
@@ -24,9 +24,7 @@ class CourseCalendars extends React.Component {
             <Heading level="h1">Import File</Heading>
             <Text as="p">
                 This tool allows you to import a set of events contained in a CSV file into
-                the <Link target="_blank"
-                          href={`${this.props.canvasBaseUrl}/calendar?include_contexts=course_${this.props.courseId}`}>course
-                calendar</Link>.
+                the {this.renderCalendarLink()}.
                 The file has to be specifically formatted for the importer. An <Link
                 href="example.csv">example file</Link> can be downloaded, edited locally and
                 then uploaded again to import (You may delete extraneous columns in the
@@ -37,17 +35,28 @@ class CourseCalendars extends React.Component {
                        calendarServer={this.props.servers.calendarServer}
                        token={this.props.token}
                        handleProxyRefresh={this.props.handleProxyRefresh}
+                       contextType={this.props.contextType}
                        courseId={this.props.courseId} courseName={this.props.courseName}
                        onMessage={this.props.onMessage}/>
             <ImportView server={this.props.servers.calendarServer} token={this.props.token}
                         onMessage={this.props.onMessage}/>
         </Fragment>;
     }
+
+    renderCalendarLink() {
+        const {contextType, courseId, accountId, canvasBaseUrl} = this.props
+        const contextId = (contextType === 'account' ? accountId : courseId)
+        return <Link target="_blank"
+                     href={`${canvasBaseUrl}/calendar?include_contexts=${contextType}_${contextId}`}
+        >{contextType} calendar</Link>;
+    }
 }
 
-CourseCalendars.propTypes = {
+ContextCalendars.propTypes = {
     canvasBaseUrl: PropTypes.any,
     courseId: PropTypes.any,
+    accountId: PropTypes.string,
+    contextType: PropTypes.string,
     servers: PropTypes.any,
     token: PropTypes.any,
     handleProxyRefresh: PropTypes.func,
@@ -65,4 +74,4 @@ const mapDispatchToProps = dispatch => {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(CourseCalendars)
+export default connect(mapStateToProps, mapDispatchToProps)(ContextCalendars)

@@ -70,24 +70,8 @@ class AuthoriseCalendarEvents extends React.Component {
   }
 
   componentDidMount() {
-    const {proxyServer, token} = this.props
     this.setState({loading: true})
-
-    fetch(proxyServer + '/tokens/refresh?force=true', {
-      // We need this so that we don't get redirected to grant access, but instead detect that we need to go to the grant access page.
-      redirect: 'manual',
-      headers: {
-        Accept: 'application/json',
-        Authorization: 'Bearer ' + token
-      }
-    }).then(response => {
-      // When expired we will get a 401 back.
-      if (response.status === 401 || response.type === 'opaqueredirect') this.props.onMissingToken()
-    }).then(
-        this.getUserSubscription
-    ).catch(error => {
-      this.props.onMessage({text: 'Failed to check access, please relaunch the tool. Error: '+ error.message, type: 'error'})
-    }).finally(() => {
+    this.getUserSubscription().finally(() => {
       this.setState({loading: false})
     })
   }
@@ -172,10 +156,7 @@ class AuthoriseCalendarEvents extends React.Component {
   }
 
   render() {
-    if(this.state.loading){
-      return <Loading/>
-    }
-    return <>
+    return <Loading loading={this.state.loading}>
       <Messages/>
       <Heading level="h1">Import Events Into Personal Calendar</Heading>
       <Text as="p">
@@ -198,7 +179,7 @@ class AuthoriseCalendarEvents extends React.Component {
         </Flex.Item>
       </Flex>
       {this.state.lastCalendarImport.load && this.renderLoadInfo("load")}
-    </>
+    </Loading>
   }
 }
 
@@ -207,8 +188,6 @@ AuthoriseCalendarEvents.propTypes = {
   calendarServer: PropTypes.string,
   // Link to the user's personal calendar in Canvas
   personalCalendarLink: PropTypes.string,
-  // The URL of the proxy server
-  proxyServer: PropTypes.string,
   // The LTI return URL to send the user back to.
   returnUrl: PropTypes.string,
   // The JWT token to authenticate to the calendar/proxy server

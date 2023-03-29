@@ -37,7 +37,6 @@ class UserCalendars extends React.Component {
     canvasId: PropTypes.string.isRequired,
     userId: PropTypes.string.isRequired,
     returnUrl: PropTypes.string.isRequired,
-    onMissingToken: PropTypes.func.isRequired,
     // The current date. This allows easy faking of the current time without having to setup fake timers.
     date: PropTypes.func
   }
@@ -62,25 +61,8 @@ class UserCalendars extends React.Component {
 
 
   componentDidMount() {
-    const {proxyServer} = this.props
     this.setState({loading: true})
-    this.fetch(proxyServer + '/tokens/refresh?force=true', {
-      // We need this so that we don't get redirected to grant access, but instead detect that we need to go to the grant access page.
-      redirect: 'manual'
-    }).then(response => {
-      // When expired we will get a 401 back.
-      if (response.status !== 200) {
-        if (response.status === 401 || response.type === 'opaqueredirect') {
-          this.props.onMissingToken()
-        } else {
-          checkOK(response)
-        }
-      }
-    }).then(
-        this.loadData
-    ).catch(reason => {
-      this.addAlert("Failed to refresh token. Please refresh the page.", 'error')
-    }).finally(() => {
+    this.loadData().finally(() => {
       this.setState({loading: false})
     })
   }

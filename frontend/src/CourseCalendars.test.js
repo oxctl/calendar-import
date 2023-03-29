@@ -5,7 +5,7 @@ import {setupServer} from 'msw/node'
 import '@testing-library/jest-dom/extend-expect'
 import {renderWithProviders} from "./utils/test-utils";
 import {jest, test} from '@jest/globals';
-import CourseCalendars from "./CourseCalendars";
+import CourseCalendars from "./ContextCalendars";
 
 const server = setupServer(
     // This is the endpoint that takes the deep linking request and signs
@@ -28,6 +28,7 @@ describe("course calendars", () => {
         renderWithProviders(
             <CourseCalendars
                 token='token'
+                contextType='course'
                 courseName='Course Name'
                 courseId={1}
                 servers={{proxyServer: '', calendarServer: ''}}

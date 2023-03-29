@@ -94,7 +94,7 @@ class ImportView extends React.Component {
                             <Text as='div' weight='bold'>
                                 {calendarImport.user.name} imported <Link
                                 href={`${this.props.server}/api/download/${id}?access_token=${this.props.token}`}>
-                                {calendarImport.filename}</Link> into {calendarImport.destinationName ? 'the section: ' + calendarImport.destinationName : 'the course'}
+                                {calendarImport.filename}</Link> into {calendarImport.destinationName ? 'the section: ' + calendarImport.destinationName : 'the calendar'}
                             </Text>
                             <Text as='div'>Created: {this.renderAgo(calendarImport.created)}</Text>
                         </View>
