@@ -74,7 +74,7 @@ class UserCalendars extends React.Component {
     const {disableCalendarImport} = this.props
     if (disableCalendarImport) {
       const alertFirstPart = `Canvas is introducing an improved feature to allow users to import University of Oxford Terms into account calendars in Canvas. The current process will be removed in due course and we recommend that you begin using the improved method as soon as possible.`
-      const alertSecondPart = `To use the new method access the Calendar via the Global Navigation menu. Within Other Calendars there is an option for University of Oxford Calendar. There is new guidance on how to import the Oxford Terms in to Canvas in the Canvas guides.`
+      const alertSecondPart = `To use the new method access the Calendar via the Global Navigation menu (or click on the Canvas calendar link you will find below). Within Other Calendars there is an option for University of Oxford Calendar. There is new guidance on how to import the Oxford Terms in to Canvas in the Canvas guides.`
       const alertThirdPart = `Oxford terms can still be removed from your personal Canvas calendars using the current tool. However, you will not be able to reimport them using this method once they have been removed.`
       const alertMessageArray = [alertFirstPart, alertSecondPart, alertThirdPart]
       const alertMessage = alertMessageArray.map((line, idx) => <p key={idx}>{line}</p>)
@@ -430,7 +430,7 @@ class UserCalendars extends React.Component {
   render() {
 
     const running = this.state.nextRunning || this.state.currentRunning
-    const personalCalendarLink = `${this.props.canvasUrl}/calendar?include_contexts=user_${this.props.userId}`
+    const personalCalendarLink = `${this.props.canvasUrl}/calendar`
 
     // AB#65852 Checkboxes are disabled if any import is running or they are unchecked, new imports are disabled because Canvas has a new functionality.
     let disableCurrentImport = running
@@ -447,7 +447,7 @@ class UserCalendars extends React.Component {
     return <Fragment>
       <Heading level="h1">University Terms</Heading>
       {this.renderAlerts()}
-      <Text as="p">Show University Term Names and Week Numbers in my <Link target='_top' href={personalCalendarLink}>personal Canvas calendar</Link>.
+      <Text as="p">Show University Term Names and Week Numbers in my <Link target='_top' href={personalCalendarLink}>Canvas calendar</Link>.
         If you deselect a year this will remove the Oxford Terms and Weeks for the academic year from your personal Canvas calendar.
       </Text>
       {this.state.loading ?
