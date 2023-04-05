@@ -45,6 +45,17 @@ const server = setupServer(
     }),
     rest.get('/calendar/api/imports/1', (req, res, ctx) => {
         return res(ctx.json({calendarImport: {id: 1, load: {status: "COMPLETED"}}}))
+    }),
+    rest.post('/proxy/api/v1/calendar_events/save_enabled_account_calendars', (req, res, ctx) => {
+        return res(ctx.json({ok: "ok"}))
+    }),
+    rest.post('/proxy/api/v1/calendar_events/save_selected_contexts', (req, res, ctx) => {
+        return res(ctx.json({ok: "ok"}))
+    }),
+    rest.get('/proxy/api/v1/account_calendars', (req, res, ctx) => {
+        return res(ctx.json(
+          {account_calendars:[{id:"140",name:"2B Medical Sciences",parent_account_id:"1",root_account_id:"1",visible:true,asset_string:"account_140",type:"account",calendar_event_url:"/accounts/140/calendar_events/%7B%7B%20id%20%7D%7D",can_create_calendar_events:true,create_calendar_event_url:"/accounts/140/calendar_events",new_calendar_event_url:"/accounts/140/calendar_events/new"},{id:"1",name:"Oxford Evaluation",parent_account_id:null,root_account_id:"0",visible:true,asset_string:"account_1",type:"account",calendar_event_url:"/accounts/1/calendar_events/%7B%7B%20id%20%7D%7D",can_create_calendar_events:true,create_calendar_event_url:"/accounts/1/calendar_events",new_calendar_event_url:"/accounts/1/calendar_events/new"}],total_results:2}
+        ))
     })
 )
 
@@ -262,5 +273,63 @@ describe("user calendars", () => {
         expect(saveButton).toBeDisabled()
     })
 
+
+    test('Disabling calendar import shows an alert', async () => {
+        server.use(rest.get('/calendar/api/predefined/2000-filename.csv', (req, res, ctx) => {
+                return res(ctx.status(500))
+            }),
+        )
+        render(
+            <UserCalendars
+                token='token'
+                returnUrl='/return-url'
+                proxyServer='/proxy'
+                calendarServer='/calendar'
+                canvasId='canvasId'
+                userId='userId'
+                onMissingToken={() => {}}
+                disableCalendarImport={true}
+                date={() => new Date('2000-06-01')}
+            />
+        )
+
+        await screen.findByRole('heading', {name: /University Terms/})
+        await waitForElementToBeRemoved(() => screen.queryByTitle(/loading calendars/i))
+
+        const alertItem = screen.getByText(/To use the new method access the Calendar/i)
+        expect(alertItem).toBeDefined()
+
+    })
+
+    test('Enabling the account calendar makes a request to the API via Proxy', async () => {
+        server.use(rest.get('/calendar/api/predefined/2000-filename.csv', (req, res, ctx) => {
+                return res(ctx.status(500))
+            }),
+        )
+        render(
+            <UserCalendars
+                token='token'
+                returnUrl='/return-url'
+                proxyServer='/proxy'
+                calendarServer='/calendar'
+                canvasId='canvasId'
+                userId='userId'
+                onMissingToken={() => {}}
+                disableCalendarImport={true}
+                date={() => new Date('2000-06-01')}
+            />
+        )
+
+        await screen.findByRole('heading', {name: /University Terms/})
+        await waitForElementToBeRemoved(() => screen.queryByTitle(/loading calendars/i))
+
+        const enableButton = screen.getByRole("button", {name: /Calendar/i })
+        expect(enableButton).toBeEnabled()
+
+        const user = userEvent.setup()
+        await user.click(enableButton)
+
+        await screen.findByText(/calendar has been added/i)
+    })
 
 })
