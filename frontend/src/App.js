@@ -137,7 +137,6 @@ class App extends React.Component {
                     token={this.state.token}
                     returnUrl={this.state.returnUrl}
                     canvasUrl={this.state.canvasBaseUrl}
-                    userId={this.state.userId}
                     onMissingToken={this.proxyTokenGet}
                     disableCalendarImport={this.state.disableCalendarImport}
                 />
