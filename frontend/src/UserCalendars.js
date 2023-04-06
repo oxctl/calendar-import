@@ -37,7 +37,6 @@ class UserCalendars extends React.Component {
     proxyServer: PropTypes.string.isRequired,
     calendarServer: PropTypes.string.isRequired,
     canvasId: PropTypes.string.isRequired,
-    userId: PropTypes.string.isRequired,
     returnUrl: PropTypes.string.isRequired,
     // The current date. This allows easy faking of the current time without having to setup fake timers.
     date: PropTypes.func,
@@ -474,9 +473,9 @@ class UserCalendars extends React.Component {
             {running &&
                 <Spinner size='x-small' renderTitle='Updating calendar'/>}
           </Flex.Item>
-          <Flex.Item margin='small xx-small'>
+          {disableCalendarImport && <Flex.Item margin='small xx-small'>
             {this.renderEnableAccountCalendarsButton()}
-          </Flex.Item>
+          </Flex.Item>}
           <Flex.Item margin='small xx-small'>
             {this.renderSaveButton(running)}
           </Flex.Item>

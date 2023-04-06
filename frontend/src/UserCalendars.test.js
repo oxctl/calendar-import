@@ -72,7 +72,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
@@ -104,7 +103,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
@@ -126,7 +124,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
@@ -150,7 +147,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
@@ -184,7 +180,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
@@ -219,7 +214,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
                 date={() => new Date('2000-06-01')}
@@ -253,7 +247,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
                 date={() => new Date('2000-06-01')}
@@ -286,7 +279,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
                 date={() => new Date('2000-06-01')}
@@ -313,7 +305,6 @@ describe("user calendars", () => {
                 proxyServer='/proxy'
                 calendarServer='/calendar'
                 canvasId='canvasId'
-                userId='userId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
                 date={() => new Date('2000-06-01')}
