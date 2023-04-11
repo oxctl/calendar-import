@@ -74,6 +74,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
+                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -105,6 +106,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
+                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -126,6 +128,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
+                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -149,6 +152,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
+                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -182,6 +186,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
+                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -216,6 +221,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
+                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -249,6 +255,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
+                enableAccountCalendarSubscription={true}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -281,6 +288,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
+                enableAccountCalendarSubscription={true}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -288,7 +296,7 @@ describe("user calendars", () => {
         await screen.findByRole('heading', {name: /University Terms/})
         await waitForElementToBeRemoved(() => screen.queryByTitle(/loading calendars/i))
 
-        const alertItem = screen.getByText(/To use the new method access the Calendar/i)
+        const alertItem = screen.getByText(/Canvas is introducing an improved feature/i)
         expect(alertItem).toBeDefined()
 
     })
@@ -307,6 +315,7 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
+                enableAccountCalendarSubscription={true}
                 date={() => new Date('2000-06-01')}
             />
         )

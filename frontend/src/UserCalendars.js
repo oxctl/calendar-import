@@ -41,7 +41,9 @@ class UserCalendars extends React.Component {
     // The current date. This allows easy faking of the current time without having to setup fake timers.
     date: PropTypes.func,
     // AB#65852 Disables the ability to import new calendars.
-    disableCalendarImport: PropTypes.bool.isRequired
+    disableCalendarImport: PropTypes.bool.isRequired,
+    // AB#65853 Enables the button to subscribe to account calendars via this tool.
+    enableAccountCalendarSubscription: PropTypes.bool.isRequired,
   }
 
   static defaultProps = {
@@ -73,9 +75,8 @@ class UserCalendars extends React.Component {
     const {disableCalendarImport} = this.props
     if (disableCalendarImport) {
       const alertFirstPart = `Canvas is introducing an improved feature to allow users to import University of Oxford Terms into account calendars in Canvas. The current process will be removed in due course and we recommend that you begin using the improved method as soon as possible.`
-      const alertSecondPart = `To use the new method access the Calendar via the Global Navigation menu (or click on the Canvas calendar link you will find below). Within Other Calendars there is an option for University of Oxford Calendar. There is new guidance on how to import the Oxford Terms in to Canvas in the Canvas guides.`
-      const alertThirdPart = `Oxford terms can still be removed from your personal Canvas calendars using the current tool. However, you will not be able to reimport them using this method once they have been removed.`
-      const alertMessageArray = [alertFirstPart, alertSecondPart, alertThirdPart]
+      const alertSecondPart = `Oxford terms can still be removed from your personal Canvas calendars using the current tool. However, you will not be able to reimport them using this method once they have been removed.`
+      const alertMessageArray = [alertFirstPart, alertSecondPart]
       const alertMessage = alertMessageArray.map((line, idx) => <p key={idx}>{line}</p>)
       this.addAlert(alertMessage, 'warning')
     }
@@ -429,7 +430,7 @@ class UserCalendars extends React.Component {
   render() {
 
     const running = this.state.nextRunning || this.state.currentRunning
-    const personalCalendarLink = `${this.props.canvasUrl}/calendar`
+    const globalCalendarLink = `${this.props.canvasUrl}/calendar`
 
     // AB#65852 Checkboxes are disabled if any import is running or they are unchecked, new imports are disabled because Canvas has a new functionality.
     let disableCurrentImport = running
@@ -443,11 +444,17 @@ class UserCalendars extends React.Component {
       disableNextImport = running || !isNextImportDisabled
     }
 
+    // AB#65853 Since there's no API to retrieve the enabled account calendars for a user, the option is disabled by a property.
+    const {enableAccountCalendarSubscription} = this.props
+
     return <Fragment>
       <Heading level="h1">University Terms</Heading>
       {this.renderAlerts()}
-      <Text as="p">Show University Term Names and Week Numbers in my <Link target='_top' href={personalCalendarLink}>Canvas calendar</Link>.
-        If you deselect a year this will remove the Oxford Terms and Weeks for the academic year from your personal Canvas calendar.
+      <Text as="p">
+        To use the new method access <Link target='_top' href={globalCalendarLink}>the Calendar via the Global Navigation menu</Link>. Within Other Calendars there is an option for University of Oxford Calendar. There is new guidance on how to import the Oxford Terms in to Canvas in the Canvas guides.
+      </Text>
+      <Text as="p">
+        If you have previously imported the 2022/23 and/or 2023/24 academic year University terms and weeks into your personal Canvas calendar, deselect the relevant toggle button to remove them.
       </Text>
       {this.state.loading ?
           <Spinner renderTitle='Loading calendars'/> :
@@ -473,7 +480,7 @@ class UserCalendars extends React.Component {
             {running &&
                 <Spinner size='x-small' renderTitle='Updating calendar'/>}
           </Flex.Item>
-          {disableCalendarImport && <Flex.Item margin='small xx-small'>
+          {enableAccountCalendarSubscription && <Flex.Item margin='small xx-small'>
             {this.renderEnableAccountCalendarsButton()}
           </Flex.Item>}
           <Flex.Item margin='small xx-small'>
