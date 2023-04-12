@@ -47,7 +47,8 @@ class UserCalendars extends React.Component {
   }
 
   static defaultProps = {
-    date: () => new Date()
+    // AB#65854 2022/2023 and 2023/2024 will be the last supported terms of this tool
+    date: () => new Date("2023-07-31T00:00:00")
   }
 
   /**
@@ -460,13 +461,13 @@ class UserCalendars extends React.Component {
           <Spinner renderTitle='Loading calendars'/> :
           <>
             <View as="div" margin="small none">
-              <Checkbox label={this.state.currentCalendar.title + " (current)"} variant="toggle"
+              <Checkbox label={this.state.currentCalendar.title} variant="toggle"
                         labelPlacement="end"
                         checked={this.state.current} disabled={disableCurrentImport}
                         onChange={() => this.setState((state) => ({current: !state.current}))}/>
             </View>
             <View as="div" margin="small none">
-              <Checkbox label={this.state.nextCalendar.title + " (next)"} variant="toggle"
+              <Checkbox label={this.state.nextCalendar.title} variant="toggle"
                         labelPlacement="end"
                         checked={this.state.next} disabled={disableNextImport}
                         onChange={() => this.setState((state) => ({next: !state.next}))}/>
