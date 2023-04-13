@@ -100,6 +100,11 @@
       <artifactId>spring-boot-devtools</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws.secretsmanager</groupId>
+      <artifactId>aws-secretsmanager-jdbc</artifactId>
+      <version>1.0.11</version>
+    </dependency>
 
     <!-- Just using this so we have have better logging of stuff on the wire. -->
     <dependency>
