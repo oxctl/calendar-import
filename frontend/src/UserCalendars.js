@@ -448,15 +448,23 @@ class UserCalendars extends React.Component {
     // AB#65853 Since there's no API to retrieve the enabled account calendars for a user, the option is disabled by a property.
     const {enableAccountCalendarSubscription} = this.props
 
+    // AB#65853 The text is different when the flag is enabled.
+    const introductionTextFragment = disableCalendarImport ? 
+        <><Text as="p">
+          To use the new method access <Link target='_top' href={globalCalendarLink}>the Calendar via the Global Navigation menu</Link>. Within Other Calendars there is an option for University of Oxford Calendar. There is new guidance on how to import the Oxford Terms in to Canvas in the Canvas guides.
+        </Text>
+        <Text as="p">
+          If you have previously imported the 2022/23 and/or 2023/24 academic year University terms and weeks into your personal Canvas calendar, deselect the relevant toggle button to remove them.
+        </Text></>
+        :
+        <Text as="p">Show University Term Names and Week Numbers in my <Link target='_top' href={globalCalendarLink}>personal Canvas calendar</Link>.
+          Selecting a year will import the Oxford Terms and Weeks for the academic year into your personal Canvas calendar.
+          If you deselect a year this will remove the Oxford Terms and Weeks for the academic year from your personal Canvas calendar.
+        </Text>
     return <Fragment>
       <Heading level="h1">University Terms</Heading>
       {this.renderAlerts()}
-      <Text as="p">
-        To use the new method access <Link target='_top' href={globalCalendarLink}>the Calendar via the Global Navigation menu</Link>. Within Other Calendars there is an option for University of Oxford Calendar. There is new guidance on how to import the Oxford Terms in to Canvas in the Canvas guides.
-      </Text>
-      <Text as="p">
-        If you have previously imported the 2022/23 and/or 2023/24 academic year University terms and weeks into your personal Canvas calendar, deselect the relevant toggle button to remove them.
-      </Text>
+      {introductionTextFragment}
       {this.state.loading ?
           <Spinner renderTitle='Loading calendars'/> :
           <>
