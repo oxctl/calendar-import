@@ -74,7 +74,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
-                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -106,7 +105,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
-                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -128,7 +126,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
-                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -152,7 +149,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
-                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -186,7 +182,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
-                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -221,7 +216,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={false}
-                enableAccountCalendarSubscription={false}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -255,7 +249,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
-                enableAccountCalendarSubscription={true}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -288,7 +281,6 @@ describe("user calendars", () => {
                 canvasId='canvasId'
                 onMissingToken={() => {}}
                 disableCalendarImport={true}
-                enableAccountCalendarSubscription={true}
                 date={() => new Date('2000-06-01')}
             />
         )
@@ -296,40 +288,10 @@ describe("user calendars", () => {
         await screen.findByRole('heading', {name: /University Terms/})
         await waitForElementToBeRemoved(() => screen.queryByTitle(/loading calendars/i))
 
-        const alertItem = screen.getByText(/Canvas is introducing an improved feature/i)
+        // It's checking the text of the instructions.
+        const alertItem = screen.getByText(/If you have previously imported/i)
         expect(alertItem).toBeDefined()
 
-    })
-
-    test('Enabling the account calendar makes a request to the API via Proxy', async () => {
-        server.use(rest.get('/calendar/api/predefined/2000-filename.csv', (req, res, ctx) => {
-                return res(ctx.status(500))
-            }),
-        )
-        render(
-            <UserCalendars
-                token='token'
-                returnUrl='/return-url'
-                proxyServer='/proxy'
-                calendarServer='/calendar'
-                canvasId='canvasId'
-                onMissingToken={() => {}}
-                disableCalendarImport={true}
-                enableAccountCalendarSubscription={true}
-                date={() => new Date('2000-06-01')}
-            />
-        )
-
-        await screen.findByRole('heading', {name: /University Terms/})
-        await waitForElementToBeRemoved(() => screen.queryByTitle(/loading calendars/i))
-
-        const enableButton = screen.getByRole("button", {name: /Calendar/i })
-        expect(enableButton).toBeEnabled()
-
-        const user = userEvent.setup()
-        await user.click(enableButton)
-
-        await screen.findByText(/calendar has been added/i)
     })
 
 })
