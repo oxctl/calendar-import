@@ -11,6 +11,14 @@
 
   <name>Calendar Importer for Canvas</name>
   <description>Tool to allow CSV files to be imported into Canvas calendar.</description>
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -35,6 +43,8 @@
     <url>https://github.com/oxctl/canvas-calendar-import</url>
     <tag>unknown</tag>
   </scm>
+  
+  
 
   <dependencies>
     <dependency>
