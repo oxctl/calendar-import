@@ -79,12 +79,13 @@ jobs:
       - run: mkdir files
       - name: Unzip files
         run: tar -zxvf build.tgz -C files
-      - name: Upload to bucket ${{ env.S3_DEV_BUCKET }}
-        # This is so that if the upload was done after a newer build was completed we still upload all the files.
-        run: aws s3 cp files "s3://${S3_DEV_BUCKET}/" --recursive --no-progress
-      - name: Remove old files
-        # This removes the old files.
-        run: aws s3 sync files "s3://${S3_DEV_BUCKET}/" --delete --no-progress
+      - uses: oxctl/react-deploy-to-s3-action@main
+        env:
+          AWS_S3_BUCKET: ${{ env.S3_DEV_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          SOURCE_DIR: files
       - name: Update deployment status
         uses: bobheadxi/deployments@v1.4.0
         if: always()
