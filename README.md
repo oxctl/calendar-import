@@ -185,7 +185,7 @@ The URLs supported by this are http://, https:// and calendar:// . The calendar 
 
 Then when configuring the calendar import tool from the Modules tool set the URL to `calendar://bsg-mpp` and this will get expanded by the server and the authentication will get added to any requests that are made. NB one cannot parameterise or add 'sub-folders' to this URL in the UI, this must be done in the configurtation 'properties' file - ${course.id} could also be used as a parameter, eg, https://ict.bsg.ox.ac.uk/canvas/${course.id}/${user.sis_id}.csv
 
-## Releasing
+## Releasing from local environment
  
 This tool should be released in one step, updating the maven versions and updating the npm versions.
 To make a release use the `release.sh` script in the repository and specify the new version to release.
@@ -199,6 +199,10 @@ This will increment the version in the [frontend](frontend) and [backend](backen
 
 And then GitHub Actions should build the new tag and it can be deployed to production once tested.
  
+ ## Releasing using GitHub actions
+
+There is a GitHub action to [perform releases](https://github.com/oxctl/calendar-import/actions/workflows/release.yml), you can create a Major, Minor or a Patch release, then push it to production.
+
 ## Sentry
 
 Application errors are reported using https://sentry.io for this application. There are 2 DSNs, one for development and one for production. There's no DSN for local development. Sentry is setup as early as possible in the application to capture as many errors as possible.
