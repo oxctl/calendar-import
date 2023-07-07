@@ -1,0 +1,65 @@
+# This workflow makes a new GIT tag known as release and then triggers the release actions.
+
+name: Release
+
+env:
+  JAVA_VERSION: 17
+  NODE_VERSION: 14.13.0
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-type:
+        type: choice
+        description: "Major release: 0 Minor release: 1 Patch release: 2"
+        required: true
+        options:
+        - 0
+        - 1
+        - 2
+
+jobs:
+  perform-release:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    concurrency: release
+    steps:
+      # This makes a checkout of the source code
+      - uses: actions/checkout@v3
+      # This setups the GIT to make pushes
+      - name: Sets the author of the release
+        run: |
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+      # Gets the latest tag and increments the release number# Gets the latest tag and increments the release number
+      - name: Get the new release number
+        run: echo "NEW_RELEASE_NUMBER=`${GITHUB_WORKSPACE}/increment_release.sh ${{ github.event.inputs.release-type }}`" >> $GITHUB_ENV
+      # Setups NPM to build the frontend.
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      # Setups the JVM to build the backend.
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+      # Performs the release using the release.sh script.
+      - name: Perform the release
+        run: ${GITHUB_WORKSPACE}/release.sh ${NEW_RELEASE_NUMBER}
+      # - name: Push the tags to the repository
+      #  run: git push && git push --tags
+
+#  call-frontend-pro:
+#    uses: ./.github/workflows/frontend_pro.yml
+#    with:
+#      tag: ${NEW_RELEASE_NUMBER}
+
+#  call-backend-pro:
+#    uses: ./.github/workflows/backend_deploy.yml
+#    with:
+#      tag: ${NEW_RELEASE_NUMBER}
