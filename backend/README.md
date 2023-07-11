@@ -59,8 +59,8 @@ This service is deployed to AWS using elastic beanstalk. This is managed by GitH
 
 The additional config for the clients that are registered is loaded from a file stored in S3. This file is only reloaded when the application is re-deployed (not restarted). So to change this file you typically download it:
 
-    aws s3 cp s3://elasticbeanstalk-eu-west-1-211318693510/files/calendar-import.canvas.ox.ac.uk-client.properties .
+    aws s3 cp s3://elasticbeanstalk-eu-west-1-<PROD_AWS_ACCOUNT_ID>/files/calendar-import.canvas.ox.ac.uk-client.properties .
 
 then you can edit the file and upload it to S3 again:
 
-    aws s3 cp calendar-import.canvas.ox.ac.uk-client.properties s3://elasticbeanstalk-eu-west-1-211318693510/files/
+    aws s3 cp calendar-import.canvas.ox.ac.uk-client.properties s3://elasticbeanstalk-eu-west-1-<PROD_AWS_ACCOUNT_ID>/files/

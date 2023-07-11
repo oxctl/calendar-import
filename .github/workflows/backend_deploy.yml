@@ -5,7 +5,7 @@ name: Backend PROD
 env:
   AWS_REGION: "eu-west-1"
   # If AWS account/project changes this should too
-  DOCKER_REPO: 211318693510.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import
+  DOCKER_REPO: ${{ secrets.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/ctl/calendar-import
   EB_APPLICATION: calendar-import
   EB_ENVIRONMENT: calendar-import-prod-env
   CANVAS_HOST: https://canvas.ox.ac.uk/
