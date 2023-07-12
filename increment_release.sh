@@ -7,11 +7,8 @@ die () {
     echo >&2 "$@"
     exit 1
 }
-
-echo $1 | grep -E -q '^[0-9\.]+$' || die "Numeric argument between 0 and 2 required, '$1' provided"
-
-if [ $1 -gt 2 ]; then
-  die "Only accepts 0 (Major release), 1 (Minor release), 2 (Patch release) as argument."
+if [ "$1" != "Major" ] && [ "$1" != "Minor" ] && [ "$1" != "Patch" ]; then
+  die "Only accepts Major, Minor or Patch as argument."
 fi
 
 ### Increments the part of the string
@@ -24,16 +21,16 @@ increment_version() {
   patch=`echo "$1" | cut -d "." -f 3`
 
   case "$2" in
-    0)
+    "Major")
       major=$((major + 1))
       minor=0
       patch=0
       ;;
-    1)
+    "Minor")
       minor=$((minor + 1))
       patch=0
       ;;
-    2)
+    "Patch")
       patch=$((patch + 1))
       ;;
   esac

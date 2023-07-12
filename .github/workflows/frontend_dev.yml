@@ -21,11 +21,26 @@ on:
       - 'frontend/**'
       - '.github/workflows/frontend*'
       - '!frontend/README.md'
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
+        type: string
+      sha:
+        description: 'SHA of the TAG commit'
+        type: string
+      ref:
+        description: 'The TAG ref'
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-20.04
     timeout-minutes: 15
+    env:
+      # If the SHA and the REF come from inputs, then use them. Otherwise stick with the environment GitHub variables.
+      COMMIT_SHA: ${{ inputs.sha != '' && inputs.sha || github.sha }}
+      TAG_REF: ${{ inputs.ref != '' && inputs.ref || github.ref }}
     defaults:
       run:
         working-directory: frontend
@@ -33,6 +48,8 @@ jobs:
       artifact: ${{ steps.upload.outputs.artifact }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ env.COMMIT_SHA }}
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v3
         with:
@@ -45,8 +62,8 @@ jobs:
       - name: Set archive version
         run: echo "ARCHIVE=calendar-import-${GITHUB_REF#refs/heads/}.${GITHUB_RUN_NUMBER}.tgz" >> $GITHUB_ENV
       - name: Set archive tag version
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        run: echo "ARCHIVE=release-${GITHUB_REF#refs/tags/}.tgz" >> $GITHUB_ENV
+        if: ${{ startsWith(env.TAG_REF, 'refs/tags/') }}
+        run: echo "ARCHIVE=release-${TAG_REF#refs/tags/}.tgz" >> $GITHUB_ENV
       - name: Upload to AWS S3 Bucket - ${{ env.S3_ARTIFACT_BUCKET }}
         id: upload
         env:
