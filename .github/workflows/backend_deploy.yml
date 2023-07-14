@@ -1,6 +1,7 @@
 # This is to deploy a tagged version to production.
 
 name: Backend PROD
+run-name: "Deploy ${{ inputs.tag }} to Production"
 
 env:
   AWS_REGION: "eu-west-1"

@@ -2,6 +2,7 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Frontend PROD
+run-name: "Deploy ${{ inputs.tag }} to Production"
 
 env:
   S3_ARTIFACT_BUCKET: ${{ github.repository_owner }}-calendar-import-dist
