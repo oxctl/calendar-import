@@ -199,7 +199,7 @@ This will increment the version in the [frontend](frontend) and [backend](backen
 
 And then GitHub Actions should build the new tag and it can be deployed to production once tested.
  
- ## Releasing using GitHub actions
+## Releasing using GitHub actions
 
 There is a GitHub action to [perform releases](https://github.com/oxctl/calendar-import/actions/workflows/release.yml), you can create a Major, Minor or a Patch release, then push it to production.
 
@@ -208,3 +208,19 @@ There is a GitHub action to [perform releases](https://github.com/oxctl/calendar
 Application errors are reported using https://sentry.io for this application. There are 2 DSNs, one for development and one for production. There's no DSN for local development. Sentry is setup as early as possible in the application to capture as many errors as possible.
 
 The frontend and backend have different sentry projects.
+
+## Deployment tests
+
+There are deployment tests in the 'deployment' folder, they use [Playwright](https://playwright.dev/) to check that the tool has been deployed successfully.
+
+They run automatically after deploying to DEV and PROD, and they can also run manually using Github actions and selecting the environment.
+
+The following variables are required in Github as environment secrets (DEV, PROD) or locally in a '.env' file.
+
+```
+OAUTH_TOKEN=****This is a secret token****
+COURSE_ID=123456
+TOOL_ID=123456
+CANVAS_HOST=https://url.to.canvas.instance
+BACKEND_URL=https://url.to.the.tool.backend
+```
