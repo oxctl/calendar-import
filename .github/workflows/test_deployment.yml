@@ -2,6 +2,7 @@
 # The deployment tests are available in the 'deployment' folder in the root of the project.
 
 name: Test Deployment
+run-name: "Test deployment for the  ${{ inputs.execution-environment }} environment"
 
 env:
   NODE_VERSION: 14.13.0
