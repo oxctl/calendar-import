@@ -14,6 +14,7 @@ env:
   TOOL_ID: 55607
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
     tags: [ '*' ]
