@@ -62,6 +62,7 @@ test('Calendar import loads and shows the previous imports or that there are non
   // instead of complicating the code.
   
   // Wait until we either load an import or find that there's no imports in the course.
+  // These requests depend on the backend so tests both the backend and the frontend availability.
   await Promise.race([
       frameLocator.getByText(/.* imported .* into the/).first().waitFor(),
       frameLocator.getByText("No previous imports found").waitFor(),

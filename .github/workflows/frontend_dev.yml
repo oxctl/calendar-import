@@ -8,10 +8,6 @@ env:
   S3_DEV_BUCKET: ${{ github.repository_owner }}-calendar-import-dev
   AWS_DEFAULT_REGION: "eu-west-1"
   NODE_VERSION: 14.13.0
-  CANVAS_HOST: https://universityofoxford.beta.instructure.com
-  OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
-  COURSE_ID: 186641
-  TOOL_ID: 55607
 
 on:
   push:
@@ -112,26 +108,12 @@ jobs:
           status: ${{ job.status }}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
 
-  deployment-tests:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 5
+  call-deployment-tests:
     needs: deploy-dev
-    env:
-      OAUTH_TOKEN: ${{ secrets.DEPLOYMENT_TESTS_OAUTH_TOKEN }}
-    defaults:
-      run:
-        working-directory: deployment
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-      - run: npm ci
-      - run: npm run install-browsers
-      - run: npm test
+    uses: ./.github/workflows/test_deployment.yml
+    with:
+      execution-environment: DEV
+    secrets: inherit
 
   cleanup-artifacts:
     runs-on: ubuntu-20.04

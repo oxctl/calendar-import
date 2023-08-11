@@ -1,0 +1,70 @@
+# This waits for the backend to be available and then performs the deployment tests.
+# The deployment tests are available in the 'deployment' folder in the root of the project.
+
+name: Test Deployment
+
+env:
+  NODE_VERSION: 14.13.0
+  # PROD and DEV are using the same token and the same course id for testing.
+  OAUTH_TOKEN: ${{ secrets.OAUTH_TOKEN }}
+  COURSE_ID: 186641
+  # DEV environment variables
+  DEV_BACKEND_URL: https://calendar-import-dev.canvas.ox.ac.uk
+  DEV_CANVAS_HOST: https://universityofoxford.beta.instructure.com
+  DEV_TOOL_ID: 55607
+  # PROD environment variables
+  PROD_BACKEND_URL: https://calendar-import.canvas.ox.ac.uk
+  PROD_CANVAS_HOST: https://canvas.ox.ac.uk
+  PROD_TOOL_ID: 40183
+
+on:
+  workflow_call:
+    inputs:
+      execution-environment:
+        description: "Environment"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      execution-environment:
+        type: choice
+        description: "Environment"
+        required: true
+        default: 'DEV'
+        options:
+        - DEV
+        - PROD
+
+jobs:
+  deployment-tests:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    env:
+      OAUTH_TOKEN: ${{ secrets.DEPLOYMENT_TESTS_OAUTH_TOKEN }}
+    defaults:
+      run:
+        working-directory: deployment
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set environment variables for the [${{ inputs.execution-environment }}] environment
+        run: |
+          if [[ inputs.execution-environment == 'PROD' ]]; then
+              echo "CANVAS_HOST=${{ env.PROD_CANVAS_HOST }}" >> "$GITHUB_ENV"
+              echo "TOOL_ID=${{ env.PROD_TOOL_ID }}" >> "$GITHUB_ENV"
+              echo "BACKEND_URL=${{ env.PROD_BACKEND_URL }}" >> "$GITHUB_ENV"
+          else
+              echo "CANVAS_HOST=${{ env.DEV_CANVAS_HOST }}" >> "$GITHUB_ENV"
+              echo "TOOL_ID=${{ env.DEV_TOOL_ID }}" >> "$GITHUB_ENV"
+              echo "BACKEND_URL=${{ env.DEV_BACKEND_URL }}" >> "$GITHUB_ENV"
+          fi
+      - name: Wait the backend to startup up and serve the index
+        run: curl -I --show-error --silent --retry 10 --retry-connrefused --retry-delay 10 ${{ env.BACKEND_URL }}
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - run: npm ci
+      - run: npm run install-browsers
+      - run: npm test
