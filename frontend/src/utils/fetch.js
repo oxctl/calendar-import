@@ -4,7 +4,7 @@
  * @param response The response to the fetch.
  * @returns {{ok}|*|Promise<T>}
  */
-export const handleErrors = (response) => {
+export const handleErrors = async (response) => {
   if (!response.ok) {
     if (response.status === 403) {
       // This will happen the first time someone uses the tool.
@@ -31,6 +31,10 @@ export const handleErrors = (response) => {
           throw new LoginError('Token isn\'t valid for this operation.')
         }
       })
+    } else if (response.status === 400) {
+      const err = await response.text()
+      console.error(err)
+      throw new Error(`${response.status} error`)
     } else {
       throw new Error(`${response.status} error`)
     }
