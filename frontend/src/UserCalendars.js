@@ -34,7 +34,6 @@ class UserCalendars extends React.Component {
     token: PropTypes.string.isRequired,
     proxyServer: PropTypes.string.isRequired,
     calendarServer: PropTypes.string.isRequired,
-    canvasId: PropTypes.string.isRequired,
     returnUrl: PropTypes.string.isRequired,
     // The current date. This allows easy faking of the current time without having to setup fake timers.
     date: PropTypes.func,
