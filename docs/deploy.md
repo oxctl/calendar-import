@@ -12,6 +12,7 @@ To do this you need to have these tools installed:
 - tool support - https://github.com/oxctl/tool-support this handles the LTI launch and tokens.
 - docker - https://docker.com `docker-compose` is the key part.
 - mkcert - https://github.com/FiloSottile/mkcert to generate self-signed certificates.
+- nodejs - https://nodejs.org/ LTS version (this is needed for running the configuration tool).
 
 ### Setup
 
@@ -70,5 +71,13 @@ Then edit the values:
 - `tool_support_username` - Username for API requests to tool support.
 - `tool_support_password` - Password for API requests to tool support.
 - `proxy_secret` - Secret that calendar import uses to authenticate to the proxy when user isn't present.
+
+Then set up the tool:
+
+```bash
+npx @oxctl/lti-auto-configuration -c -t ./tool-config/tool-config.json -s ./tool-config/local.json 
+```
+
+This should have installed the tool into tool-support and added it to your Canvas instance and it should be ready to use.
 
 
