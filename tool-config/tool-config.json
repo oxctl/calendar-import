@@ -1,0 +1,147 @@
+{
+  "config": {
+    "title_suffix": "",
+    "lti_registration_id": "calendar-import",
+    "lti_account_id": "self",
+    "lti_tool_url": "https://localhost:3000"
+  },
+  "ltiKey": {
+    "tool_configuration": {
+      "settings": {
+        "public_jwk": {},
+        "title": "Calendar Import$TITLE_SUFFIX",
+        "description": " Allows the import of events into the Canvas calendar.",
+        "target_link_uri": "$LTI_TOOL_URL",
+        "oidc_initiation_url": "$LTI_SERVER_URL/lti/login_initiation/",
+        "public_jwk_url": "$LTI_SERVER_URL/.well-known/jwks.json",
+        "scopes": [],
+        "extensions": [
+          {
+            "domain": "localhost",
+            "platform": "canvas.instructure.com",
+            "settings": {
+              "platform": "canvas.instructure.com",
+              "placements": [
+                {
+                  "text": "Calendar Import$TITLE_SUFFIX",
+                  "placement": "course_home_sub_navigation",
+                  "visibility": "admins",
+                  "message_type": "LtiResourceLinkRequest",
+                  "canvas_icon_class": "icon-calendar-add",
+                  "required_permissions": "manage_calendar"
+                },
+                {
+                  "text": "University Terms$TITLE_SUFFIX",
+                  "placement": "user_navigation",
+                  "message_type": "LtiResourceLinkRequest"
+                },
+                {
+                  "text": "Import Events Into Personal Calendar$TITLE_SUFFIX",
+                  "placement": "link_selection",
+                  "message_type": "LtiDeepLinkingRequest",
+                  "selection_height": 500
+                },
+                {
+                  "text": "Calendar Import$TITLE_SUFFIX",
+                  "placement": "account_navigation",
+                  "message_type": "LtiResourceLinkRequest",
+                  "required_permissions": "manage_account_calendar_events"
+                }
+              ]
+            },
+            "privacy_level": "public"
+          }
+        ],
+        "custom_fields": {
+          "canvas_user_id": "$Canvas.user.id",
+          "canvas_course_id": "$Canvas.course.id",
+          "user_only_delete": "true",
+          "canvas_account_id": "$Canvas.account.id",
+          "canvas_course_name": "$Canvas.course.name",
+          "canvas_user_sis_id": "$Canvas.user.sisSourceId",
+          "canvas_api_base_url": "$Canvas.api.baseUrl",
+          "resource_link_title": "$ResourceLink.title",
+          "person_address_timezone": "$Person.address.timezone",
+          "canvas_user_prefers_high_contrast": "$Canvas.user.prefersHighContrast",
+          "com_instructure_brand_config_json_url": "$com.instructure.brandConfigJSON.url",
+          "proxy_server": "$PROXY_SERVER_URL",
+          "calendar_server": "$CALENDAR_SERVER_URL"
+        }
+      }
+    },
+    "developer_key": {
+      "name": "Calendar Import$TITLE_SUFFIX",
+      "redirect_uris": "$LTI_SERVER_URL/lti/login",
+      "scopes": [
+      ]
+    }
+  },
+  "apiKey": {
+    "developer_key": {
+      "allow_includes": true,
+      "name": "Calendar Import$TITLE_SUFFIX",
+      "require_scopes": true,
+      "redirect_uris": "$PROXY_SERVER_URL/login/oauth2/code/$LTI_REGISTRATION_ID",
+      "scopes": [
+        "url:GET|/api/v1/calendar_events",
+        "url:POST|/api/v1/calendar_events",
+        "url:DELETE|/api/v1/calendar_events/:id",
+        "url:GET|/api/v1/calendar_events/:id",
+        "url:GET|/api/v1/courses/:course_id/sections"
+      ]
+    }
+  },
+  "toolReg": {
+    "lti": {
+      "registrationId": "$LTI_REGISTRATION_ID",
+      "clientName": "Calendar Import$TITLE_SUFFIX",
+      "clientId": "$LTI_DEV_ID",
+      "clientSecret": "$LTI_DEV_KEY",
+      "clientAuthenticationMethod": "client_secret_basic",
+      "authorizationGrantType": "implicit",
+      "redirectUri": "{baseUrl}/lti/login",
+      "scopes": [
+        "openid"
+      ],
+      "providerDetails": {
+        "authorizationUri": "$CANVAS_PROVIDER_URL/api/lti/authorize_redirect",
+        "tokenUri": "$CANVAS_PROVIDER_URL/login/oauth2/token",
+        "userInfoEndpoint": null,
+        "jwkSetUri": "$CANVAS_PROVIDER_URL/api/lti/security/jwks",
+        "issuerUri": null,
+        "configurationMetadata": {}
+      }
+    },
+    "proxy": {
+      "registrationId": "$LTI_REGISTRATION_ID",
+      "clientName": "Calendar Import$TITLE_SUFFIX",
+      "clientId": "$API_DEV_ID",
+      "clientSecret": "$API_DEV_KEY",
+      "clientAuthenticationMethod": "client_secret_post",
+      "authorizationGrantType": "authorization_code",
+      "redirectUri": "{baseUrl}/login/oauth2/code/{registrationId}",
+      "scopes": [
+        "url:GET|/api/v1/calendar_events",
+        "url:POST|/api/v1/calendar_events",
+        "url:DELETE|/api/v1/calendar_events/:id",
+        "url:GET|/api/v1/calendar_events/:id",
+        "url:GET|/api/v1/courses/:course_id/sections"
+      ],
+      "providerDetails": {
+        "authorizationUri": "$CANVAS_URL/login/oauth2/auth",
+        "tokenUri": "$CANVAS_URL/login/oauth2/token",
+        "userInfoEndpoint": null,
+        "jwkSetUri": null,
+        "issuerUri": null,
+        "configurationMetadata": {}
+      }
+    }, 
+    "origins": [
+      "$LTI_TOOL_URL"
+    ],
+    "sign": true,
+    "secret": "$PROXY_SECRET",
+    "issuer": "$LTI_SERVER_URL",
+    "nrpsAllowedRoles": []
+  }
+}

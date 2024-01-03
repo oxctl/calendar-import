@@ -241,10 +241,10 @@
         </configuration>
       </plugin>
       <plugin>
-        <!-- This allow simple building of a dockerfile without complexity -->
+        <!-- This allows simple building of a dockerfile without complexity -->
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>3.1.4</version>
+        <version>3.4.0</version>
         <configuration>
           <to>
             <tags>
@@ -254,16 +254,30 @@
             </tags>
           </to>
           <from>
-            <!-- Must specify an image for Java 17 -->
-            <image>azul/zulu-openjdk-alpine:17.0.3-jre-headless</image>
+            <!-- The alpine images are small but don't support arm64 so use ubuntu instead -->
+            <image>eclipse-temurin:17.0.8.1_1-jre-jammy</image>
+            <platforms>
+              <platform>
+                <architecture>arm64</architecture>
+                <os>linux</os>
+              </platform>
+              <platform>
+                <architecture>amd64</architecture>
+                <os>linux</os>
+              </platform>
+            </platforms>
           </from>
           <container>
             <!-- As we're in docker we really don't want to be running as root -->
-            <user>nobody:nobody</user>
+            <user>nobody:nogroup</user>
             <jvmFlags>
               <!-- The ZGC collector allows memory to be released back to the OS by default. -->
               <jvmFlag>-XX:+UseZGC</jvmFlag>
             </jvmFlags>
+            <labels>
+              <!-- This is just metadata about the repository that contains the source -->
+              <org.opencontainers.image.source>https://github.com/oxctl/calendar-import</org.opencontainers.image.source>
+            </labels>
           </container>
         </configuration>
       </plugin>
