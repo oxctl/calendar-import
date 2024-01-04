@@ -45,7 +45,9 @@ const grantAccess = async (context, frameLocator) => {
 test('Calendar import loads and shows the previous imports or that there are none.', async ({ context, page, request }) => {
   await login(request, page)
   await page.goto(`${host}/courses/${courseId}/external_tools/${toolId}?launch_type=course_home_sub_navigation`)
-  const frameLocator = await page.frameLocator('#tool_content')
+  // the frame id now seems to be dynamic on beta, but fixed on live - this should allow it to work for both cases
+  const frames = page.frames();
+  const frameLocator = frames.find((frame) => frame.name().includes('tool_content'));
 
   const needsGrantAccess = await Promise.race([
     frameLocator.getByText('Please Grant Access').waitFor()
