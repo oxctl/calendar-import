@@ -65,7 +65,8 @@
           "canvas_user_prefers_high_contrast": "$Canvas.user.prefersHighContrast",
           "com_instructure_brand_config_json_url": "$com.instructure.brandConfigJSON.url",
           "proxy_server": "$PROXY_SERVER_URL",
-          "calendar_server": "$CALENDAR_SERVER_URL"
+          "calendar_server": "$CALENDAR_SERVER_URL",
+          "lti_server": "$LTI_SERVER_URL"
         }
       }
     },
