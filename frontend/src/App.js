@@ -39,6 +39,7 @@ import ContextCalendars from "./ContextCalendars";
 import ImportCourseEvents from './ImportCourseEvents'
 import AuthoriseCalendarEvents from './AuthoriseCalendarEvents'
 import RefreshProxyToken from "./RefreshProxyToken";
+import {sentryInit} from "./sentry";
 
 
 class App extends React.Component {
@@ -55,6 +56,10 @@ class App extends React.Component {
         prompt: false,
         // The timezone of the current user.
         timezone: null,
+        // The URL of the proxy server to use for API requests
+        proxyServer: null,
+        // The URL of the calendar import server
+        calendarServer: null
     }
 
     constructor(props, context) {
@@ -86,7 +91,9 @@ class App extends React.Component {
             targetLinkUri: this.jwt['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'],
             calendarUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].url,
             timezone: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].person_address_timezone,
-            disableCalendarImport: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].user_only_delete === 'true'
+            disableCalendarImport: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].user_only_delete === 'true',
+            proxyServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].proxy_server,
+            calendarServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].calendar_server
         })
         this.props.setToken(token)
     }
@@ -173,11 +180,11 @@ class App extends React.Component {
         const {servers} = this
 
         return (
-            <LtiTokenRetriever ltiServer={servers.ltiServer} handleJwt={this.updateToken}>
+            <LtiTokenRetriever handleJwt={this.updateToken}>
                 <LtiApplyTheme url={comInstructureBrandConfigJsonUrl} highContrast={canvasUserPrefersHighContrast}>
                     <LtiHeightLimit>
                         <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyTokenOk}
-                                     promptLogin={this.state.prompt} server={{proxyServer: this.servers.proxyServer}}>
+                                     promptLogin={this.state.prompt} server={{proxyServer: this.state.proxyServer}}>
                             <View padding="small" as="div">
                             <Error message={error}>
                             <Loading loading={this.state.loading}> 

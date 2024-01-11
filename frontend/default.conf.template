@@ -1,0 +1,19 @@
+# nginx config when deploying a docker container for the static files.
+
+server {
+  listen 443 ssl default_server;
+
+  server_name ${NGINX_HOST};
+
+  ## Access and error logs.
+  access_log /dev/stdout;
+  error_log  /dev/stdout warn;
+
+  ## See the keepalive_timeout directive in nginx.conf.
+  ## Server certificate and key.
+  ssl_certificate /etc/nginx/ssl/${NGINX_HOST}.pem;
+  ssl_certificate_key /etc/nginx/ssl/${NGINX_HOST}-key.pem;
+
+  root /usr/share/nginx/html;
+  index index.html;
+}

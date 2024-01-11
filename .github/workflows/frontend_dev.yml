@@ -72,6 +72,13 @@ jobs:
           tar -C build -zcvf $ARCHIVE .
           aws s3 cp $ARCHIVE s3://${S3_ARTIFACT_BUCKET}/
           echo artifact="$ARCHIVE" >> $GITHUB_OUTPUT
+        # This isn't used in production but for easy deploys
+      - name: Authenticate to GitHub Packages (containers)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+      - name: Build docker image
+        run: docker build -t ghcr.io/oxctl/calendar-import-frontend .
+      - name: Push docker image
+        run: docker push ghcr.io/oxctl/calendar-import-backend
 
   deploy-dev:
     runs-on: ubuntu-20.04

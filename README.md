@@ -17,6 +17,10 @@ This tool is split into 2  parts:
 Originally this tool was written as a Java MVC tool and then later refactored to have a React frontend and a REST backend.
 This means had we been starting from scratch some things would have been done differently.
 
+## Deployment
+
+If you are just looking to deploy the service there is documentation on how to do this: [docs/deploy.md](docs/deploy.md).
+
 ## Dependent Services
 
 This tool depends on the LTI launch service to handle the LTI launch to React frontend flow. It then uses the proxy
