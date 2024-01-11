@@ -64,8 +64,6 @@ class App extends React.Component {
 
     constructor(props, context) {
         super(props, context)
-        this.servers = settings
-        this.props.setServer(this.servers.calendarServer)
     }
 
     jwt = null
@@ -93,9 +91,11 @@ class App extends React.Component {
             timezone: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].person_address_timezone,
             disableCalendarImport: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].user_only_delete === 'true',
             proxyServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].proxy_server,
-            calendarServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].calendar_server
+            calendarServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].calendar_server,
+            ltiServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].lti_server
         })
         this.props.setToken(token)
+        this.props.setServer(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].calendar_server)
     }
 
     proxyTokenOk = () => {
@@ -115,20 +115,20 @@ class App extends React.Component {
                 token={this.state.token}
                 deepLinkReturnUrl={this.state.deepLinkReturnUrl}
                 courseName={courseName}
-                ltiServer={this.servers.ltiServer}
+                ltiServer={this.state.ltiServer}
                 targetLinkUri={this.state.targetLinkUri}
                 timezone={this.state.timezone}
             />
         }
 
         if(calendarUrl){
-            return <RefreshProxyToken token={this.state.token} proxyServer={this.servers.proxyServer}
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.proxyServer}
                                       onMissingToken={this.proxyTokenGet}>
                 <AuthoriseCalendarEvents
-                    calendarServer={this.servers.calendarServer}
+                    calendarServer={this.state.calendarServer}
                     onMissingToken={this.proxyTokenGet}
                     personalCalendarLink={this.state.canvasBaseUrl + '/calendar?include_contexts=user_' + this.state.userId}
-                    proxyServer={this.servers.proxyServer}
+                    proxyServer={this.state.proxyServer}
                     returnUrl={this.state.returnUrl}
                     token={this.state.token}
                 />
@@ -136,11 +136,11 @@ class App extends React.Component {
         }
 
         if(placement === "user_navigation") {
-            return <RefreshProxyToken token={this.state.token} proxyServer={this.servers.proxyServer}
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.proxyServer}
                                       onMissingToken={this.proxyTokenGet}>
                 <UserCalendars
-                    calendarServer={this.servers.calendarServer}
-                    proxyServer={this.servers.proxyServer}
+                    calendarServer={this.state.calendarServer}
+                    proxyServer={this.state.proxyServer}
                     token={this.state.token}
                     returnUrl={this.state.returnUrl}
                     canvasUrl={this.state.canvasBaseUrl}
@@ -150,13 +150,14 @@ class App extends React.Component {
             </RefreshProxyToken>
         }
         if (placement === "account_navigation") {
-            return <RefreshProxyToken token={this.state.token} proxyServer={this.servers.proxyServer}
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.proxyServer}
                                       onMissingToken={this.proxyTokenGet}>
                 <ContextCalendars
                     canvasBaseUrl={canvasBaseUrl}
                     contextType='account'
                     accountId={accountId}
-                    servers={this.servers}
+                    proxyServer={this.state.proxyServer}
+                    calendarServer={this.state.calendarServer}
                     token={this.token}
                     handleProxyRefresh={this.proxyTokenGet}
                 />
@@ -168,7 +169,8 @@ class App extends React.Component {
             contextType='course'
             courseId={courseId}
             courseName={courseName}
-            servers={this.servers}
+            proxyServer={this.state.proxyServer}
+            calendarServer={this.state.calendarServer}
             token={this.token}
             handleProxyRefresh={this.proxyTokenGet}
         />

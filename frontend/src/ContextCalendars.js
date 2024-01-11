@@ -31,14 +31,14 @@ class ContextCalendars extends React.Component {
                 example
                 file, if necessary).
             </Text>
-            <UploadJob proxyServer={this.props.servers.proxyServer}
-                       calendarServer={this.props.servers.calendarServer}
+            <UploadJob proxyServer={this.props.proxyServer}
+                       calendarServer={this.props.calendarServer}
                        token={this.props.token}
                        handleProxyRefresh={this.props.handleProxyRefresh}
                        contextType={this.props.contextType}
                        courseId={this.props.courseId} courseName={this.props.courseName}
                        onMessage={this.props.onMessage}/>
-            <ImportView server={this.props.servers.calendarServer} token={this.props.token}
+            <ImportView server={this.props.calendarServer} token={this.props.token}
                         onMessage={this.props.onMessage}/>
         </Fragment>;
     }
@@ -57,7 +57,8 @@ ContextCalendars.propTypes = {
     courseId: PropTypes.any,
     accountId: PropTypes.string,
     contextType: PropTypes.string,
-    servers: PropTypes.any,
+    proxyServer: PropTypes.string,
+    calendarServer: PropTypes.string,
     token: PropTypes.any,
     handleProxyRefresh: PropTypes.func,
     courseName: PropTypes.any,
