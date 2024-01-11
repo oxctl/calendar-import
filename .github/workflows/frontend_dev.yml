@@ -78,7 +78,7 @@ jobs:
       - name: Build docker image
         run: docker build -t ghcr.io/oxctl/calendar-import-frontend .
       - name: Push docker image
-        run: docker push ghcr.io/oxctl/calendar-import-backend
+        run: docker push ghcr.io/oxctl/calendar-import-frontend
 
   deploy-dev:
     runs-on: ubuntu-20.04
