@@ -1,20 +1,20 @@
 package uk.ac.ox.it.calendarimporter.persistence.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import uk.ac.ox.it.calendarimporter.Views;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedSubgraph;
-import javax.persistence.OneToOne;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToOne;
 import java.time.Instant;
 
 /**

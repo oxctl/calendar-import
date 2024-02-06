@@ -3,6 +3,7 @@ package uk.ac.ox.it.calendarimporter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.GrantedAuthority;
 
+import java.util.Collections;
 import java.util.Map;
 
 @ConfigurationProperties("calendar.role")
@@ -18,6 +19,7 @@ public class RoleMappingConfiguration {
     }
 
     public Map<String, GrantedAuthority> getMapping() {
-        return mapping;
+        if (mapping != null) return mapping;
+        return Collections.EMPTY_MAP;
     }
 }

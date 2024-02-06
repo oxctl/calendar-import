@@ -10,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.ac.ox.it.calendarimporter.jobs.TestJob;
 import uk.ac.ox.it.calendarimporter.utils.TriggerUtils;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;

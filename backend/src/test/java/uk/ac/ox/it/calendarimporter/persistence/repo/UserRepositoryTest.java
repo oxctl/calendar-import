@@ -6,12 +6,12 @@ import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.dao.DataIntegrityViolationException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,7 +39,7 @@ public class UserRepositoryTest {
     @Test
     public void testSaveMissingFields() {
         assertThrows(
-                DataIntegrityViolationException.class,
+                ConstraintViolationException.class,
                 () -> {
                     repository.save(new User(null, "subject", "username"));
                     entityManager.flush();

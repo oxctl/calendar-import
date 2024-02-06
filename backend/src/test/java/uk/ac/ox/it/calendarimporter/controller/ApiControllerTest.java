@@ -7,6 +7,7 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import uk.ac.ox.it.calendarimporter.ApiWebSecurityConfig;
+import uk.ac.ox.it.calendarimporter.WebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
@@ -41,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ApiController.class)
 @TestPropertySource(locations = "classpath:test.properties")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Import({WebSecurityConfig.class, ApiWebSecurityConfig.class})
 class ApiControllerTest {
 
     @Autowired

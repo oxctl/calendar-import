@@ -13,7 +13,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,11 +39,10 @@ import java.util.List;
 
 import static org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri;
 
-@Order(1)
 @Configuration
 @EnableWebSecurity
 @EnableConfigurationProperties(RoleMappingConfiguration.class)
-public class ApiWebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class ApiWebSecurityConfig {
 
     private final Logger log = LoggerFactory.getLogger(ApiWebSecurityConfig.class);
 
@@ -60,22 +61,27 @@ public class ApiWebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private RoleMappingConfiguration roleMappingConfiguration;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        HttpSecurity api = http.antMatcher("/api/**");
-        api.cors();
-        api.csrf().disable();
-        api.headers().frameOptions().disable();
-        // No cookies
-        api.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
+    @Bean
+    @Order(1)
+    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        Converter<Jwt, Collection<GrantedAuthority>> grantedAuthoritiesConverter =
-                new CustomAuthorityMappingConverter(roleMappingConfiguration.getMapping());
+        Converter<Jwt, Collection<GrantedAuthority>> grantedAuthoritiesConverter = new CustomAuthorityMappingConverter(roleMappingConfiguration.getMapping());
         jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
 
-        api.oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtConverter);
-        api.authorizeRequests(authorize -> authorize.anyRequest().authenticated());
+        http.authorizeHttpRequests(request -> {
+            request.requestMatchers("/api/**").authenticated();
+        })
+            .cors(cors -> cors.configure(http))
+            .csrf(AbstractHttpConfigurer::disable)
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+            .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .oauth2ResourceServer(oauth2ResourceServer -> {
+                oauth2ResourceServer.jwt(jwt -> {
+                    jwt.jwtAuthenticationConverter(jwtConverter);
+                });
+            });
+
+        return http.build();
     }
 
     @Bean
