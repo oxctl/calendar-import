@@ -1,14 +1,13 @@
 package uk.ac.ox.it.calendarimporter.persistence.repo;
 
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
@@ -19,7 +18,6 @@ import java.util.Iterator;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@DirtiesContext
 public class ContextJobRepositoryTest {
 
     @Autowired
@@ -44,7 +42,7 @@ public class ContextJobRepositoryTest {
     @Test
     public void testSaveMissingFields() {
         assertThrows(
-                DataIntegrityViolationException.class,
+                ConstraintViolationException.class,
                 () -> {
                     ContextJob job = new ContextJob();
                     repository.save(job);

@@ -5,10 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import uk.ac.ox.it.calendarimporter.WebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.persistence.model.*;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ApiDownloadController.class)
 @TestPropertySource(locations = "classpath:test.properties")
+@Import(WebSecurityConfig.class)
 public class ApiDownloadControllerTest {
 
     @Autowired
@@ -136,7 +139,7 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(401));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(403));
     }
 
     @Test

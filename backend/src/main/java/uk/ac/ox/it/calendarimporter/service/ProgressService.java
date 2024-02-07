@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.repo.JobProgressRepository;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.time.Instant;
 
 import static com.google.common.base.Preconditions.checkArgument;

@@ -5,7 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 
-import javax.persistence.QueryHint;
+import jakarta.persistence.QueryHint;
 import java.util.Optional;
 
 @RepositoryRestResource

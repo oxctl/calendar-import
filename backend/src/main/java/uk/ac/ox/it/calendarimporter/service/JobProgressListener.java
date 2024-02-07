@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ox.it.calendarimporter.jobs.LoggingJob;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
 

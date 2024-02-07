@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.ac.ox.it.calendarimporter.service.PredefinedService;
 import uk.ac.ox.it.calendarimporter.termdata.AcademicYearTerm;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
