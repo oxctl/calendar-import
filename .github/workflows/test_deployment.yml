@@ -4,9 +4,6 @@
 name: Test Deployment
 run-name: "Test deployment for the  ${{ inputs.execution-environment }} environment"
 
-env:
-  NODE_VERSION: 14.13.0
-
 on:
   workflow_call:
     inputs:
@@ -40,13 +37,13 @@ jobs:
       run:
         working-directory: deployment
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Wait the backend to startup up and serve the index
         run: curl -I --show-error --silent --retry 10 --retry-connrefused --retry-delay 10 ${{ env.BACKEND_URL }}
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: deployment/.nvmrc
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - run: npm ci
