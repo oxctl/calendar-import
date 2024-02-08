@@ -43,7 +43,7 @@ jobs:
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v3
         with:
-          node-version-file: .nvmrc
+          node-version-file: deployment/.nvmrc
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - run: npm ci
