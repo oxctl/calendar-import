@@ -1,0 +1,49 @@
+# This is a quickstart docker compose file that allows calendar import to be quickly run without
+# the frontend/backend needing to be built.
+version: '3.2'
+services:
+  mysql:
+    # need to support arm64 so need Oracle
+    image: mysql:8.0.34-oracle
+    ports:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_USER: import
+      MYSQL_PASSWORD: import
+      MYSQL_DATABASE: import
+    command:
+      - --character-set-server=UTF8MB4
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 500ms
+      timeout: 1s
+      retries: 30
+  web:
+    image: ghcr.io/oxctl/calendar-import-frontend:latest
+    volumes:
+      - type: bind
+        source: localhost-key.pem
+        target: /etc/nginx/ssl/localhost-key.pem
+      - type: bind
+        source: localhost.pem
+        target: /etc/nginx/ssl/localhost.pem
+    environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: 1
+    ports:
+      - 28443:443
+  app:
+    # The prebuilt image
+    image: ghcr.io/oxctl/calendar-import-backend:latest
+    environment:
+      # This is so that we use the prebuilt image
+      SPRING_PROFILES_ACTIVE: docker,ssl
+    volumes:
+      - ./config:/config
+    ports:
+      - 18443:8443
+    depends_on:
+      mysql:
+        condition: service_healthy
+    
