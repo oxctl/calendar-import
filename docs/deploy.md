@@ -75,7 +75,7 @@ Then edit the values:
 Then set up the tool:
 
 ```bash
-npx @oxctl/lti-auto-configuration -c -t ./tool-config/tool-config.json -s ./tool-config/local.json 
+npx @oxctl/lti-auto-configuration -c -t ./tool-config/tool-config.json -s ./tool-config/local.json -ss ./tool-config/local.json
 ```
 
 This should have installed the tool into tool-support and added it to your Canvas instance and it should be ready to use.
