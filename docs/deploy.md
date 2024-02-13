@@ -18,11 +18,17 @@ To do this you need to have these tools installed:
 
 #### TLS
 
-Before starting up the docker container you need to create a certificate file to enable HTTPS.
+Before starting up the docker containers you need to create a certificate file to enable HTTPS.
 
+For the Java backend:
 ```bash
 mkcert -pkcs12 -p12-file config/keystore.p12 localhost
 ```
+For the Web frontend:
+```bash
+mkcert localhost
+```
+
 
 #### Configuration
 
@@ -30,6 +36,10 @@ The tool needs configuration for the Canvas instance to work with. The calendar 
 
 ```bash
 cat <<EOF > backend/config/application.properties
+# Allow frontend origin
+frontend.origins=https://localhost:3000
+
+# Configuration
 calendar.tenants[0].name={hostname.instructure.com}
 calendar.tenants[0].url={https://hostname.instructure.com}
 calendar.tenants[0].displayName={Display Name}
