@@ -43,8 +43,18 @@
     <url>https://github.com/oxctl/canvas-calendar-import</url>
     <tag>unknown</tag>
   </scm>
-  
-  
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.awspring.cloud</groupId>
+        <artifactId>spring-cloud-aws-dependencies</artifactId>
+        <version>3.0.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -114,6 +124,10 @@
       <groupId>com.amazonaws.secretsmanager</groupId>
       <artifactId>aws-secretsmanager-jdbc</artifactId>
       <version>1.0.11</version>
+    </dependency>
+    <dependency>
+      <groupId>io.awspring.cloud</groupId>
+      <artifactId>spring-cloud-aws-secrets-manager</artifactId>
     </dependency>
 
     <!-- Just using this so we have have better logging of stuff on the wire. -->
