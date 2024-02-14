@@ -7,7 +7,6 @@ env:
   S3_ARTIFACT_BUCKET: ${{ github.repository_owner }}-calendar-import-dist
   S3_DEV_BUCKET: ${{ github.repository_owner }}-calendar-import-dev
   AWS_DEFAULT_REGION: "eu-west-1"
-  NODE_VERSION: 14.13.0
 
 on:
   workflow_dispatch:
@@ -44,13 +43,12 @@ jobs:
     outputs:
       artifact: ${{ steps.upload.outputs.artifact }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ env.COMMIT_SHA }}
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: 'frontend/.nvmrc''
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - run: npm ci
