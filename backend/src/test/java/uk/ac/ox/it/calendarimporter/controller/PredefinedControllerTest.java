@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.ac.ox.it.calendarimporter.ApiWebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.WebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.security.WithMockClaims;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest(controllers = PredefinedController.class)
-@Import(WebSecurityConfig.class)
+@Import({WebSecurityConfig.class, ApiWebSecurityConfig.class})
 public class PredefinedControllerTest {
 	
 	@Autowired
@@ -36,7 +37,7 @@ public class PredefinedControllerTest {
 	@Test
 	public void testCalendarsNoAuth() throws Exception {
 		mockMvc.perform(get("/api/predefined"))
-				.andExpect(status().isForbidden());
+				.andExpect(status().isUnauthorized());
 	}
 	
 	@Test
@@ -64,7 +65,7 @@ public class PredefinedControllerTest {
 	@Test
 	public void testFileNoAuth() throws Exception {
 		mockMvc.perform(get("/api/predefined/filename.csv"))
-				.andExpect(status().isForbidden());
+				.andExpect(status().isUnauthorized());
 	}
 
 	@Test
