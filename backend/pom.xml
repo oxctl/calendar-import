@@ -34,7 +34,6 @@
     <!-- Set defaults so jib works without any additional settings -->
     <git.commit.id>unknown</git.commit.id>
     <jib.tag>unknown</jib.tag>
-    <sentry.version>6.16.0</sentry.version>
   </properties>
 
   <scm>
@@ -50,6 +49,13 @@
         <groupId>io.awspring.cloud</groupId>
         <artifactId>spring-cloud-aws-dependencies</artifactId>
         <version>3.0.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.sentry</groupId>
+        <artifactId>sentry-bom</artifactId>
+        <version>7.3.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -180,12 +186,10 @@
     <dependency>
       <groupId>io.sentry</groupId>
       <artifactId>sentry-spring-boot-starter</artifactId>
-      <version>${sentry.version}</version>
     </dependency>
     <dependency>
       <groupId>io.sentry</groupId>
       <artifactId>sentry-logback</artifactId>
-      <version>${sentry.version}</version>
     </dependency>
 
     <dependency>
