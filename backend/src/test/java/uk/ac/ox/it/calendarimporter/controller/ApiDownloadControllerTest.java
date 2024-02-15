@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import uk.ac.ox.it.calendarimporter.ApiWebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.WebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.persistence.model.*;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
@@ -25,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ApiDownloadController.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(WebSecurityConfig.class)
+@Import({WebSecurityConfig.class, ApiWebSecurityConfig.class})
 public class ApiDownloadControllerTest {
 
     @Autowired
@@ -139,7 +140,7 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(403));
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(401));
     }
 
     @Test

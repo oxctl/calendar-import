@@ -68,13 +68,13 @@ public class ApiWebSecurityConfig {
         Converter<Jwt, Collection<GrantedAuthority>> grantedAuthoritiesConverter = new CustomAuthorityMappingConverter(roleMappingConfiguration.getMapping());
         jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
 
-        http.authorizeHttpRequests(request -> {
-            request.requestMatchers("/api/**").authenticated();
-        })
+        http.securityMatcher("/api/**")
+            .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry.anyRequest().authenticated())
             .cors(cors -> cors.configure(http))
+            // It's only safe to do this when also making the application stateless (no cookies)    
             .csrf(AbstractHttpConfigurer::disable)
-            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .oauth2ResourceServer(oauth2ResourceServer -> {
                 oauth2ResourceServer.jwt(jwt -> {
                     jwt.jwtAuthenticationConverter(jwtConverter);

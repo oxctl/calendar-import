@@ -7,10 +7,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
-@EnableWebSecurity(debug = false)
+@EnableWebSecurity
 public class WebSecurityConfig {
 
     @Value("${spring.data.rest.basePath:/}")
@@ -18,14 +21,20 @@ public class WebSecurityConfig {
 
     @Bean
     @Order(10)
-    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(request -> {
-                request.requestMatchers("/", "/resources/**", "/favicon.ico", "/icon.png", "/public/**").permitAll();
-                request.requestMatchers(apiPath + "/**").hasRole("API");
-                request.anyRequest().authenticated();
-            })
-            .headers((headers) -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
-
-        return http.build();
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http.securityMatcher("/", "/index.html", "/resources/**", "/favicon.ico", "/icon.png", "/public/**")
+                .authorizeHttpRequests(request -> request.anyRequest().permitAll())
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .build();
+    }
+    
+    @Bean
+    @Order(3)
+    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http.securityMatcher(apiPath + "/**")
+                .authorizeHttpRequests(request -> request.anyRequest().hasRole("API"))
+                .headers((headers) -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .build();
     }
 }
