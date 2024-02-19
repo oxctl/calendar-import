@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Wait the backend to startup up and serve the index
         run: curl -I --show-error --silent --retry 10 --retry-connrefused --retry-delay 10 ${{ env.BACKEND_URL }}
-      
+      - uses: actions/setup-node@v4
         with:
           node-version-file: deployment/.nvmrc
           cache: 'npm'
