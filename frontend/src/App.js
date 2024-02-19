@@ -28,18 +28,15 @@ import jwtDecode from 'jwt-decode'
 import {View} from '@instructure/ui-view'
 import {Loading} from './Loading'
 import Error from './Error'
-import {LaunchOAuth, LtiHeightLimit, LtiTokenRetriever} from "@oxctl/ui-lti"
+import {LaunchOAuth, LtiApplyTheme, LtiHeightLimit, LtiTokenRetriever} from "@oxctl/ui-lti"
 import {setServer, setToken} from "./actions/lti";
 import {connect} from "react-redux";
 import {addMessage} from "./actions/messages";
-import LtiApplyTheme from "./LtiApplyTheme";
-import {settings} from "./utils/settings";
 import UserCalendars from './UserCalendars'
 import ContextCalendars from "./ContextCalendars";
 import ImportCourseEvents from './ImportCourseEvents'
 import AuthoriseCalendarEvents from './AuthoriseCalendarEvents'
 import RefreshProxyToken from "./RefreshProxyToken";
-import {sentryInit} from "./sentry";
 
 
 class App extends React.Component {
