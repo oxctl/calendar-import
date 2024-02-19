@@ -1,6 +1,6 @@
 # Calendar Import
 
-A tool to import calendar events in Canvas.
+A tool to import calendar events into Canvas.
 
  - [![Backend DEV](https://github.com/oxctl/calendar-import/actions/workflows/backend_build.yml/badge.svg)](https://github.com/oxctl/calendar-import/actions/workflows/backend_build.yml)
  - [![Frontend DEV](https://github.com/oxctl/calendar-import/actions/workflows/frontend_dev.yml/badge.svg)](https://github.com/oxctl/calendar-import/actions/workflows/frontend_dev.yml)
