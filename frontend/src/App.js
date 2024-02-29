@@ -32,7 +32,6 @@ import {LaunchOAuth, LtiApplyTheme, LtiHeightLimit, LtiTokenRetriever} from "@ox
 import {setServer, setToken} from "./actions/lti";
 import {connect} from "react-redux";
 import {addMessage} from "./actions/messages";
-import UserCalendars from './UserCalendars'
 import ContextCalendars from "./ContextCalendars";
 import ImportCourseEvents from './ImportCourseEvents'
 import AuthoriseCalendarEvents from './AuthoriseCalendarEvents'
@@ -132,20 +131,6 @@ class App extends React.Component {
             </RefreshProxyToken>
         }
 
-        if(placement === "user_navigation") {
-            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.proxyServer}
-                                      onMissingToken={this.proxyTokenGet}>
-                <UserCalendars
-                    calendarServer={this.state.calendarServer}
-                    proxyServer={this.state.proxyServer}
-                    token={this.state.token}
-                    returnUrl={this.state.returnUrl}
-                    canvasUrl={this.state.canvasBaseUrl}
-                    onMissingToken={this.proxyTokenGet}
-                    disableCalendarImport={this.state.disableCalendarImport}
-                />
-            </RefreshProxyToken>
-        }
         if (placement === "account_navigation") {
             return <RefreshProxyToken token={this.state.token} proxyServer={this.state.proxyServer}
                                       onMissingToken={this.proxyTokenGet}>
@@ -176,7 +161,6 @@ class App extends React.Component {
     
     render() {
         const {error,  comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast} = this.state
-        const {servers} = this
 
         return (
             <LtiTokenRetriever handleJwt={this.updateToken}>

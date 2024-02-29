@@ -96,11 +96,6 @@ Then once the key is entered switch to the JSON view and update the placement co
     "canvas_icon_class": "icon-calendar-add"
   },
   {
-    "text": "University Terms",
-    "placement": "user_navigation",
-    "message_type": "LtiResourceLinkRequest"
-  },
-  {
     "text": "Import Events Into Personal Calendar",
     "placement": "link_selection",
     "message_type": "LtiDeepLinkingRequest",
