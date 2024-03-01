@@ -148,22 +148,6 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
-    public void testGetImportsContextTypeUser() throws Exception {
-        Page<ContextJob> contextJobs = new PageImpl<>(List.of(contextJob));
-        when(importService.getJobs(any(), any(), any())).thenReturn(contextJobs);
-
-        mockMvc.perform(get("/api/imports"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.content[0].id").value(123))
-                .andExpect(jsonPath("$.content[0].calendarImport.id").value(456))
-                .andExpect(jsonPath("$.content[0].calendarImport.user.id").value(789));
-
-        verify(importService).getJobs("test.instructure.com", "user_1", Pageable.ofSize(20));
-    }
-
-    @Test
     @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
     public void testGetImportContextTypeCourse() throws Exception {
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
@@ -176,21 +160,6 @@ class ApiControllerTest {
                 .andExpect(jsonPath("$.calendarImport.user.id").value(789));
 
         verify(importService).getJob("test.instructure.com", "course_1", 123L);
-    }
-
-    @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
-    public void testGetImportContextTypeUser() throws Exception {
-        when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-
-        mockMvc.perform(get("/api/imports/123"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.id").value(123))
-                .andExpect(jsonPath("$.calendarImport.id").value(456))
-                .andExpect(jsonPath("$.calendarImport.user.id").value(789));
-
-        verify(importService).getJob("test.instructure.com", "user_1", 123L);
     }
 
     @Test
@@ -264,30 +233,6 @@ class ApiControllerTest {
                 "originalFilename",
                 user,
                 "course_1",
-                null,
-                TimeZone.getDefault(),
-                Map.of())));
-    }
-
-    @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'user_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '2'} }")
-    public void testRunJobUserPlacement() throws Exception {
-        when(userService.getUser(any(), any())).thenReturn(user);
-        when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("http://example.com"));
-        when(importService.importNow(any())).thenReturn(contextJob);
-
-
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/run")
-                        .file(new MockMultipartFile("file", "originalFilename", "text/csv", "content".getBytes())))
-                .andExpect(status().isOk());
-
-        verify(importService).importNow(ArgumentMatchers.refEq(new ImportConfig(
-                ImportType.CSV,
-                "http://example.com",
-                "originalFilename",
-                user,
-                "user_2",
                 null,
                 TimeZone.getDefault(),
                 Map.of())));

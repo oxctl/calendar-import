@@ -17,8 +17,7 @@ public class Placement {
 	 * The different types of placements and the context types they map to.
 	 */
 	public enum PlacementType {
-		USER_NAVIGATION(ContextType.USER), COURSE_HOME_SUB_NAVIGATION(ContextType.COURSE),
-		COURSE_NAVIGATION(ContextType.COURSE), ACCOUNT_NAVIGATION(ContextType.ACCOUNT);
+		COURSE_HOME_SUB_NAVIGATION(ContextType.COURSE), COURSE_NAVIGATION(ContextType.COURSE), ACCOUNT_NAVIGATION(ContextType.ACCOUNT);
 
 		public final ContextType context;
 

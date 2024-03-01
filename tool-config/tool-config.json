@@ -31,11 +31,6 @@
                   "required_permissions": "manage_calendar"
                 },
                 {
-                  "text": "University Terms$TITLE_SUFFIX",
-                  "placement": "user_navigation",
-                  "message_type": "LtiResourceLinkRequest"
-                },
-                {
                   "text": "Import Events Into Personal Calendar$TITLE_SUFFIX",
                   "placement": "link_selection",
                   "message_type": "LtiDeepLinkingRequest",
