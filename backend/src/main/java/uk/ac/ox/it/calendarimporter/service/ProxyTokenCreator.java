@@ -33,7 +33,7 @@ public class ProxyTokenCreator implements CanvasTokenCreator {
     
     private final Logger log = LoggerFactory.getLogger(ProxyTokenCreator.class);
     
-    @Value("https://${hostname:localhost:8443}")
+    @Value("${calendar.proxy.token.issuer}")
     private String issuer;
     
     @PostConstruct

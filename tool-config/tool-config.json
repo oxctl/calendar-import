@@ -1,6 +1,6 @@
 {
   "config": {
-    "title_suffix": "",
+    "title_suffix": " demo",
     "lti_registration_id": "calendar-import",
     "lti_account_id": "self",
     "lti_tool_url": "https://localhost:3000"
@@ -137,7 +137,7 @@
     ],
     "sign": true,
     "secret": "$PROXY_SECRET",
-    "issuer": "$LTI_SERVER_URL",
+    "issuer": "$CALENDAR_SERVER_URL",
     "nrpsAllowedRoles": []
   }
 }
