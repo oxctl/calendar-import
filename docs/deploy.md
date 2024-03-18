@@ -34,14 +34,14 @@ mkcert localhost
 To configure the tool first run:
 
 ```bash
-npx @oxctl/lti-auto-configuration init
+npx @oxctl/lti-auto-configuration@v2.0.2 init
 ```
 
 This will prompt for the tool support server to use and the canvas server to configure the tools in.
 
 Then run:
 ```bash
-npx @oxctl/lti-auto-configuration setup
+npx @oxctl/lti-auto-configuration@v2.0.2 setup
 ```
 
 This will prompt for the additional configuration for the tool. The values should be set to:
@@ -51,7 +51,7 @@ This will prompt for the additional configuration for the tool. The values shoul
 Then set up the tool:
 
 ```bash
-npx @oxctl/lti-auto-configuration create
+npx @oxctl/lti-auto-configuration@v2.0.2 create
 ```
 
 This will do the actual adding of the tool to tool support and canvas.
