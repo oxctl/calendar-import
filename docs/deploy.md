@@ -31,6 +31,12 @@ mkcert localhost
 
 ### Configure Tools
 
+If you're using a local copy of tool support with certificates from mkcert then you first need to run this to get node to trust them:
+
+```bash
+export NODE_EXTRA_CA_CERTS="$(mkcert -CAROOT)/rootCA.pem"
+```
+
 To configure the tool first run:
 
 ```bash
