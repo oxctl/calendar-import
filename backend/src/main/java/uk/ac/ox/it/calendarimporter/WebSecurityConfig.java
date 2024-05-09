@@ -20,10 +20,21 @@ public class WebSecurityConfig {
     @Bean
     @Order(10)
     public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
-        return http.securityMatcher("/", "/index.html", "/resources/**", "/favicon.ico", "/icon.png", "/public/**")
-                .authorizeHttpRequests(request -> request.anyRequest().permitAll())
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .build();
+        http.authorizeHttpRequests(authorize -> authorize
+                .requestMatchers(
+                        "/",
+                        "/index.html",
+                        "/resources/**",
+                        "/favicon.ico",
+                        "/icon.png",
+                        "/public/**",
+                        "/actuator/health"
+                ).permitAll());
+        http.authorizeHttpRequests(authorize -> authorize.anyRequest().denyAll());
+
+        http.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        return http.build();
     }
     
     @Bean

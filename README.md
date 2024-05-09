@@ -223,3 +223,7 @@ TOOL_ID=123456
 CANVAS_HOST=https://url.to.canvas.instance
 BACKEND_URL=https://url.to.the.tool.backend
 ```
+
+## Spring Boot Actuator
+
+Calendar import uses Spring Boot Actuator for monitoring. The `health` endpoint is mapped to `/actuator/health`.
