@@ -1,0 +1,8 @@
+[
+  "appName=calendar-import",
+  "envType=prod",
+  "accountType=prod",
+  "jwtAudience=122010000000000TBC",
+  "cfSSLCertARN=arn:aws:acm:us-east-1:211125465582:certificate/cf4970d5-95a9-40e3-b11e-9b06667b6128",
+  "wafARN=arn:aws:wafv2:us-east-1:211125465582:global/webacl/cad-prod-webacl/a2ec37ad-4865-4b78-80e7-b0f654d51fed"
+]

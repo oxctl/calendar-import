@@ -1,0 +1,109 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Metadata: {}
+Description: "Creates resources for a given app, in a given region"
+
+Parameters:
+  orgName:
+    Description: "Name of organization - used in naming"
+    Type: String
+    Default: "cad"
+  accountType:
+    Type: "String"
+    Description: "production or non-production account?"
+    AllowedValues:
+      - "prod"
+      - "nonprod"
+  appName:
+    Description: "The app's name"
+    Type: String
+  envType:
+    Description: "The env type: prod, beta, test, etc"
+    Type: String
+    AllowedValues:
+      - "prod"
+      - "beta"
+      - "test"
+      - "staging"
+  drRegion:
+    Type: String
+    Default: "eu-central-1"
+  handleBounces:
+    Description: "Whether bounce handling should be setup for the app"
+    Type: String
+    Default: "No"
+    AllowedValues:
+      - "Yes"
+      - "No"
+
+
+Conditions:
+  isProdEnv: {"Fn::Equals": [!Ref envType, "prod"]}
+  isProdAccount: {"Fn::Equals": [!Ref accountType, "prod"]}
+  setupBounce: {"Fn::Equals": [!Ref handleBounces, "Yes"]}
+  #isProdRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-west-1']}
+  #isDRRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-central-1']}
+
+
+Resources:
+  sesIdentity:
+    Type: "AWS::SES::EmailIdentity"
+    Properties:
+      EmailIdentity:
+        Fn::ImportValue: !Sub "${appName}-${accountType}-email"
+      ConfigurationSetAttributes:
+        ConfigurationSetName: !Ref sesConfigurationSet
+
+  # Set up bounce handling if it's needed by the app
+
+  sesConfigurationSet:
+    Condition: setupBounce
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: !Sub "${appName}-${accountType}-configuration-set"
+
+  sesBounceConfigurationSetDestination:
+    Type: "AWS::SES::ConfigurationSetEventDestination"
+    Properties:
+      ConfigurationSetName: !Sub "${appName}-${accountType}-configuration-set"
+      EventDestination:
+        MatchingEventTypes:
+          - bounce
+        SnsDestination:
+          TopicARN: !Ref snsBounceNotificationTopic
+        Enabled: true
+
+  snsBounceNotificationTopic:
+    Type: "AWS::SNS::Topic"
+
+  snsBounceNotificationSubscription:
+    Type: "AWS::SNS::Subscription"
+    Properties:
+      TopicArn: !Ref snsBounceNotificationTopic
+      Protocol: "https"
+      Endpoint:
+        Fn::Sub:
+          - "https://${dom}/catchBounce"
+          - dom:
+              Fn::ImportValue:
+                !Sub "${appName}-${accountType}-route53-domainname"
+
+  ebApplication:
+    Type: "AWS::ElasticBeanstalk::Application"
+    Properties:
+      ApplicationName: !Sub "${appName}"
+      ResourceLifecycleConfig:
+        ServiceRole: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/aws-elasticbeanstalk-service-role"   #aws-elasticbeanstalk-service-role"
+        VersionLifecycleConfig:
+          MaxAgeRule:
+            Enabled: true
+            MaxAgeInDays: 90
+            DeleteSourceFromS3: true
+
+
+Outputs:
+  appName:
+    Description: "The EB Application Name"
+    Value: !Ref ebApplication
+    Export:
+      Name: !Sub "${appName}-${envType}-ebapp"
