@@ -17,16 +17,18 @@ on:
 
 jobs:
   perform-release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     concurrency: release
     outputs:
-      NEW_RELEASE_NUMBER: ${{ steps.set-release-number.outputs.NEW_RELEASE_NUMBER }}
       TAG_COMMIT_SHA: ${{ steps.set-commit-sha.outputs.TAG_COMMIT_SHA }}
       TAG_REF: ${{ steps.set-tags-ref.outputs.TAG_REF }}
     steps:
       # This makes a checkout of the source code
       - uses: actions/checkout@v4
+        with:
+          # This is needed so that we can find the latest tag which might not be the latest commit
+          fetch-depth: 0
       # This setups the GIT to make pushes
       - name: Sets the author of the release
         run: |
@@ -35,12 +37,12 @@ jobs:
       # Gets the latest tag and increments the release number# Gets the latest tag and increments the release number
       - name: Get the new release number
         run: echo "NEW_RELEASE_NUMBER=`${GITHUB_WORKSPACE}/increment_release.sh ${{ inputs.release-type }}`" >> $GITHUB_ENV
-      - id: set-release-number
-        run: echo "NEW_RELEASE_NUMBER=${{ env.NEW_RELEASE_NUMBER }}" >> "$GITHUB_OUTPUT"
       # Setups NPM to build the frontend.
       - uses: actions/setup-node@v4
         with:
           node-version-file: 'frontend/.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       # Setups the JVM to build the backend.
       - uses: actions/setup-java@v4
         with:
@@ -57,36 +59,18 @@ jobs:
       - id: set-tags-ref
         run: echo "TAG_REF=refs/tags/${{ env.NEW_RELEASE_NUMBER }}" >> "$GITHUB_OUTPUT"
 
-  # We must call frontend-dev because builds and pushes the artifacts.
-  call-frontend-dev:
-    needs: perform-release
-    uses: ./.github/workflows/frontend_dev.yml
-    with:
-      tag: ${{needs.perform-release.outputs.NEW_RELEASE_NUMBER}}
-      sha: ${{needs.perform-release.outputs.TAG_COMMIT_SHA}}
-      ref: ${{needs.perform-release.outputs.TAG_REF}}
-    secrets: inherit
-
-  # We must call backend-build because builds and pushes the artifacts.
-  call-backend-build:
-    needs: perform-release
-    uses: ./.github/workflows/backend_build.yml
-    with:
-      tag: ${{needs.perform-release.outputs.NEW_RELEASE_NUMBER}}
-      sha: ${{needs.perform-release.outputs.TAG_COMMIT_SHA}}
-      ref: ${{needs.perform-release.outputs.TAG_REF}}
-    secrets: inherit
-
   call-frontend-pro:
-    needs: [perform-release, call-frontend-dev, call-backend-build]
+    needs: [perform-release]
     uses: ./.github/workflows/frontend_pro.yml
     with:
-      tag: ${{needs.perform-release.outputs.NEW_RELEASE_NUMBER}}
+      tag: ${{ needs.perform-release.outputs.TAG_REF }}
+      sha: ${{ needs.perform-release.outputs.TAG_COMMIT_SHA }}
     secrets: inherit
 
-  call-backend-deploy:
-    needs: [perform-release, call-frontend-dev, call-backend-build]
-    uses: ./.github/workflows/backend_deploy.yml
+  call-backend-pro:
+    needs: [perform-release]
+    uses: ./.github/workflows/backend_pro.yml
     with:
-      tag: ${{needs.perform-release.outputs.NEW_RELEASE_NUMBER}}
+      tag: ${{ needs.perform-release.outputs.TAG_REF }}
+      sha: ${{ needs.perform-release.outputs.TAG_COMMIT_SHA }}
     secrets: inherit

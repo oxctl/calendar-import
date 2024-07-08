@@ -1,7 +1,6 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# This is to deploy a tagged version to production.
 
-name: Frontend PRO
+name: Backend PRO
 run-name: "Deploy ${{ inputs.tag }} to Production"
 
 on:
@@ -16,7 +15,7 @@ on:
 
 jobs:
   call-build-and-deploy:
-    uses: ./.github/workflows/frontend_build_and_deploy.yml
+    uses: ./.github/workflows/backend_build_and_deploy.yml
     with:
       sha: ${{ inputs.sha }}
       ref: ${{ inputs.tag }}
@@ -26,7 +25,6 @@ jobs:
       aws_github_role: 'cad-github-actions-role'
       aws_parameters: '211125465582.json'
       github_env: 'prod'
-      execution-environment: PROD
     secrets: inherit
 
   call-deployment-tests:
@@ -35,3 +33,4 @@ jobs:
     with:
       execution-environment: PROD
     secrets: inherit
+
