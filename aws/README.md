@@ -69,7 +69,6 @@ aws cloudformation wait stack-delete-complete --stack-name cad-apps-calendar-imp
 
 ### Resources Created
 
-* Will setup SES bounce handling for apps that require it
 * EB application for the app.
 
 ### CloudFormation outputs / exports

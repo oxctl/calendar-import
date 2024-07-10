@@ -478,17 +478,6 @@ Outputs:
               !Sub "${orgName}-${accountType}-route53-domainname"
     Export:
       Name: !Sub "${appName}-${accountType}-frontend-domain"
-  appMailAdress:
-    Description: "Application email address"
-    Value:
-      Fn::Sub:
-        - "noreply@${app}.${dom}"
-        - app: !Ref appName
-          dom:
-            Fn::ImportValue:
-              !Sub "${orgName}-${accountType}-route53-domainname"
-    Export:
-      Name: !Sub "${appName}-${accountType}-email"
   ebInstanceProfileARNProd:
     Description: "EB instance profile - prod"
     Condition: isProdEnv

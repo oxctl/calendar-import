@@ -33,7 +33,6 @@ Resources:
         appName: !Ref appName
         envType: !Ref envType
         accountType: !Ref accountType
-        handleBounces: "No"
   AppRDS:
     Type: AWS::CloudFormation::Stack
     Properties:

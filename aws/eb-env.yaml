@@ -184,11 +184,6 @@ Resources:
           OptionName: "SPRING_PROFILES_ACTIVE"
           Value: !FindInMap [ EnvironmentMappings, !Ref envType, springProfile ]
         - Namespace: "aws:elasticbeanstalk:application:environment"
-          # The from address to send emails with
-          OptionName: "SPRING_MAIL_PROPERTIES_MAIL_SMTP_FROM"
-          Value:
-            Fn::ImportValue: !Sub "${appName}-${accountType}-email"
-        - Namespace: "aws:elasticbeanstalk:application:environment"
           # The URL to the frontend files.
           OptionName: "FRONTEND_ORIGINS"
           Value: !Join ["", ["https://", Fn::ImportValue: !Sub "${appName}-${accountType}-frontend-domain"]]
