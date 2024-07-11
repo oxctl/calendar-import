@@ -14,7 +14,7 @@ This will build the project and have the image available. Watch out though as ji
 
 Published images are stored in an AWS ECR repository before going to production. To push images to this respository install the [Amazon ECR Docker Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper), this will use your credentials setup for AWS for pushing to the ECR repository. With the credential helper installed you can then push an image, if you need to you can also specify which AWS profile to use:
 
-```properties
+```shell
 AWS_PROFILE=ouit mvn compile jib:build
 ```
 

@@ -6,7 +6,7 @@ They run automatically after deploying to DEV and PROD, and they can also run ma
 
 The following variables are required in Github as environment secrets (DEV, PROD) or locally in a '.env' file.
 
-```properties
+```shell
 OAUTH_TOKEN=****This is a secret token****
 COURSE_ID=123456
 TOOL_ID=123456
