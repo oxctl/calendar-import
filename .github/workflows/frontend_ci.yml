@@ -1,10 +1,11 @@
-# This just builds pull requests to check that they are ok to go.
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Frontend Pull Request
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ new-account ]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend*'
@@ -13,10 +14,10 @@ on:
 defaults:
   run:
     working-directory: frontend
-
+  
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
