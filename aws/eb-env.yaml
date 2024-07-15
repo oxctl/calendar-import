@@ -154,9 +154,9 @@ Resources:
       #SolutionStackName: !Ref ebSolutionStack
       TemplateName: !Ref appConfigTemplate
       Tier:
-          Name: "WebServer"
-          Type: "Standard"
-          Version: "1.0"
+        Name: "WebServer"
+        Type: "Standard"
+        Version: "1.0"
 
   appConfigTemplate:
     Type: AWS::ElasticBeanstalk::ConfigurationTemplate
