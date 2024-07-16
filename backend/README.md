@@ -50,11 +50,10 @@ To update and existing secret:
 aws secretsmanager update-secret \
   --secret-id 'calendar-import/beta/eb-env/config' \
   --secret-string '{
-    "canvas.token":"token",
-    "canvas.url":"https://universityofoxford.beta.instructure.com",
     "sentry.dsn":"URL",
     "sentry.environment":"dev/prod",
-    "hmac.secret":"secret",
+    "spring.security.user.name":"api user name",
+    "spring.security.user.password":"api user password",
     "spring.security.oauth2.client.registration.terms.authorization-grant-type":"client_credentials",
     "spring.security.oauth2.client.registration.terms.client-id":"terms client id",
     "spring.security.oauth2.client.registration.terms.client-secret":"terms client secret",
@@ -62,12 +61,6 @@ aws secretsmanager update-secret \
     "spring.security.oauth2.client.provider.terms.token-uri":"terms token uri",
     "dynamics.year.url":"academic year data url",
     "dynamics.term.url":"term data url",
-    "calendar.tenants[0].name":"canvas",
-    "calendar.tenants[0].url":"https://oxeval.instructure.com",
-    "calendar.tenants[0].displayName":"University of Oxford Canvas",
-    "calendar.tenants[0].ltiSecret":"LTI secret",
-    "calendar.tenants[0].oauth2Id":"OAuth2 id",
-    "calendar.tenants[0].oauth2Secret":"OAuth2 secret",
     "calendar.url.predefined.test.url":"calendar url",
     "calendar.url.predefined.test.username":"calendar username",
     "calendar.url.predefined.test.password":"calendar password"
