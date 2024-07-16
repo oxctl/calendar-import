@@ -151,8 +151,6 @@ Resources:
                 - buckett*@canvas-alias.it.ox.ac.uk
                 - adamm*@canvas-alias.it.ox.ac.uk
                 - adamm+*@canvas-alias.it.ox.ac.uk
-                - markus.stetschnig@it.ox.ac.uk
-                - ouit1080*@canvas-alias.it.ox.ac.uk
         - Sid: AllowReqdSecretsManagerAccess
           Effect: Allow
           Action:
