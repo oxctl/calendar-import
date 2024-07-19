@@ -397,6 +397,22 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: 'AES256'
             BucketKeyEnabled: true
+
+  appBucketUpload:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Stop this bucket from being public
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+            BucketKeyEnabled: true
+
   #Create a per app ECR private repo
   #ToDo: Regional context
   ecrRepo:
@@ -515,6 +531,11 @@ Outputs:
     Value: !Ref appBucketDist
     Export:
       Name: !Sub "${AWS::StackName}-dist-bucket-name"
+  uploadBucketName:
+    Description: "The name of the uploads/file deposit bucket for the backend"
+    Value: !Ref appBucketUpload
+    Export:
+      Name: !Sub "${appName}-${envType}-upload-bucket-name"
   ecrRepoARN:
     Description: "TheARN of the ECR Repo"
     Value: !GetAtt ecrRepo.RepositoryUri

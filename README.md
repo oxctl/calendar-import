@@ -69,6 +69,11 @@ If you are just looking to deploy the service there is documentation on how to d
 
 ## Configuration
 
+### Upload deposit
+Calendar uploads and logs are either stored on the filesystem or an AWS S3 bucket. To define where this files should be
+stored set either `calendar.upload.location=/path/to/folder` or `calendar.upload.location=s3://aws-s3-bucket-name`.
+The application will choose the right protocol depending on the location. By default a temporary folder on the filesystem is selected.
+
 ### Predefined Calendars
 
 This tool has support for reading term data from a feed produced from Azure Dynamics. Two feeds are used, one to get the data on the academic years that are available and when they run (to work out the current and next year). Then a second feed is used to work out the weeks based on the term data. The URLs that the JSON can be downloaded from are protected by OAuth2 and credentials are needed that work against the Azure AD are needed. To then configure the application spring properties like these need to be set:

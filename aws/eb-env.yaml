@@ -188,6 +188,10 @@ Resources:
           OptionName: "FRONTEND_ORIGINS"
           Value: !Join ["", ["https://", Fn::ImportValue: !Sub "${appName}-${accountType}-frontend-domain"]]
         - Namespace: "aws:elasticbeanstalk:application:environment"
+          # The URL to the frontend files.
+          OptionName: "CALENDAR_UPLOAD_LOCATION"
+          Value: !Join ["", ["s3://", Fn::ImportValue: !Sub "${appName}-${envType}-upload-bucket-name"]]
+        - Namespace: "aws:elasticbeanstalk:application:environment"
           # The aud value that is required in JWTs. This is the Canvas LTI Developer Key Client ID.
           OptionName: "JWT_AUDIENCE"
           Value: !Ref jwtAudience

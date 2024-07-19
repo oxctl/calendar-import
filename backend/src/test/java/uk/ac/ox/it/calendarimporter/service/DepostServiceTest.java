@@ -4,6 +4,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import uk.ac.ox.it.calendarimporter.utils.DepositUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -14,13 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DepostServiceTest {
 
-    private DepositService depositService;
+
+    private DepositUtils depositUtils;
+    private FileSystemDepositService depositService;
     private Path tempDirectory;
 
     @BeforeEach
     public void setUp() throws IOException {
-        depositService = new DepositService();
-        depositService.setDateFormat("yyyy-MM");
+        depositUtils = new DepositUtils();
+        depositUtils.setFormatPattern("yyyy-MM");
+        depositService = new FileSystemDepositService();
+        depositService.setDepositUtils(depositUtils);
         tempDirectory = Files.createTempDirectory("deposit-service");
         depositService.setLocation(tempDirectory);
         depositService.init();
