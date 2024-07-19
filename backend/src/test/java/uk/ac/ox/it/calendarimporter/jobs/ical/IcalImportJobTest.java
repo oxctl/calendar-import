@@ -37,6 +37,7 @@ import uk.ac.ox.it.calendarimporter.service.ProgressService;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -102,7 +103,7 @@ class IcalImportJobTest {
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         when(csvReader.parseCSV(any(), any(), any())).thenReturn(calendarEvents);
         when(calendarWriter.createCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
         doNothing().when(importEventService).eventCreated(any(), any(), any());
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
         doNothing().when(importEventService).eventCreated(any(), any(), any());
@@ -206,7 +207,7 @@ class IcalImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
 
         icalImportJob.setTenantRepository(tenantRepository);
         icalImportJob.setUserRepository(userRepository);

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Path;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import io.awspring.cloud.s3.S3Operations;
-import io.awspring.cloud.s3.S3Resource;
 import jakarta.annotation.PostConstruct;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -57,13 +55,12 @@ public class S3DepositService implements DepositService {
     }
 
     @Override
-    public URL deposit(File file, Type type) throws IOException {
-        String deposit = getKey(file, type);
+    public Path deposit(File file, Type type) throws IOException {
+        Path deposit = getDepositPath(file, type);
 
-        S3Resource uploadedS3Resource = s3Operations.upload(bucketName,
-                deposit, new FileInputStream(file));
+        s3Operations.upload(bucketName, deposit.toString(), new FileInputStream(file));
 
-        return uploadedS3Resource.getURL();
+        return deposit;
     }
 
     @Override
@@ -72,8 +69,8 @@ public class S3DepositService implements DepositService {
         s3Operations.deleteObject(bucketName, deposit);
     }
 
-    private String getKey(File file, Type type) {
-        return depositUtils.resolveTargetPath(RELATIVE_ROOT, file, type).toString();
+    private Path getDepositPath(File file, Type type) {
+        return depositUtils.resolveTargetPath(RELATIVE_ROOT, file, type);
     }
 
     /**

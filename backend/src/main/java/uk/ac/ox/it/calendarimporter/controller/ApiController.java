@@ -29,6 +29,7 @@ import uk.ac.ox.it.calendarimporter.service.UserService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -177,7 +178,7 @@ public class ApiController {
         // Deposit the file.
         File tempFile = File.createTempFile("upload", null);
         upload.transferTo(tempFile);
-        URL deposit = depositService.deposit(tempFile, DepositService.Type.UPLOAD);
+        Path deposit = depositService.deposit(tempFile, DepositService.Type.UPLOAD);
 
         String originalFilename = upload.getOriginalFilename();
         if (originalFilename == null || originalFilename.isEmpty()) {

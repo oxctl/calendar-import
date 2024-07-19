@@ -41,13 +41,14 @@ public class FileSystemDepositService implements DepositService {
     }
 
     @Override
-    public URL deposit(File upload, Type type) throws IOException {
+    public Path deposit(File upload, Type type) throws IOException {
         try {
             Path target = toFinalPath(upload, type);
             Files.createDirectories(target.getParent());
             Path move = Files.move(upload.toPath(), target);
             log.debug("Deposited file {} to {} ({} bytes)", upload, target, Files.size(target));
-            return move.toUri().toURL();
+
+            return toDepositPath(move);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("The filename isn't valid.", e);
         }
@@ -56,16 +57,20 @@ public class FileSystemDepositService implements DepositService {
     @Override
     public void remove(String deposit) {
         try {
-            URL url = new URL(deposit);
-            Path path = Paths.get(url.toURI());
+            Path path = location.resolve(deposit);
             Files.delete(path);
             log.debug("Removed file {}", deposit);
-        } catch (IOException | URISyntaxException e) {
-            log.warn("Failed to delete deposit: {}, error: {}", deposit, e.getMessage());
+        } catch (IOException e) {
+            log.warn("Failed to delete deposit {}", deposit, e);
         }
     }
 
     private Path toFinalPath(File file, Type type) {
         return depositUtils.resolveTargetPath(location, file, type).toAbsolutePath();
+    }
+
+    private Path toDepositPath(Path actualPath) {
+        // return actualPath.relativize(location).toString();
+        return location.relativize(actualPath);
     }
 }

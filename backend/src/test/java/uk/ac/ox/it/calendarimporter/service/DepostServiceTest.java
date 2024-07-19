@@ -44,7 +44,7 @@ public class DepostServiceTest {
     public void testSimpleUpload() throws IOException {
         Path upload = Files.createTempFile("upload", ".txt");
         Files.write(upload, "Hello World".getBytes());
-        URL deposit = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path deposit = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
         assertNotNull(deposit);
     }
 
@@ -52,11 +52,11 @@ public class DepostServiceTest {
     public void testSameFileUpload() throws IOException {
         Path upload = Files.createTempFile("upload", ".txt");
         Files.write(upload, "Hello World".getBytes());
-        URL d1 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path d1 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
         Files.write(upload, "Hello World".getBytes());
-        URL d2 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path d2 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
         Files.write(upload, "Hello World".getBytes());
-        URL d3 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path d3 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
 
         assertNotEquals(d1, d2);
         assertNotEquals(d2, d3);
@@ -70,7 +70,7 @@ public class DepostServiceTest {
     @Test
     public void testDelete() throws IOException {
         Path upload = Files.createTempFile("upload", ".txt");
-        depositService.remove(upload.toUri().toString());
+        depositService.remove(upload.toString());
         assertTrue(Files.notExists(upload));
     }
 
@@ -78,10 +78,4 @@ public class DepostServiceTest {
     public void testDeleteNotUrl() {
         depositService.remove("not a URL");
     }
-
-    @Test
-    public void testDeleteUnknownScheme() {
-        assertThrows(Exception.class, () -> depositService.remove("https://www.google.com/"));
-    }
-    
 }

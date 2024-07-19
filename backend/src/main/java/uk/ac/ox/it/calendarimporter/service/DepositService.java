@@ -2,7 +2,7 @@ package uk.ac.ox.it.calendarimporter.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.nio.file.Path;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,11 +18,11 @@ public interface DepositService {
 
     /**
      * @param file The file to upload.
-     * @return A URL to the deposited file.
+     * @return A relative path to the deposited file.
      * @throws IllegalArgumentException If we are unable to generate a URL for the uploaded file.
      * @throws IOException              If the deposit failed.
      */
-    public URL deposit(File file, Type type) throws IOException;
+    public Path deposit(File file, Type type) throws IOException;
 
     /**
      * Remove a deposited file.
