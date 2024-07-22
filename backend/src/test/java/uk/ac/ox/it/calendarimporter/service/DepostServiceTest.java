@@ -4,6 +4,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import uk.ac.ox.it.calendarimporter.utils.DepositUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -14,13 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DepostServiceTest {
 
-    private DepositService depositService;
+
+    private DepositUtils depositUtils;
+    private FileSystemDepositService depositService;
     private Path tempDirectory;
 
     @BeforeEach
     public void setUp() throws IOException {
-        depositService = new DepositService();
-        depositService.setDateFormat("yyyy-MM");
+        depositUtils = new DepositUtils();
+        depositUtils.setFormatPattern("yyyy-MM");
+        depositService = new FileSystemDepositService();
+        depositService.setDepositUtils(depositUtils);
         tempDirectory = Files.createTempDirectory("deposit-service");
         depositService.setLocation(tempDirectory);
         depositService.init();
@@ -38,7 +44,7 @@ public class DepostServiceTest {
     public void testSimpleUpload() throws IOException {
         Path upload = Files.createTempFile("upload", ".txt");
         Files.write(upload, "Hello World".getBytes());
-        URL deposit = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path deposit = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
         assertNotNull(deposit);
     }
 
@@ -46,11 +52,11 @@ public class DepostServiceTest {
     public void testSameFileUpload() throws IOException {
         Path upload = Files.createTempFile("upload", ".txt");
         Files.write(upload, "Hello World".getBytes());
-        URL d1 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path d1 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
         Files.write(upload, "Hello World".getBytes());
-        URL d2 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path d2 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
         Files.write(upload, "Hello World".getBytes());
-        URL d3 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
+        Path d3 = depositService.deposit(upload.toFile(), DepositService.Type.LOG);
 
         assertNotEquals(d1, d2);
         assertNotEquals(d2, d3);
@@ -64,7 +70,7 @@ public class DepostServiceTest {
     @Test
     public void testDelete() throws IOException {
         Path upload = Files.createTempFile("upload", ".txt");
-        depositService.remove(upload.toUri().toString());
+        depositService.remove(upload.toString());
         assertTrue(Files.notExists(upload));
     }
 
@@ -72,10 +78,4 @@ public class DepostServiceTest {
     public void testDeleteNotUrl() {
         depositService.remove("not a URL");
     }
-
-    @Test
-    public void testDeleteUnknownScheme() {
-        assertThrows(Exception.class, () -> depositService.remove("https://www.google.com/"));
-    }
-    
 }

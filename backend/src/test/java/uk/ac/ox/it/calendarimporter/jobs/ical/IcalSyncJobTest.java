@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +117,7 @@ class IcalSyncJobTest {
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         when(calendarWriter.createCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
         when(calendarReader.listCurrentUserCalendarEvents(any())).thenReturn(calendarEvents);
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
         when(calendarBuilder.build((InputStream) any())).thenReturn(calendar);
         doNothing().when(importEventService).eventCreated(any(), any(), any());
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
@@ -221,7 +222,7 @@ class IcalSyncJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
 
         icalSyncJob.setTenantRepository(tenantRepository);
         icalSyncJob.setUserRepository(userRepository);
@@ -267,7 +268,7 @@ class IcalSyncJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
 
         icalSyncJob.setTenantRepository(tenantRepository);
         icalSyncJob.setUserRepository(userRepository);

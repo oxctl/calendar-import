@@ -30,6 +30,7 @@ import uk.ac.ox.it.calendarimporter.security.WithMockClaims;
 import uk.ac.ox.it.calendarimporter.service.*;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -219,7 +220,7 @@ class ApiControllerTest {
     public void testRunJob() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("http://example.com"));
+        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -229,7 +230,7 @@ class ApiControllerTest {
 
         verify(importService).importNow(ArgumentMatchers.refEq(new ImportConfig(
                 ImportType.CSV,
-                "http://example.com",
+                "path/to/file",
                 "originalFilename",
                 user,
                 "course_1",
@@ -243,7 +244,7 @@ class ApiControllerTest {
     public void testRunJobAccountPlacement() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("http://example.com"));
+        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -253,7 +254,7 @@ class ApiControllerTest {
 
         verify(importService).importNow(ArgumentMatchers.refEq(new ImportConfig(
                 ImportType.CSV,
-                "http://example.com",
+                "path/to/file",
                 "originalFilename",
                 user,
                 "account_1",
@@ -267,7 +268,7 @@ class ApiControllerTest {
     public void testRunJobWithTimezone() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("http://example.com"));
+        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -277,7 +278,7 @@ class ApiControllerTest {
 
         verify(importService).importNow(ArgumentMatchers.refEq(new ImportConfig(
                 ImportType.CSV,
-                "http://example.com",
+                "path/to/file",
                 "originalFilename",
                 user,
                 "course_1",
@@ -291,7 +292,7 @@ class ApiControllerTest {
     public void testRunJobWithSection() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("http://example.com"));
+        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -303,7 +304,7 @@ class ApiControllerTest {
 
         verify(importService).importNow(ArgumentMatchers.refEq(new ImportConfig(
                 ImportType.CSV,
-                "http://example.com",
+                "path/to/file",
                 "originalFilename",
                 user,
                 "course_1",
@@ -317,7 +318,7 @@ class ApiControllerTest {
     public void testRunJobWithNullFilename() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(new URL("http://example.com"));
+        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
         when(importService.importNow(any())).thenReturn(contextJob);
 
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/run")
@@ -326,7 +327,7 @@ class ApiControllerTest {
 
         verify(importService).importNow(ArgumentMatchers.refEq(new ImportConfig(
                 ImportType.CSV,
-                "http://example.com",
+                "path/to/file",
                 "file.csv",
                 user,
                 "course_1",

@@ -29,6 +29,7 @@ import uk.ac.ox.it.calendarimporter.service.ProgressService;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +92,7 @@ class DeleteJobTest {
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         when(importedEventRepository.findByCalendarImport(any())).thenReturn(importedEvents);
         when(calendarWriter.deleteCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
 
         deleteJob.setTenantRepository(tenantRepository);
         deleteJob.setUserRepository(userRepository);
