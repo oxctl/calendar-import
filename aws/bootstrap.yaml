@@ -201,6 +201,10 @@ Resources:
               - bucket:
                   Fn::ImportValue:
                     !Sub "${orgName}-${accountType}-shared-bucket1"
+            - !GetAtt appBucketUpload.Arn
+            - Fn::Sub:
+                - "${bucketArn}/*"
+                - bucketArn: !GetAtt appBucketUpload.Arn
 
   #ToDo: should be in global context only in primary region, will fail in DR region
   appPolicyProd:
@@ -287,6 +291,10 @@ Resources:
                 - bucket:
                     Fn::ImportValue:
                       !Sub "${orgName}-${accountType}-shared-bucket1"
+              - !GetAtt appBucketUpload.Arn
+              - Fn::Sub:
+                  - "${bucketArn}/*"
+                  - bucketArn: !GetAtt appBucketUpload.Arn
 
   #ToDo: should be in global context only in primary region, will fail in DR region
   ebInstanceProfileNonProd:
