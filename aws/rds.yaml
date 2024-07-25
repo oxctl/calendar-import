@@ -131,15 +131,12 @@ Mappings:
 
 Conditions:
   isProdRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-west-1']}
-  #isDRRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-central-1']}
   isProdEnv: {"Fn::Equals" : [!Ref envType, 'prod']}
   isBetaEnv: {"Fn::Equals" : [!Ref envType, 'beta']}
   isTestEnv: {"Fn::Equals" : [!Ref envType, 'test']}
-  #isStagingEnv: {"Fn::Equals" : [!Ref envType, 'staging']}
   isNonProdEnv: !Or
     - !Condition isBetaEnv
     - !Condition isTestEnv
-    #- !Condition isStagingEnv
   isProdAccount: {"Fn::Equals" : [!Ref accountType, 'prod']}
   isNonProdAccount: {"Fn::Equals" : [!Ref accountType, 'nonprod']}
   noSnapshot: {"Fn::Equals" : [!Ref snapshotToUse, ""]}
@@ -205,9 +202,6 @@ Resources:
   #        Value: "CONNECT,QUERY_DCL,QUERY_DDL"
 
   dbSecretProdRegion:
-    # create secrets only in ireland, and replicate to Frankfurt
-    ## in DR region, use replicated secrets
-    #Condition: isProdRegion
     Type: "AWS::SecretsManager::Secret"
     Properties:
       Name: !Sub "${appName}/${envType}/rds/db-password"
@@ -278,7 +272,6 @@ Resources:
           - !Ref "AWS::NoValue"
           - !Ref snapshotToUse
       PreferredBackupWindow: !FindInMap [EnvironmentMappings, !Ref envType,backupWindow]
-      # for prod instances, replicate to opposie region
       ## don't repliucate snapshots for nonprod
       AutomaticBackupReplicationRegion:
         Fn::If:
@@ -320,9 +313,7 @@ Resources:
         Fn::Split: [",",!FindInMap [EnvironmentMappings, !Ref envType, cloudwatchLogs]]
       CACertificateIdentifier: "rds-ca-rsa2048-g1" #"rds-ca-2019"
 
-  # In DR REgion, we won't do passwords rotation
   secretAttachmentProdRegion:
-    #Condition: isProdRegion
     Type: "AWS::SecretsManager::SecretTargetAttachment"
     Properties:
       SecretId: !Ref dbSecretProdRegion
@@ -564,7 +555,7 @@ Resources:
       FunctionName: !Sub "${appName}-${envType}-rouser"
       Handler: "rouser.create_rouser"
       Architectures: 
-      - "x86_64"
+        - "x86_64"
       Code: 
         S3Bucket:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
@@ -647,7 +638,7 @@ Resources:
       FunctionName: !Sub "${appName}-${envType}-secret-rotation"
       Handler: "rotate_secret.lambda_handler"
       Architectures: 
-      - "x86_64"
+        - "x86_64"
       Code: 
         S3Bucket:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
@@ -704,7 +695,7 @@ Resources:
       Description: !Sub "Backup rds db for ${appName}-${envType} to a given s3 bucket prefix"
       FunctionName: !Sub "${appName}-${envType}-dbdump"
       Architectures: 
-      - "x86_64"
+        - "x86_64"
       Code: 
         ImageUri:
           Fn::Sub:
@@ -806,7 +797,7 @@ Resources:
       Description: !Sub "Load rds db for ${appName}-beta from a given s3 bucket prefix"
       FunctionName: !Sub "${appName}-beta-dbload"
       Architectures: 
-      - "x86_64"
+        - "x86_64"
       Code: 
         ImageUri:
           Fn::Sub:
