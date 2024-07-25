@@ -220,7 +220,7 @@ Resources:
         - Region: !FindInMap [RegionMappings, !Ref AWS::Region, replicationRegion]
       KmsKeyId: "alias/aws/secretsmanager"
 
-  ##ToDo: enabling these logs for signup (so we can set retention) will likely break stack build, since the logs currently exist.  Best in new rds instances.  May work in existing instance, if we first manually delete the log grup to be replaced
+  ##ToDo: enabling these logs (so we can set retention) will likely break stack build, since the logs currently exist.  Best in new rds instances.  May work in existing instance, if we first manually delete the log grup to be replaced
   #rdsErrorLogGroup:
   #  Type: "AWS::Logs::LogGroup"
   #  Properties:
