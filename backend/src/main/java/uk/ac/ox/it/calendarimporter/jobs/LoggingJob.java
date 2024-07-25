@@ -26,7 +26,7 @@ public abstract class LoggingJob implements Job {
     private final Duration updateInterval = Duration.ofSeconds(1);
 
     @Autowired
-    private DepositService depositService;
+    protected DepositService depositService;
 
     @Autowired
     private ProgressService progressService;

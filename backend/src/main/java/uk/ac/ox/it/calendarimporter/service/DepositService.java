@@ -1,7 +1,9 @@
 package uk.ac.ox.it.calendarimporter.service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 import lombok.AllArgsConstructor;
@@ -25,8 +27,14 @@ public interface DepositService {
     public Path deposit(File file, Type type) throws IOException;
 
     /**
+     * Get an InputStream of the deposited file.
+     * @param deposit The path of the file to remove.
+     */
+    public InputStream getInputStream(String deposit) throws IOException, FileNotFoundException;
+
+    /**
      * Remove a deposited file.
-     * @param deposit The URL of the file to remove.
+     * @param deposit The path of the file to remove.
      */
     public void remove(String deposit);
 

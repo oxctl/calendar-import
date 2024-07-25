@@ -17,12 +17,11 @@ import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
+import uk.ac.ox.it.calendarimporter.service.DepositService;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 
 import static uk.ac.ox.it.calendarimporter.controller.Placement.toPlacement;
 
@@ -38,6 +37,9 @@ public class ApiDownloadController {
 
     @Autowired
     private CalendarImportRepository calendarImportRepository;
+
+    @Autowired
+    private DepositService depositService;
 
     @GetMapping("/log/{contextJobId}/load")
     public ResponseEntity<InputStreamResource> load(
@@ -57,7 +59,7 @@ public class ApiDownloadController {
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getLoad();
         String logfile = jobProgress.getLogfile();
-        return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
+        return streamContent(logfile, MediaType.TEXT_PLAIN, null);
     }
 
     @GetMapping("/log/{calendarImportId}/loadByCalendarImportId")
@@ -71,7 +73,7 @@ public class ApiDownloadController {
         }
         JobProgress jobProgress = calendarImport.getLoad();
         String logfile = jobProgress.getLogfile();
-        return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
+        return streamContent(logfile, MediaType.TEXT_PLAIN, null);
     }
 
     @GetMapping("/log/{contextJobId}/delete")
@@ -92,7 +94,7 @@ public class ApiDownloadController {
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getDelete();
         String logfile = jobProgress.getLogfile();
-        return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
+        return streamContent(logfile, MediaType.TEXT_PLAIN, null);
     }
 
     @GetMapping("/download/{contextJobId}")
@@ -112,9 +114,9 @@ public class ApiDownloadController {
         TenantAndContext tenantAndContext = new TenantAndContext(tenant.getName(), placement.toContext());
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         CalendarImport calendarImport = contextJob.getCalendarImport();
-        String file = calendarImport.getUrl();
+        String file = calendarImport.getPath();
         // TODO Check it's a local file
-        return streamUrl(file, toMediaType(calendarImport.getType()), calendarImport.getFilename());
+        return streamContent(file, toMediaType(calendarImport.getType()), calendarImport.getFilename());
     }
 
     private MediaType toMediaType(ImportType importType) {
@@ -144,20 +146,15 @@ public class ApiDownloadController {
         return contextJob;
     }
 
-    private ResponseEntity<InputStreamResource> streamUrl(
+    private ResponseEntity<InputStreamResource> streamContent(
             String logfile, MediaType mediaType, String filename) throws IOException {
         if (logfile == null || logfile.isEmpty()) {
             throw new NotFoundException();
         }
-        URLConnection connection;
-        URL url = new URL(logfile);
-        connection = url.openConnection();
         try {
             // The InputStreamResource closes the InputStream.
-            InputStream inputStream = url.openStream();
-            long length = connection.getContentLengthLong();
-            ResponseEntity.BodyBuilder bodyBuilder =
-                    ResponseEntity.ok().contentType(mediaType).contentLength(length);
+            InputStream inputStream = depositService.getInputStream(logfile);
+            ResponseEntity.BodyBuilder bodyBuilder = ResponseEntity.ok().contentType(mediaType);
             if (filename != null) {
                 bodyBuilder.header("Content-Disposition", "attachment; filename=\"" + filename + "\"");
             }

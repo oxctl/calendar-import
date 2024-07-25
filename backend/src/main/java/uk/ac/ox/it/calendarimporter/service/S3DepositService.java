@@ -2,7 +2,9 @@ package uk.ac.ox.it.calendarimporter.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import io.awspring.cloud.s3.S3Operations;
+import io.awspring.cloud.s3.S3Resource;
 import jakarta.annotation.PostConstruct;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +64,17 @@ public class S3DepositService implements DepositService {
         s3Operations.upload(bucketName, deposit.toString(), new FileInputStream(file));
 
         return deposit;
+    }
+
+    @Override
+    public InputStream getInputStream(String deposit) throws IOException, FileNotFoundException {
+        S3Resource s3Resource = s3Operations.download(bucketName, deposit);
+
+        if (!s3Resource.exists()) {
+            throw new FileNotFoundException("No file deposited for path " + deposit);
+        }
+
+        return s3Resource.getInputStream();
     }
 
     @Override
