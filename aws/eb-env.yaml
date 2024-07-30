@@ -407,6 +407,14 @@ Resources:
           OptionName: "Process"
           Value: "default"
 
+  lbCFFreeQueryParamsOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Comment: "Allow all query parameters, permits params longer than 2048 characters"
+        QueryStringsConfig:
+          QueryStringBehavior: all
+
   lbCFDistribution:
     Type: "AWS::CloudFront::Distribution"
     Properties:
@@ -462,6 +470,12 @@ Resources:
           SmoothStreaming: false
           TargetOriginId: !Sub "${appName}-${envType}-alb"
           ViewerProtocolPolicy: "redirect-to-https"
+        CacheBehaviors:
+          - PathPattern: /api/*
+            ForwardedValues:
+              QueryString: true
+            OriginRequestPolicyId:
+              - !GetAtt lbCFFreeQueryParamsOriginRequestPolicy.Id
         Comment:
           Fn::Sub:
               - "${app}-${env}: ${app}.${dom}"
