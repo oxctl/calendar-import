@@ -23,6 +23,7 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
                         "/",
+                        "/error",
                         "/index.html",
                         "/resources/**",
                         "/favicon.ico",
