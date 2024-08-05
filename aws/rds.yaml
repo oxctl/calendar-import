@@ -596,13 +596,6 @@ Resources:
       LogGroupName: !Sub "/lambda/${appName}-${envType}-rouser"
       RetentionInDays: 7
 
-  #just to force stack update
-  testLogGroup:
-    Type: "AWS::Logs::LogGroup"
-    Properties:
-      LogGroupName: !Sub "/lambda/${appName}-${envType}-testonly"
-      RetentionInDays: 7
-
   scheduleReadonlyUser:
     Type: "AWS::Scheduler::Schedule"
     Condition: createROUser
@@ -633,7 +626,7 @@ Resources:
         ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
       #RotationLambdaARN: !GetAtt rotationFunction.Arn
       HostedRotationLambda:
-        RotationType: MySQLSingleUser
+        RotationType: MySQLMultiUser   #MySQLSingleUser
         VpcSubnetIds:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
         VpcSecurityGroupIds:
