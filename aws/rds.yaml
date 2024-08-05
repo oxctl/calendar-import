@@ -93,7 +93,7 @@ Parameters:
   rouserSchedule:
     Type: "String"
     Description: "Schedule the lambda function to execute 5-10 minutes from now: format: at(yyyy-mm-ddThh:mm); eg: at(2024-06-18T12:30).  Timezone is Europe/London (not UTC)"
-    Default: "at(2024-06-21T12:30)"
+    Default: "at(2024-08-05T21:10)"
   ecrTagVersion:
     Type: "String"
     Description: "The version of the dbdump/dbload code in ECR to run"
@@ -522,100 +522,100 @@ Resources:
 
   #** readonly user lambda
   ## create an sm secret for readonly user
-  #roUserSecret:
-  #  Type: "AWS::SecretsManager::Secret"
-  #  Condition: createROUser
-  #  Properties:
-  #    Name: !Sub "${appName}/${envType}/rds/rouser"
-  #    GenerateSecretString:
-  #      ExcludeCharacters: "\"'@/\\"
-  #      ExcludeLowercase: false
-  #      ExcludeNumbers: false
-  #      ExcludePunctuation: false
-  #      ExcludeUppercase: false
-  #      IncludeSpace: false
-  #      PasswordLength: 16
-  #      RequireEachIncludedType: true
-  #      GenerateStringKey: "password"
-  #      #ToDo: in transitioning to the accepted fields, duplicated dbsecret to #be same as masterarn, to avoid breaking existing deployed functions.  #Cleanup later
-  #      SecretStringTemplate: 
-  #        Fn::Sub:
-  #          - '{"engine": "mysql", "username": "${rou}", "masterarn": "$#{dbsecret}", "dbsecret": "${dbsecret}", "host": "${dbhost}"}'
-  #          - rou: !If [ defaultROUserName, "rouser", !Sub "${roUserName}" ]
-  #            dbsecret: !Ref dbSecretProdRegion
-  #            dbhost: !GetAtt dbInstance.Endpoint.Address
-  #    KmsKeyId: "alias/aws/secretsmanager"
+  roUserSecret:
+    Type: "AWS::SecretsManager::Secret"
+    Condition: createROUser
+    Properties:
+      Name: !Sub "${appName}/${envType}/rds/rouser"
+      GenerateSecretString:
+        ExcludeCharacters: "\"'@/\\"
+        ExcludeLowercase: false
+        ExcludeNumbers: false
+        ExcludePunctuation: false
+        ExcludeUppercase: false
+        IncludeSpace: false
+        PasswordLength: 16
+        RequireEachIncludedType: true
+        GenerateStringKey: "password"
+        #ToDo: in transitioning to the accepted fields, duplicated dbsecret to be same as masterarn, to avoid breaking existing deployed functions.  Cleanup later
+        SecretStringTemplate: 
+          Fn::Sub:
+            - '{"engine": "mysql", "username": "${rou}", "masterarn": "${dbsecret}", "dbsecret": "${dbsecret}", "host": "${dbhost}"}'
+            - rou: !If [ defaultROUserName, "rouser", !Sub "${roUserName}" ]
+              dbsecret: !Ref dbSecretProdRegion
+              dbhost: !GetAtt dbInstance.Endpoint.Address
+      KmsKeyId: "alias/aws/secretsmanager"
 
 
-  #Create a readonly user, if indicated
-  #roUserFunction:
-  #  Type: "AWS::Lambda::Function"
-  #  Condition: createROUser
-  #  Properties:
-  #    Description: !Sub "Create a read only user for rds instance for ${appName}#-${envType}, for reporting and testing"
-  #    FunctionName: !Sub "${appName}-${envType}-rouser"
-  #    Handler: "rouser.create_rouser"
-  #    Architectures: 
-  #      - "x86_64"
-  #    Code: 
-  #      S3Bucket:
-  #        Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
-  #      S3Key: "lambda/rouser/rouser.zip"
-  #    PackageType: Zip
-  #    Environment:
-  #      Variables:
-  #        APP_NAME: !Ref appName  #this should be instance name
-  #        ENV_TYPE: !Ref envType
-  #        ROUSER_SECRET_ID: !Ref roUserSecret
-  #        #DB_SECRET_ID: !Ref dbSecret
-  #    MemorySize: 256
-  #    Role: 
-  #      Fn::ImportValue: !Sub "${orgName}-${accountType}-readonly-user-role-arn"
-  #    Runtime: !Ref pythonRuntime
-  #    Timeout: 300
-  #    VpcConfig: 
-  #      SubnetIds:
-  #        Fn::Split: 
-  #          - ","
-  #          - Fn::ImportValue: !Sub "${orgName}-${accountType}#-vpc-private-subnets"
-  #      SecurityGroupIds:
-  #      - Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
-  #    EphemeralStorage: 
-  #      Size: 512
-  #    LoggingConfig:
-  #      ApplicationLogLevel: INFO
-  #      LogFormat: JSON
-  #      SystemLogLevel: DEBUG
-  #      LogGroup: !Ref rouserLogGroup
-  #      
-#
-  #rouserLogGroup:
-  #  Type: "AWS::Logs::LogGroup"
-  #  Condition: createROUser
-  #  Properties:
-  #    LogGroupName: !Sub "/lambda/${appName}-${envType}-rouser"
-  #    RetentionInDays: 7
-#
-  #scheduleReadonlyUser:
-  #  Type: "AWS::Scheduler::Schedule"
-  #  Condition: createROUser
-  #  Properties:
-  #    Name: !Sub "${appName}-${envType}-rouser-onetime-schedule"
-  #    Description: "Schedule creation of a readonly user for this rds instance"
-  #    State: "ENABLED"
-  #    GroupName: "default"
-  #    ScheduleExpression: !Ref rouserSchedule
-  #    ScheduleExpressionTimezone: "Europe/London"
-  #    FlexibleTimeWindow: 
-  #      Mode: "OFF"
-  #    Target: 
-  #      Arn: !GetAtt roUserFunction.Arn
-  #      RetryPolicy: 
-  #        MaximumEventAgeInSeconds: 86400
-  #        MaximumRetryAttempts: 0
-  #      RoleArn: 
-  #        Fn::ImportValue: !Sub "${orgName}-${accountType}#-lambda-scheduler-role-arn"
-#
+  #reate a readonly user, if indicated
+  roUserFunction:
+    Type: "AWS::Lambda::Function"
+    Condition: createROUser
+    Properties:
+      Description: !Sub "Create a read only user for rds instance for $appName}#-${envType}, for reporting and testing"
+      FunctionName: !Sub "${appName}-${envType}-rouser"
+      Handler: "rouser.create_rouser"
+      Architectures: 
+        - "x86_64"
+      Code: 
+        S3Bucket:
+          Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
+        S3Key: "lambda/rouser/rouser.zip"
+      PackageType: Zip
+      Environment:
+        Variables:
+          APP_NAME: !Ref appName  #this should be instance name
+          ENV_TYPE: !Ref envType
+          ROUSER_SECRET_ID: !Ref roUserSecret
+          #DB_SECRET_ID: !Ref dbSecret
+      MemorySize: 256
+      Role: 
+        Fn::ImportValue: !Sub "${orgName}-${accountType}readonly-user-role-arn"
+      Runtime: !Ref pythonRuntime
+      Timeout: 300
+      VpcConfig: 
+        SubnetIds:
+          Fn::Split: 
+            - ","
+            - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+        SecurityGroupIds:
+        - Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
+      EphemeralStorage: 
+        Size: 512
+      LoggingConfig:
+        ApplicationLogLevel: INFO
+        LogFormat: JSON
+        SystemLogLevel: DEBUG
+        LogGroup: !Ref rouserLogGroup
+        
+
+  rouserLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Condition: createROUser
+    Properties:
+      LogGroupName: !Sub "/lambda/${appName}-${envType}-rouser"
+      RetentionInDays: 7
+
+  scheduleReadonlyUser:
+    Type: "AWS::Scheduler::Schedule"
+    Condition: createROUser
+    Properties:
+      Name: !Sub "${appName}-${envType}-rouser-onetime-schedule"
+      Description: "Schedule creation of a readonly user for this rds instance"
+      State: "ENABLED"
+      GroupName: "default"
+      ScheduleExpression: !Ref rouserSchedule
+      ScheduleExpressionTimezone: "Europe/London"
+      FlexibleTimeWindow: 
+        Mode: "OFF"
+      Target: 
+        Arn: !GetAtt roUserFunction.Arn
+        RetryPolicy: 
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 0
+        RoleArn: 
+          Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-scheduler-role-arn"
+
   #rouserSecretRotationSchedule:
   #  Condition: createROUser
   #  Type: 'AWS::SecretsManager::RotationSchedule'
