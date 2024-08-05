@@ -94,10 +94,10 @@ Parameters:
     Type: "String"
     Description: "Schedule the lambda function to execute 5-10 minutes from now: format: at(yyyy-mm-ddThh:mm); eg: at(2024-06-18T12:30).  Timezone is Europe/London (not UTC)"
     Default: "at(2024-06-21T12:30)"
-  ecrTagVersion:
-    Type: "String"
-    Description: "The version of the dbdump/dbload code in ECR to run"
-    Default: "2"
+  #ecrTagVersion:
+  #  Type: "String"
+  #  Description: "The version of the dbdump/dbload code in ECR to run"
+  #  Default: "2"
 
 
 
