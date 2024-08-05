@@ -2,7 +2,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Metadata: {}
 Description: "Creates an RDS DB instance, along with it's option and parameter groups"
-Transform: AWS::SecretsManager-2020-07-23
+#Transform: AWS::SecretsManager-2020-07-23
 
 Parameters:
 
@@ -522,29 +522,29 @@ Resources:
 
   #** readonly user lambda
   ## create an sm secret for readonly user
-  roUserSecret:
-    Type: "AWS::SecretsManager::Secret"
-    Condition: createROUser
-    Properties:
-      Name: !Sub "${appName}/${envType}/rds/rouser"
-      GenerateSecretString:
-        ExcludeCharacters: "\"'@/\\"
-        ExcludeLowercase: false
-        ExcludeNumbers: false
-        ExcludePunctuation: false
-        ExcludeUppercase: false
-        IncludeSpace: false
-        PasswordLength: 16
-        RequireEachIncludedType: true
-        GenerateStringKey: "password"
-        #ToDo: in transitioning to the accepted fields, duplicated dbsecret to be same as masterarn, to avoid breaking existing deployed functions.  Cleanup later
-        SecretStringTemplate: 
-          Fn::Sub:
-            - '{"engine": "mysql", "username": "${rou}", "masterarn": "${dbsecret}", "dbsecret": "${dbsecret}", "host": "${dbhost}"}'
-            - rou: !If [ defaultROUserName, "rouser", !Sub "${roUserName}" ]
-              dbsecret: !Ref dbSecretProdRegion
-              dbhost: !GetAtt dbInstance.Endpoint.Address
-      KmsKeyId: "alias/aws/secretsmanager"
+  #roUserSecret:
+  #  Type: "AWS::SecretsManager::Secret"
+  #  Condition: createROUser
+  #  Properties:
+  #    Name: !Sub "${appName}/${envType}/rds/rouser"
+  #    GenerateSecretString:
+  #      ExcludeCharacters: "\"'@/\\"
+  #      ExcludeLowercase: false
+  #      ExcludeNumbers: false
+  #      ExcludePunctuation: false
+  #      ExcludeUppercase: false
+  #      IncludeSpace: false
+  #      PasswordLength: 16
+  #      RequireEachIncludedType: true
+  #      GenerateStringKey: "password"
+  #      #ToDo: in transitioning to the accepted fields, duplicated dbsecret to #be same as masterarn, to avoid breaking existing deployed functions.  #Cleanup later
+  #      SecretStringTemplate: 
+  #        Fn::Sub:
+  #          - '{"engine": "mysql", "username": "${rou}", "masterarn": "$#{dbsecret}", "dbsecret": "${dbsecret}", "host": "${dbhost}"}'
+  #          - rou: !If [ defaultROUserName, "rouser", !Sub "${roUserName}" ]
+  #            dbsecret: !Ref dbSecretProdRegion
+  #            dbhost: !GetAtt dbInstance.Endpoint.Address
+  #    KmsKeyId: "alias/aws/secretsmanager"
 
 
   #Create a readonly user, if indicated
