@@ -93,7 +93,7 @@ Parameters:
   rouserSchedule:
     Type: "String"
     Description: "Schedule the lambda function to execute 5-10 minutes from now: format: at(yyyy-mm-ddThh:mm); eg: at(2024-06-18T12:30).  Timezone is Europe/London (not UTC)"
-    Default: "at(2024-08-05T21:10)"
+    Default: "at(2024-08-05T21:25)"
   ecrTagVersion:
     Type: "String"
     Description: "The version of the dbdump/dbload code in ECR to run"
@@ -552,7 +552,7 @@ Resources:
     Type: "AWS::Lambda::Function"
     Condition: createROUser
     Properties:
-      Description: !Sub "Create a read only user for rds instance for $appName}#-${envType}, for reporting and testing"
+      Description: !Sub "Create a read only user for rds instance for ${appName}-${envType}, for reporting and testing"
       FunctionName: !Sub "${appName}-${envType}-rouser"
       Handler: "rouser.create_rouser"
       Architectures: 
@@ -570,7 +570,7 @@ Resources:
           #DB_SECRET_ID: !Ref dbSecret
       MemorySize: 256
       Role: 
-        Fn::ImportValue: !Sub "${orgName}-${accountType}readonly-user-role-arn"
+        Fn::ImportValue: !Sub "${orgName}-${accountType}-readonly-user-role-arn"
       Runtime: !Ref pythonRuntime
       Timeout: 300
       VpcConfig: 
