@@ -627,9 +627,7 @@ Resources:
       HostedRotationLambda:
         RotationType: MySQLSingleUser
         VpcSubnetIds:
-          Fn::Split: 
-            - ","
-            - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+          Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
         VpcSecurityGroupIds:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
         ExcludeCharacters: "/@\"'\\"
