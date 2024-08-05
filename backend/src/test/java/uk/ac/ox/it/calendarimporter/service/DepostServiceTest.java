@@ -1,5 +1,6 @@
 package uk.ac.ox.it.calendarimporter.service;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,8 +8,9 @@ import org.junit.jupiter.api.Test;
 import uk.ac.ox.it.calendarimporter.utils.DepositUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -77,5 +79,31 @@ public class DepostServiceTest {
     @Test
     public void testDeleteNotUrl() {
         depositService.remove("not a URL");
+    }
+
+    @Test
+    public void testGetInputStream() throws IOException {
+        Path upload = Files.createFile(tempDirectory.resolve("upload.txt"));
+
+        boolean inputStreamContentMatches = IOUtils.contentEquals(new FileInputStream(upload.toFile()),
+                depositService.getInputStream(upload.toString()));
+
+        assertTrue(inputStreamContentMatches);
+    }
+
+    @Test
+    public void testGetInputStreamNotFound() throws IOException {
+        Path upload = tempDirectory.resolve("upload.txt");
+
+        assertThrows(FileNotFoundException.class,
+                () -> depositService.getInputStream(upload.toString()));
+    }
+
+    @Test
+    public void testGetInputStreamOutsideOfLocation() throws IOException {
+        Path dangerousPath = Path.of("/etc/ssh");
+
+        assertThrows(Exception.class,
+                () -> depositService.getInputStream(dangerousPath.toString()));
     }
 }

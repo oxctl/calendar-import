@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.TimeZone;
 
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.CALENDAR_IMPORT_ID;
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.SOURCE_URL;
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.SOURCE_PATH;
 
 /**
  * This API subscribes or unsubscribes a user from the calendar course event sync job.
@@ -119,7 +119,7 @@ public class ApiCalendarEventImportController {
             for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals( groupName))) {
                 Trigger trigger = scheduler.getTrigger(key);
                 JobDataMap config = trigger.getJobDataMap();
-                String configURL = config.getString(SOURCE_URL);
+                String configURL = config.getString(SOURCE_PATH);
                 boolean isReimportJob = ImportType.CSV_REIMPORT.toString().equals(((SimpleTriggerImpl) trigger).getJobName());
                 boolean isUserSubscribedToURL = url.equals(configURL);
                 if (isReimportJob && isUserSubscribedToURL){
@@ -152,7 +152,7 @@ public class ApiCalendarEventImportController {
         for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals( groupName))) {
             Trigger trigger = scheduler.getTrigger(key);
             JobDataMap config = trigger.getJobDataMap();
-            String configURL = config.getString(SOURCE_URL);
+            String configURL = config.getString(SOURCE_PATH);
             boolean isReimportJob = ImportType.CSV_REIMPORT.toString().equals(((SimpleTriggerImpl) trigger).getJobName());
             boolean isUserSubscribedToURL = url.equals(configURL);
             if (isReimportJob && isUserSubscribedToURL){
@@ -180,7 +180,7 @@ public class ApiCalendarEventImportController {
         for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals( groupName))) {
             Trigger trigger = scheduler.getTrigger(key);
             JobDataMap config = trigger.getJobDataMap();
-            String configURL = config.getString(SOURCE_URL);
+            String configURL = config.getString(SOURCE_PATH);
             long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
             Optional<CalendarImport> calendarImport = calendarImportRepository.findById(calendarImportId);
             boolean isReimportJob = ImportType.CSV_REIMPORT.toString().equals(((SimpleTriggerImpl) trigger).getJobName());

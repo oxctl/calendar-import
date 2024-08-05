@@ -14,6 +14,10 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+
+import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.model.User;
@@ -30,7 +34,6 @@ import uk.ac.ox.it.calendarimporter.service.ProgressService;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +49,9 @@ class CSVImportJobTest {
     @Autowired
     private CSVReader reader;
 
+    @Autowired
+    private ResourceLoader resourceLoader;
+
     @Test
     public void testValidCallOneEvent() throws JobExecutionException, IOException, JOSEException, URISyntaxException {
 
@@ -54,11 +60,12 @@ class CSVImportJobTest {
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
         JobExecutionContext context = mock(JobExecutionContext.class);
+        Resource oneEventResource = resourceLoader.getResource("classpath:one-event.csv");
 
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         List<CalendarEvent> calendarEvents = new ArrayList<>();
         CalendarEvent calendarEvent = new CalendarEvent();
@@ -90,7 +97,8 @@ class CSVImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
+        when(depositService.deposit(any(), any())).thenReturn(oneEventResource.getFile().toPath());
+        when(depositService.getInputStream(any())).thenReturn(oneEventResource.getInputStream());
 
         csvImportJob.setTenantRepository(tenantRepository);
         csvImportJob.setUserRepository(userRepository);
@@ -115,11 +123,12 @@ class CSVImportJobTest {
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
         JobExecutionContext context = mock(JobExecutionContext.class);
+        Resource noHeadersResource = resourceLoader.getResource("classpath:no-headers.csv");
 
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/no-headers.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, noHeadersResource.getFile().getPath());
 
         List<CalendarEvent> calendarEvents = new ArrayList<>();
         CalendarEvent calendarEvent = new CalendarEvent();
@@ -151,7 +160,8 @@ class CSVImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
+        when(depositService.deposit(any(), any())).thenReturn(noHeadersResource.getFile().toPath());
+        when(depositService.getInputStream(any())).thenReturn(noHeadersResource.getInputStream());
 
         csvImportJob.setTenantRepository(tenantRepository);
         csvImportJob.setUserRepository(userRepository);
@@ -176,11 +186,12 @@ class CSVImportJobTest {
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
         JobExecutionContext context = mock(JobExecutionContext.class);
+        Resource wrongHeadersResource = resourceLoader.getResource("classpath:wrong-headers.csv");
 
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/wrong-headers.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, wrongHeadersResource.getFile().getPath());
 
         List<CalendarEvent> calendarEvents = new ArrayList<>();
         CalendarEvent calendarEvent = new CalendarEvent();
@@ -212,7 +223,8 @@ class CSVImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/wrong-headers.csv").getPath()));
+        when(depositService.deposit(any(), any())).thenReturn(wrongHeadersResource.getFile().toPath());
+        when(depositService.getInputStream(any())).thenReturn(wrongHeadersResource.getInputStream());
 
         csvImportJob.setTenantRepository(tenantRepository);
         csvImportJob.setUserRepository(userRepository);
@@ -237,11 +249,12 @@ class CSVImportJobTest {
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
         JobExecutionContext context = mock(JobExecutionContext.class);
+        Resource oneEventResource = resourceLoader.getResource("classpath:one-event.csv");
 
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         List<CalendarEvent> calendarEvents = new ArrayList<>();
         CalendarEvent calendarEvent = new CalendarEvent();
@@ -273,7 +286,8 @@ class CSVImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
+        when(depositService.deposit(any(), any())).thenReturn(oneEventResource.getFile().toPath());
+        when(depositService.getInputStream(any())).thenReturn(oneEventResource.getInputStream());
         when(calendarWriter.createCalendarEvent(any())).thenThrow(new IOException());
 
         csvImportJob.setTenantRepository(tenantRepository);
@@ -320,10 +334,11 @@ class CSVImportJobTest {
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(CSVImportJob.class).build();
         JobExecutionContext context = mock(JobExecutionContext.class);
+        Resource oneEventResource = resourceLoader.getResource("classpath:one-event.csv");
 
         JobDataMap map = new JobDataMap();
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -346,7 +361,8 @@ class CSVImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
+        when(depositService.deposit(any(), any())).thenReturn(oneEventResource.getFile().toPath());
+        when(depositService.getInputStream(any())).thenReturn(oneEventResource.getInputStream());
 
         csvImportJob.setTenantRepository(tenantRepository);
         csvImportJob.setUserRepository(userRepository);
@@ -370,7 +386,7 @@ class CSVImportJobTest {
 
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -393,7 +409,6 @@ class CSVImportJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
 
         csvImportJob.setTenantRepository(tenantRepository);
         csvImportJob.setUserRepository(userRepository);
@@ -422,7 +437,7 @@ class CSVImportJobTest {
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);

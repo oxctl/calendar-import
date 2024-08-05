@@ -26,7 +26,7 @@ public abstract class LoggingJob implements Job {
     private final Duration updateInterval = Duration.ofSeconds(1);
 
     @Autowired
-    private DepositService depositService;
+    protected DepositService depositService;
 
     @Autowired
     private ProgressService progressService;
@@ -67,7 +67,8 @@ public abstract class LoggingJob implements Job {
             // and a recovery run will be in the logs instead.
             try {
                 Path deposit = depositService.deposit(logfile, DepositService.Type.LOG);
-                context.setResult(deposit.toString());
+                result.logfile = deposit.toString();
+                context.setResult(result);
             } catch (IOException e) {
                 log.error("Failed to save logfile.", e);
             }

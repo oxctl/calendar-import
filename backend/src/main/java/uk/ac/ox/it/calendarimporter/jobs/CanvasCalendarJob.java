@@ -5,6 +5,8 @@ import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.oauth.OauthToken;
+import lombok.Setter;
+
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -32,7 +34,7 @@ import java.util.UUID;
  */
 public abstract class CanvasCalendarJob extends LoggingJob implements InterruptableJob {
 
-    public static final String SOURCE_URL = "url";
+    public static final String SOURCE_PATH = "path";
     public static final String CONTEXT = "context";
     public static final String SECTION = "section";
     public static final String TENANT_NAME = "tenant_name";
@@ -56,7 +58,8 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     // The section to import into.
     protected String section;
     // The URL of the source file to read from.
-    protected String url;
+    @Setter
+    protected String path;
     // The timezone that should be used when importing.
     protected String timeZone;
     
@@ -95,10 +98,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
         this.context = context;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
     }
@@ -123,7 +122,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     public void executeLogged(JobExecutionContext context) throws JobExecutionException {
 
         JobDataMap config = context.getMergedJobDataMap();
-        setUrl(config.getString(SOURCE_URL));
+        setPath(config.getString(SOURCE_PATH));
         setContext(config.getString(CONTEXT));
         setTimeZone(config.getString(TIME_ZONE));
         setSection(config.getString(SECTION));

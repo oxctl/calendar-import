@@ -79,7 +79,7 @@ class DeleteJobTest {
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
@@ -143,7 +143,7 @@ class DeleteJobTest {
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
