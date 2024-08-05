@@ -623,7 +623,17 @@ Resources:
       RotateImmediatelyOnUpdate: true
       RotationRules:
         ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
-      RotationLambdaARN: !GetAtt rotationFunction.Arn
+      #RotationLambdaARN: !GetAtt rotationFunction.Arn
+      HostedRotationLambda:
+        RotationType: MySQLSingleUser
+        VpcSubnetIds:
+          Fn::Split: 
+            - ","
+            - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+        VpcSecurityGroupIds:
+          Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
+        ExcludeCharacters: "/@\"'\\"
+        MasterSecretArn: !Ref dbSecretProdRegion
 
   #** secrets rotation lambda
   rotationFunction:
