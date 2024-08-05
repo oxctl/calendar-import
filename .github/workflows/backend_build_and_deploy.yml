@@ -197,7 +197,7 @@ jobs:
       - run: jq ". += [${ADDITIONAL_PARAMS}]" < ${{ inputs.aws_parameters }} > parameters.json
       - id: deploy
         run: aws cloudformation deploy
-          --capabilities CAPABILITY_NAMED_IAM
+          --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
           --template-file ./build/stack.yaml
           --stack-name ${{ env.AWS_STACK_PREFIX }}-backend
           --parameter-overrides file://parameters.json
