@@ -616,15 +616,15 @@ Resources:
         RoleArn: 
           Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-scheduler-role-arn"
 
-  #rouserSecretRotationSchedule:
-  #  Condition: createROUser
-  #  Type: 'AWS::SecretsManager::RotationSchedule'
-  #  Properties:
-  #    SecretId: !Ref roUserSecret  
-  #    RotateImmediatelyOnUpdate: true
-  #    RotationRules:
-  #      ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
-  #    RotationLambdaARN: !GetAtt rotationFunction.Arn
+  rouserSecretRotationSchedule:
+    Condition: createROUser
+    Type: 'AWS::SecretsManager::RotationSchedule'
+    Properties:
+      SecretId: !Ref roUserSecret  
+      RotateImmediatelyOnUpdate: true
+      RotationRules:
+        ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
+      RotationLambdaARN: !GetAtt rotationFunction.Arn
       
 
   #** secrets rotation lambda
