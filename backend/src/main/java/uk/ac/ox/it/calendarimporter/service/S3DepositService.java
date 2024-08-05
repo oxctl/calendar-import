@@ -51,6 +51,8 @@ public class S3DepositService implements DepositService {
     public void init() throws IOException {
         bucketName = bucketUri.getHost();
 
+        log.info("bucketName: {}", bucketName);
+
         Assert.isTrue(bucketExists(bucketName),
                 "Bucket with name '" + bucketName + "' does not exist.");
 

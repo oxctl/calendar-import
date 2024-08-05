@@ -15,6 +15,10 @@ Parameters:
     AllowedValues:
       - "prod"
       - "nonprod"
+  namePrefix:
+    Description: "Naming prefix for buckets"
+    Type: String
+    Default: oxcanvas
   appName:
     Description:  "Name of app"
     Type: String
@@ -33,7 +37,6 @@ Parameters:
       - "prod"
       - "beta"
       - "test"
-      - "staging"
   dbEngineMajorVer:
     Description: "The mysql major version.  WARNING: only change during planned major version upgrades"
     Type: String
@@ -55,13 +58,6 @@ Parameters:
     AllowedValues:
       - "gp2"
       - "gp3"
-  publicSubnet:
-    Description:  "Create db in public subnet?"
-    Type: String
-    Default: "No"
-    AllowedValues:
-      - "No"
-      - "Yes"
   dbPort:
     Description:  "The database port. Should be same for all environments"
     Type: String
@@ -77,14 +73,13 @@ Parameters:
     Description: "This is useful if you need to populate the new DB from an existing manual snapshot or aws backup snapshot. Leave BLANK to create a blank DB. Format of the parameter is the ARN of the snapshot to use. For DR, this is a required parameter or the template will not build on account of backup replication."
     Type: String
   supportEmail:
-    Description: "Email for auto-creating tickets (or for notifications only)"
+    Description: "Email for support (Cloud CAD)"
+    Type: String
+    Default: "cad-aws@it.ox.ac.uk"
+  csstSupportEmail:
+    Description: "Email for support (Cloud Services)"
     Type: String
     Default: "cloud-services@it.ox.ac.uk"
-  # parameter is a temp solution for KMS
-  prodReplicationKeyId:
-    Description: "AWS KMS key for RDS backup replication to Frankfurt.  Visit the KMS UI in Frankfurt, and copy Key id (not ARN) of key with alias 'aws/rds'.  If key doesn't exist, manually create an RDS instance ensuring you enable encryption, and that process will create the key (remember to delete the temp rds instance afterwards).  Only reqd for production instances"
-    Type: String
-    Default: "arn:aws:kms:eu-central-1:211125465582:key/bb8c5e12-14fa-4a6a-93be-f9aeff2b1c81"
   ###ToDo: new vars for lambda functions check if we need to tweak the github actions build scripts
   roUserName:
     Description: "Username for read only user.  Leave blank to create none, type 'default' to create a user named 'rouser', or give a custom name"
@@ -98,6 +93,12 @@ Parameters:
     Type: "String"
     Description: "Schedule the lambda function to execute 5-10 minutes from now: format: at(yyyy-mm-ddThh:mm); eg: at(2024-06-18T12:30).  Timezone is Europe/London (not UTC)"
     Default: "at(2024-06-21T12:30)"
+  ecrTagVersion:
+    Type: "String"
+    Description: "The version of the dbdump/dbload code in ECR to run"
+    Default: "2"
+
+
 
 Mappings:
 
@@ -109,6 +110,7 @@ Mappings:
       "deletionProtection": "true"
       "cloudwatchLogs": "audit,error,slowquery"
       "secretRotationSchedule": "cron(0 5 ? * WED#2 *)"
+      "dbloadSchedule": "" #just a placeholder
     beta:
       "backupWindow": "10:18-00:08"  #ToDo: make param ?
       "backupRetention": "7"  #retain backups for no. of days
@@ -116,27 +118,27 @@ Mappings:
       "deletionProtection": "false"
       "cloudwatchLogs": "error,slowquery"
       "secretRotationSchedule": "cron(0 5 ? * WED#1 *)"  
+      "dbloadSchedule": "cron(0 8 ? * 1 *)" #every sunday @ 6am
 
   RegionMappings:
     eu-west-1:
       "replicationRegion": "eu-central-1"
-      "rdsKeyId": "eu-central-1"
+      "rdsKeyId": "arn:aws:kms:eu-central-1:211125465582:key/bb8c5e12-14fa-4a6a-93be-f9aeff2b1c81"  # temp solution for KMS
     eu-central-1:
-      "replicationRegion": "eu-west-1"
+      "replicationRegion": "eu-west-2"
+      "rdsKeyId": "arn:aws:kms:eu-west-2:211125465582:key/8f92930d-f10e-47c1-a0fe-42536fed03b6"   # temp solution for KMS
 
 
 Conditions:
   isProdRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-west-1']}
-  isDRRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-central-1']}
   isProdEnv: {"Fn::Equals" : [!Ref envType, 'prod']}
   isBetaEnv: {"Fn::Equals" : [!Ref envType, 'beta']}
   isTestEnv: {"Fn::Equals" : [!Ref envType, 'test']}
-  isStagingEnv: {"Fn::Equals" : [!Ref envType, 'staging']}
   isNonProdEnv: !Or
     - !Condition isBetaEnv
     - !Condition isTestEnv
-    - !Condition isStagingEnv
-  inPublicSubnet: {"Fn::Equals" : [!Ref publicSubnet, 'Yes']}
+  isProdAccount: {"Fn::Equals" : [!Ref accountType, 'prod']}
+  isNonProdAccount: {"Fn::Equals" : [!Ref accountType, 'nonprod']}
   noSnapshot: {"Fn::Equals" : [!Ref snapshotToUse, ""]}
   ###
   dontCreateROUser: {"Fn::Equals" : [!Ref roUserName, '']}
@@ -200,9 +202,6 @@ Resources:
   #        Value: "CONNECT,QUERY_DCL,QUERY_DDL"
 
   dbSecretProdRegion:
-    # create secrets only in ireland, and replicate to Frankfurt
-    ## in DR region, use replicated secrets
-    #Condition: isProdRegion
     Type: "AWS::SecretsManager::Secret"
     Properties:
       Name: !Sub "${appName}/${envType}/rds/db-password"
@@ -220,6 +219,26 @@ Resources:
       ReplicaRegions:
         - Region: !FindInMap [RegionMappings, !Ref AWS::Region, replicationRegion]
       KmsKeyId: "alias/aws/secretsmanager"
+
+  ##ToDo: enabling these logs (so we can set retention) will likely break stack build, since the logs currently exist.  Best in new rds instances.  May work in existing instance, if we first manually delete the log grup to be replaced
+  #rdsErrorLogGroup:
+  #  Type: "AWS::Logs::LogGroup"
+  #  Properties:
+  #    LogGroupName: !Sub "/aws/rds/instance/${dbInstance}/error"
+  #    RetentionInDays: 90
+#
+  #rdsSlowLogGroup:
+  #  Type: "AWS::Logs::LogGroup"
+  #  Properties:
+  #    LogGroupName: !Sub "/aws/rds/instance/${dbInstance}/slowqueryr"
+  #    RetentionInDays: 90
+#
+  #rdsAudiLogGroup:
+  #  Type: "AWS::Logs::LogGroup"
+  #  Condition: isProdEnv  #we use audit logs only for prod envs
+  #  Properties:
+  #    LogGroupName: !Sub "/aws/rds/instance/${dbInstance}/audit"
+  #    RetentionInDays: 90
 
   dbInstance:
     Type: "AWS::RDS::DBInstance"
@@ -243,7 +262,6 @@ Resources:
           - Fn::Sub: "{{resolve:secretsmanager:${appName}/${envType}/rds/db-password::password}}"  #in DR region, thi would be a repliucated secret
       DBName:
         # Don't attempt to set a name if restoring from snapshot.
-        # And remove dashes - the db name must be alphanumeric
         Fn::If:
           - noSnapshot
           - !Join ["", !Split ["-", !Ref appName]]
@@ -254,7 +272,6 @@ Resources:
           - !Ref "AWS::NoValue"
           - !Ref snapshotToUse
       PreferredBackupWindow: !FindInMap [EnvironmentMappings, !Ref envType,backupWindow]
-      # for prod instances, replicate to opposie region
       ## don't repliucate snapshots for nonprod
       AutomaticBackupReplicationRegion:
         Fn::If:
@@ -265,16 +282,12 @@ Resources:
         Fn::If:
           - isNonProdEnv
           - !Ref AWS::NoValue
-          - !Ref prodReplicationKeyId
+          - !FindInMap [RegionMappings, !Ref AWS::Region, rdsKeyId]
       BackupRetentionPeriod: !FindInMap [EnvironmentMappings, !Ref envType,backupRetention]  #0 disables RDS automtic backups #ToDo
       AvailabilityZone: !Sub "${AWS::Region}${availabilityZone}"
       DBSubnetGroupName:
-        Fn::If:
-          - inPublicSubnet
-          - Fn::ImportValue:
-              !Sub "${orgName}-${accountType}-db-subnet-group-public"
-          - Fn::ImportValue:
-              !Sub "${orgName}-${accountType}-db-subnet-group-private"
+        Fn::ImportValue:
+            !Sub "${orgName}-${accountType}-db-subnet-group-private"
       PreferredMaintenanceWindow: !FindInMap [EnvironmentMappings, !Ref envType,maintenanceWindow]
       MultiAZ: false
       #NetworkType: IPV4
@@ -300,9 +313,7 @@ Resources:
         Fn::Split: [",",!FindInMap [EnvironmentMappings, !Ref envType, cloudwatchLogs]]
       CACertificateIdentifier: "rds-ca-rsa2048-g1" #"rds-ca-2019"
 
-  # In DR REgion, we won't do passwords rotation
   secretAttachmentProdRegion:
-    #Condition: isProdRegion
     Type: "AWS::SecretsManager::SecretTargetAttachment"
     Properties:
       SecretId: !Ref dbSecretProdRegion
@@ -508,6 +519,7 @@ Resources:
         #- !Sub "${appName}-${envType}"
       SourceType: 'db-instance'
 
+  #** readonly user lambda
   ## create an sm secret for readonly user
   roUserSecret:
     Type: "AWS::SecretsManager::Secret"
@@ -524,9 +536,10 @@ Resources:
         PasswordLength: 16
         RequireEachIncludedType: true
         GenerateStringKey: "password"
+        #ToDo: in transitioning to the accepted fields, duplicated dbsecret to be same as masterarn, to avoid breaking existing deployed functions.  Cleanup later
         SecretStringTemplate: 
           Fn::Sub:
-            - '{"username": "${rou}", "dbsecret": "${dbsecret}", "host": "${dbhost}"}'
+            - '{"engine": "mysql", "username": "${rou}", "masterarn": "${dbsecret}", "dbsecret": "${dbsecret}", "host": "${dbhost}"}'
             - rou: !If [ defaultROUserName, "rouser", !Sub "${roUserName}" ]
               dbsecret: !Ref dbSecretProdRegion
               dbhost: !GetAtt dbInstance.Endpoint.Address
@@ -542,7 +555,7 @@ Resources:
       FunctionName: !Sub "${appName}-${envType}-rouser"
       Handler: "rouser.create_rouser"
       Architectures: 
-      - "x86_64"
+        - "x86_64"
       Code: 
         S3Bucket:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
@@ -602,6 +615,27 @@ Resources:
         RoleArn: 
           Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-scheduler-role-arn"
 
+  rouserSecretRotationSchedule:
+    Condition: createROUser
+    Type: 'AWS::SecretsManager::RotationSchedule'
+    Properties:
+      SecretId: !Ref roUserSecret  
+      RotateImmediatelyOnUpdate: true
+      RotationRules:
+        ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
+      #RotationLambdaARN: !GetAtt rotationFunction.Arn
+      HostedRotationLambda:
+        RotationType: MySQLSingleUser
+        VpcSubnetIds:
+          Fn::Split: 
+            - ","
+            - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+        VpcSecurityGroupIds:
+          Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
+        ExcludeCharacters: "/@\"'\\"
+        MasterSecretArn: !Ref dbSecretProdRegion
+
+  #** secrets rotation lambda
   rotationFunction:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -614,7 +648,7 @@ Resources:
       FunctionName: !Sub "${appName}-${envType}-secret-rotation"
       Handler: "rotate_secret.lambda_handler"
       Architectures: 
-      - "x86_64"
+        - "x86_64"
       Code: 
         S3Bucket:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
@@ -662,10 +696,177 @@ Resources:
         ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
       RotationLambdaARN: !GetAtt rotationFunction.Arn
 
+  ## **dbdump starts here**
+  # this is to dbload to the beta env
+  dbdumpFunctionBeta:
+    Condition: isProdEnv
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: !Sub "Backup rds db for ${appName}-${envType} to a given s3 bucket prefix"
+      FunctionName: !Sub "${appName}-${envType}-dbdump"
+      Architectures: 
+        - "x86_64"
+      Code: 
+        ImageUri:
+          Fn::Sub:
+            - "${repo}:dbdump.${ver}"
+            - repo: 
+                Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-ecr-repo-uri"
+              ver: !Ref ecrTagVersion
+      PackageType: Image
+      Environment:
+        Variables:
+          APP_NAME: !Ref appName
+          ENV_TYPE: !Ref envType
+          SECRET_ID: !Ref dbSecretProdRegion
+          S3_BUCKET: #we want the dbdump to go into the nonprod shared S3 buckt
+            Fn::Sub:
+              - "${prefix}-nonprod-${region}-${accId}"
+              - prefix: !Ref namePrefix
+                region: !Ref 'AWS::Region'
+                accId:
+                  Fn::ImportValue: !Sub "${orgName}-nonprod-aws-account-id"
+          BUCKET_PREFIX: !Sub "dbdump/${appName}-${envType}/"
+          TO_ADDRESS: !Ref supportEmail
+          FROM_ADDRESS: 
+            Fn::Sub:
+              - "noreply@${dom}"
+              - dom:
+                  Fn::ImportValue: !Sub "${orgName}-${accountType}-route53-domainname"
+          KEEP_DB_NAME: "Yes"
+          INVOKE_DBLOAD: "Yes"
+          INVOKE_DBLOAD_FUNCTION:
+            Fn::Sub:
+              - "arn:${awsp}:lambda:${region}:${acctid}:function:${app}-beta-dbload"
+              - awsp: !Ref AWS::Partition
+                region: !Ref 'AWS::Region'
+                acctid:
+                  Fn::ImportValue: !Sub "${orgName}-nonprod-aws-account-id"
+                app: !Ref appName
+          INVOKE_DBLOAD_ROLE:
+            Fn::Sub:
+              - "arn:${awsp}:iam::${acctid}:role/${org}-nonprod-dbload-role"
+              - awsp: !Ref AWS::Partition
+                acctid:
+                  Fn::ImportValue: !Sub "${orgName}-nonprod-aws-account-id"
+                org: !Ref orgName
+      MemorySize: 256
+      Role:
+        Fn::ImportValue: !Sub "${orgName}-${accountType}-dbdump-xa-role-arn"
+      Timeout: 300
+      VpcConfig: 
+        SubnetIds:
+          Fn::Split: 
+            - ","
+            - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+        SecurityGroupIds:
+        - Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
+      EphemeralStorage: 
+        Size: 512
+      LoggingConfig:
+        ApplicationLogLevel: INFO
+        LogFormat: JSON
+        SystemLogLevel: DEBUG  #Change to info, after testing
+        LogGroup: !Ref dbdumpLogGroup
+
+  #logging for dbdump for all envTypes
+  dbdumpLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Condition: isProdAccount
+    Properties:
+      LogGroupName: !Sub "/lambda/${appName}-${accountType}-dbdump"
+      RetentionInDays: 30
+
+  scheduleDBDumpToBeta:
+    Condition: isProdEnv
+    Type: "AWS::Scheduler::Schedule"
+    Properties:
+      Name: !Sub "${appName}-dbdump-to-beta-schedule"
+      Description: "Schedule mysql backups to given s3 bucket"
+      State: "ENABLED"
+      GroupName: "default"
+      ScheduleExpression: !FindInMap [EnvironmentMappings, "beta", dbloadSchedule]
+      ScheduleExpressionTimezone: "Europe/London"
+      FlexibleTimeWindow: 
+        Mode: "OFF"
+      Target: 
+        Arn: !GetAtt dbdumpFunctionBeta.Arn
+        RetryPolicy: 
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 0
+        RoleArn: 
+          Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-scheduler-role-arn"
+
+  ## **dbload starts here**
+  #dbload for beta envType .. duplicate for more envTypes
+  ##  deployed but not scheduled .. will be invoked from prod
+  dbloadFunctionBeta:
+    Condition: isBetaEnv
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: !Sub "Load rds db for ${appName}-beta from a given s3 bucket prefix"
+      FunctionName: !Sub "${appName}-beta-dbload"
+      Architectures: 
+        - "x86_64"
+      Code: 
+        ImageUri:
+          Fn::Sub:
+            - "${repo}:dbload.${ver}"
+            - repo: 
+                Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-ecr-repo-uri"
+              ver: !Ref ecrTagVersion
+      PackageType: Image
+      Environment:
+        Variables:
+          APP_NAME: !Ref appName
+          ENV_TYPE: !Ref envType
+          SECRET_ID: !Ref dbSecretProdRegion
+          S3_BUCKET:
+            Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
+          SRC_BUCKET_PREFIX: !Sub "dbdump/${appName}-prod/"
+          DEST_BUCKET_PREFIX: !Sub "dbload/${appName}-${envType}/done/"
+          TO_ADDRESS: !Ref supportEmail
+          FROM_ADDRESS:
+            Fn::Sub:
+              - "noreply@${dom}"
+              - dom:
+                  Fn::ImportValue: !Sub "${orgName}-${accountType}-route53-domainname"
+          SAME_DB_NAME: "Yes"
+      MemorySize: 256
+      Role:
+        Fn::ImportValue: !Sub "${orgName}-${accountType}-dbload-role-arn"
+      Timeout: 30
+      TracingConfig: 
+        Mode: "PassThrough"
+      VpcConfig: 
+        SubnetIds:
+          Fn::Split: 
+            - ","
+            - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+        SecurityGroupIds:
+        - Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
+      EphemeralStorage: 
+        Size: 512
+      LoggingConfig:
+        ApplicationLogLevel: INFO
+        LogFormat: JSON
+        SystemLogLevel: DEBUG  #ToDo: Change this after testing
+        LogGroup: !Ref dbloadLogGroup
+
+  #logging for dbload for all envTypes
+  dbloadLogGroup:
+    Condition: isNonProdAccount
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub "/lambda/${appName}-${accountType}-dbload"
+      RetentionInDays: 30
+
+
+
 Outputs:
 
   dbSecretProdRegion:
-    Description: "DB secret ARN (Secrets Manager)"
+    Description: "DB secret ARN (Secrets Manager), same thing as secret id"
     Condition: isProdRegion
     Value: !Ref dbSecretProdRegion
     Export:
