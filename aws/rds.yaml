@@ -2,6 +2,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Metadata: {}
 Description: "Creates an RDS DB instance, along with it's option and parameter groups"
+Transform: AWS::SecretsManager-2020-07-23
 
 Parameters:
 
