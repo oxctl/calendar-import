@@ -107,7 +107,7 @@ public class ImportService {
         calendarImport.setContext(importConfig.getContext());
         calendarImport.setCreated(Instant.now());
         calendarImport.setUser(user);
-        calendarImport.setUrl(importConfig.getPath());
+        calendarImport.setPath(importConfig.getPath());
         calendarImport.setFilename(importConfig.getFilename());
         calendarImport.setType(importConfig.getType());
         if (importConfig.getInto() != null) {
@@ -123,7 +123,7 @@ public class ImportService {
                         .startNow()
                         .withIdentity(
                                 TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getSubject()))
-                        .usingJobData(CanvasCalendarJob.SOURCE_URL, importConfig.getPath())
+                        .usingJobData(CanvasCalendarJob.SOURCE_PATH, importConfig.getPath())
                         .usingJobData(CanvasCalendarJob.CONTEXT, importConfig.getContext())
                         .usingJobData(CanvasCalendarJob.SECTION, section)
                         .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())
