@@ -229,8 +229,10 @@ Resources:
       Engine: "mysql"
       #NOTE: MasterUsername/Password not used when db is restored from snapshots
       ##     You inherit what was already there
-      MasterUsername: !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
-      MasterUserPassword: !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
+      MasterUsername:
+        Fn::Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
+      MasterUserPassword:
+        Fn::Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
       DBName:
         # Don't attempt to set a name if restoring from snapshot.
         Fn::If:
