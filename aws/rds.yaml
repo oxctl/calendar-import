@@ -230,15 +230,7 @@ Resources:
       #NOTE: MasterUsername/Password not used when db is restored from snapshots
       ##     You inherit what was already there
       MasterUsername: !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
-        #Fn::If:
-        #  - isProdRegion
-        #  - !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
-        #  - !Sub "{{resolve:secretsmanager:${appName}/${envType}/rds/db-password::username}}"  #in DR region, thi would be a repliucated secret
-      MasterUserPassword: !Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
-        #Fn::If:
-        #  - isProdRegion
-        #  - Fn::Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
-        #  - Fn::Sub: "{{resolve:secretsmanager:${appName}/${envType}/rds/db-password::password}}"  #in DR region, thi would be a repliucated secret
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
       DBName:
         # Don't attempt to set a name if restoring from snapshot.
         Fn::If:
