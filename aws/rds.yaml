@@ -2,7 +2,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Metadata: {}
 Description: "Creates an RDS DB instance, along with it's option and parameter groups"
-#Transform: AWS::SecretsManager-2020-07-23
 
 Parameters:
 
@@ -81,7 +80,6 @@ Parameters:
     Description: "Email for support (Cloud Services)"
     Type: String
     Default: "cloud-services@it.ox.ac.uk"
-  ###ToDo: new vars for lambda functions check if we need to tweak the github actions build scripts
   roUserName:
     Description: "Username for read only user.  Leave blank to create none, type 'default' to create a user named 'rouser', or give a custom name"
     Type: "String"
@@ -221,26 +219,6 @@ Resources:
         - Region: !FindInMap [RegionMappings, !Ref AWS::Region, replicationRegion]
       KmsKeyId: "alias/aws/secretsmanager"
 
-  ##ToDo: enabling these logs (so we can set retention) will likely break stack build, since the logs currently exist.  Best in new rds instances.  May work in existing instance, if we first manually delete the log grup to be replaced
-  #rdsErrorLogGroup:
-  #  Type: "AWS::Logs::LogGroup"
-  #  Properties:
-  #    LogGroupName: !Sub "/aws/rds/instance/${dbInstance}/error"
-  #    RetentionInDays: 90
-#
-  #rdsSlowLogGroup:
-  #  Type: "AWS::Logs::LogGroup"
-  #  Properties:
-  #    LogGroupName: !Sub "/aws/rds/instance/${dbInstance}/slowqueryr"
-  #    RetentionInDays: 90
-#
-  #rdsAudiLogGroup:
-  #  Type: "AWS::Logs::LogGroup"
-  #  Condition: isProdEnv  #we use audit logs only for prod envs
-  #  Properties:
-  #    LogGroupName: !Sub "/aws/rds/instance/${dbInstance}/audit"
-  #    RetentionInDays: 90
-
   dbInstance:
     Type: "AWS::RDS::DBInstance"
     #DeletionPolicy: Retain
@@ -251,16 +229,16 @@ Resources:
       Engine: "mysql"
       #NOTE: MasterUsername/Password not used when db is restored from snapshots
       ##     You inherit what was already there
-      MasterUsername:
-        Fn::If:
-          - isProdRegion
-          - !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
-          - !Sub "{{resolve:secretsmanager:${appName}/${envType}/rds/db-password::username}}"  #in DR region, thi would be a repliucated secret
-      MasterUserPassword:
-        Fn::If:
-          - isProdRegion
-          - Fn::Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
-          - Fn::Sub: "{{resolve:secretsmanager:${appName}/${envType}/rds/db-password::password}}"  #in DR region, thi would be a repliucated secret
+      MasterUsername: !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
+        #Fn::If:
+        #  - isProdRegion
+        #  - !Sub "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
+        #  - !Sub "{{resolve:secretsmanager:${appName}/${envType}/rds/db-password::username}}"  #in DR region, thi would be a repliucated secret
+      MasterUserPassword: !Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
+        #Fn::If:
+        #  - isProdRegion
+        #  - Fn::Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::password}}"
+        #  - Fn::Sub: "{{resolve:secretsmanager:${appName}/${envType}/rds/db-password::password}}"  #in DR region, thi would be a repliucated secret
       DBName:
         # Don't attempt to set a name if restoring from snapshot.
         Fn::If:
@@ -537,10 +515,9 @@ Resources:
         PasswordLength: 16
         RequireEachIncludedType: true
         GenerateStringKey: "password"
-        #ToDo: in transitioning to the accepted fields, duplicated dbsecret to be same as masterarn, to avoid breaking existing deployed functions.  Cleanup later
         SecretStringTemplate: 
           Fn::Sub:
-            - '{"engine": "mysql", "username": "${rou}", "masterarn": "${dbsecret}", "dbsecret": "${dbsecret}", "host": "${dbhost}"}'
+            - '{"engine": "mysql", "username": "${rou}", "masterarn": "${dbsecret}", "host": "${dbhost}"}'
             - rou: !If [ defaultROUserName, "rouser", !Sub "${roUserName}" ]
               dbsecret: !Ref dbSecretProdRegion
               dbhost: !GetAtt dbInstance.Endpoint.Address
@@ -859,7 +836,6 @@ Outputs:
 
   dbSecretProdRegion:
     Description: "DB secret ARN (Secrets Manager), same thing as secret id"
-    Condition: isProdRegion
     Value: !Ref dbSecretProdRegion
     Export:
       Name: !Sub "${appName}-${envType}-db-secret"
