@@ -5,7 +5,6 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.service.ProgressService;
 
@@ -13,7 +12,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -66,8 +64,7 @@ public abstract class LoggingJob implements Job {
             // log is lost
             // and a recovery run will be in the logs instead.
             try {
-                Path deposit = depositService.deposit(logfile, DepositService.Type.LOG);
-                result.logfile = deposit.toString();
+                result.logfile = depositService.deposit(logfile, DepositService.Type.LOG); 
                 context.setResult(result);
             } catch (IOException e) {
                 log.error("Failed to save logfile.", e);

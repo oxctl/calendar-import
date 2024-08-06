@@ -80,9 +80,9 @@ public class DevelopmentCommandLineRunner implements CommandLineRunner {
 
                     log.info("Trying to deposit {}", sourcePath);
 
-                    Path depositPath = depositService.deposit(sourceFile, type);
+                    String url = depositService.deposit(sourceFile, type);
 
-                    log.info("DepositService.deposit returned '{}'", depositPath);
+                    log.info("DepositService.deposit returned '{}'", url);
                     break;
                 case "remove":
                     if (args.size() != 1) {

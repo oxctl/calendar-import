@@ -2,6 +2,9 @@ package uk.ac.ox.it.calendarimporter.controller;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Utils {
 
     /**
@@ -53,5 +56,48 @@ public class Utils {
 
     public static String userIdToContext(String userId){
         return "user_" + userId;
+    }
+    
+    public static ParamBuilder paramBuilder() {
+        return new ParamBuilder();
+    }
+
+    /**
+     * Builder to allow the additional parameters map to be made in a null safe way.
+     */
+    public static class ParamBuilder {
+        
+        private String courseId;
+        private String sisUserId;
+        private String accountId;
+
+        public ParamBuilder courseId(String courseId) {
+            this.courseId = courseId;
+            return this;
+        }
+
+        public ParamBuilder sisUserId(String sisUserId) {
+            this.sisUserId = sisUserId;
+            return this;
+        }
+
+        public ParamBuilder accountId(String accountId) {
+            this.accountId = accountId;
+            return this;
+        }
+        
+        public Map<String, String> build() {
+            Map<String, String> params = new HashMap<>();
+            if (courseId != null) {
+                params.put("course.id", courseId);
+            }
+            if(sisUserId != null) {
+                params.put("user.sis_id", sisUserId);
+            }
+            if (accountId != null) {
+                params.put("account.id", accountId);
+            }
+            return params;
+        }
     }
 }

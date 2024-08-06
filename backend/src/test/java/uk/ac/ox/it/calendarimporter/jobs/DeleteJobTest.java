@@ -29,7 +29,6 @@ import uk.ac.ox.it.calendarimporter.service.ProgressService;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +78,7 @@ class DeleteJobTest {
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_URL, getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
@@ -92,7 +91,7 @@ class DeleteJobTest {
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         when(importedEventRepository.findByCalendarImport(any())).thenReturn(importedEvents);
         when(calendarWriter.deleteCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
-        when(depositService.deposit(any(), any())).thenReturn(Path.of(getClass().getResource("/one-event.csv").getPath()));
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         deleteJob.setTenantRepository(tenantRepository);
         deleteJob.setUserRepository(userRepository);
@@ -143,7 +142,7 @@ class DeleteJobTest {
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put(CanvasCalendarJob.SOURCE_PATH, getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_URL, getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
