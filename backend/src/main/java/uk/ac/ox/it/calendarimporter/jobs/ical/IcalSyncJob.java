@@ -21,15 +21,12 @@ import net.fortuna.ical4j.validate.ValidationException;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
-import uk.ac.ox.it.calendarimporter.service.DepositService;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -60,7 +57,6 @@ public class IcalSyncJob extends CanvasCalendarJob {
     private final String file = "data.properties";
 
     // Number of days either side of today to sync.
-    private int dayRange = 10;
     private int iCalEventLimit = 1000;
     private long inputLimit = 1048576 * 10;
 
@@ -68,11 +64,7 @@ public class IcalSyncJob extends CanvasCalendarJob {
     }
 
     public IcalSyncJob(String url) {
-        this.path = url;
-    }
-
-    public void setDayRange(int dayRange) {
-        this.dayRange = dayRange;
+        this.url = url;
     }
 
     public void setiCalEventLimit(int iCalEventLimit) {
@@ -126,7 +118,7 @@ public class IcalSyncJob extends CanvasCalendarJob {
 
         CalendarBuilder builder = new CalendarBuilder();
 
-        try (InputStream in = new TerminatingInputStream(depositService.getInputStream(this.path), inputLimit)) {
+        try (InputStream in = new TerminatingInputStream(depositService.getInputStream(this.url, parameters), inputLimit)) {
             Calendar calendar = builder.build(in);
             ComponentList<VEvent> events = calendar.getComponents(VEVENT);
             for (VEvent event : events) {

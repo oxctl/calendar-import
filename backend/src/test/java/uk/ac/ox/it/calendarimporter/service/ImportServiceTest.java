@@ -218,7 +218,7 @@ public class ImportServiceTest {
     private ImportConfig setUpImportConfig(ImportType importType, Map<String, String> parameters){
         return new ImportConfig(
                 importType,
-                CanvasCalendarJob.SOURCE_PATH,
+                CanvasCalendarJob.SOURCE_URL,
                 "filename",
                 user,
                 "context",

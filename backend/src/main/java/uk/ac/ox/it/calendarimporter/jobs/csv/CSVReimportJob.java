@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import uk.ac.ox.it.calendarimporter.CalendarUrlConfiguration;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.ImportedEvent;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
@@ -46,9 +45,6 @@ public class CSVReimportJob extends CanvasCalendarJob {
     @Autowired
     private CSVReader reader;
     
-    @Autowired
-    private CalendarUrlConfiguration calendarUrlConfiguration;
-
     @Value("${calendar.reimport.max.events}")
     private int maxEventsInCsv;
 
@@ -73,12 +69,12 @@ public class CSVReimportJob extends CanvasCalendarJob {
         // We don't want to use the triggerID as it's semi secret, only need a few characters so they don't clash
         String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + id);
         log("Import started, timezone of: " + timeZone.getID());
-        log.debug("Attempting to load CSV file: {}", this.path);
+        log.debug("Attempting to load CSV file: {}", this.url);
         log("Reading in file.");
         CSVReimportJob.TrackingErrorHandler errorHandler = new CSVReimportJob.TrackingErrorHandler();
         List<CalendarEvent> importingEvents;
         try {
-            importingEvents = reader.parseCSV(depositService.getInputStream(this.path), timeZone, errorHandler);
+            importingEvents = reader.parseCSV(depositService.getInputStream(this.url, parameters), timeZone, errorHandler);
         } catch (HeaderException he) {
             failure("Failed to read file: " + he.getLocalizedMessage());
             return;
@@ -183,7 +179,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
         }
         log.info(
                 "Completed import from {}, {} events in source, created {} events, deleted {} events, for {} in tenant {}.",
-                this.path,
+                this.url,
                 importingEvents.size(), created, deleted,
                 context,
                 tenant);
@@ -199,10 +195,6 @@ public class CSVReimportJob extends CanvasCalendarJob {
                 event.getStartAt(),
                 event.getEndAt()
         );
-    }
-
-    public void setCalendarUrlConfiguration(CalendarUrlConfiguration calendarUrlConfiguration) {
-        this.calendarUrlConfiguration = calendarUrlConfiguration;
     }
 
     public void setCSVReader(CSVReader csvReader) {

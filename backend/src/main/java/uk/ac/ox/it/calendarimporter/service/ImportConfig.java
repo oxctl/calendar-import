@@ -15,7 +15,7 @@ import java.util.TimeZone;
 public class ImportConfig {
 
     private final ImportType type;
-    private final String path;
+    private final String url;
     private final String filename;
     private final User user;
     /**

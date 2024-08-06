@@ -54,13 +54,13 @@ public class CSVImportJob extends CanvasCalendarJob {
         // don't clash
         String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + id);
         log("Import started, timezone of: " + timeZone.getID());
-        log.debug("Attempting to load CSV file: {}", this.path);
+        log.debug("Attempting to load CSV file: {}", this.url);
         log("Reading in file.");
         // Programmers are 0 based, users are 1 based
         TrackingErrorHandler errorHandler = new TrackingErrorHandler();
         List<CalendarEvent> calendarEvents;
         try {
-            calendarEvents = reader.parseCSV(depositService.getInputStream(this.path), timeZone, errorHandler);
+            calendarEvents = reader.parseCSV(depositService.getInputStream(this.url, parameters), timeZone, errorHandler);
         } catch (HeaderException he) {
             failure("Failed to read file: " + he.getLocalizedMessage());
             return;

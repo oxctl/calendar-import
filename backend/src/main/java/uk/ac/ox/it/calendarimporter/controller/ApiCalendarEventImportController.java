@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.TimeZone;
 
 import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.CALENDAR_IMPORT_ID;
-import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.SOURCE_PATH;
+import static uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob.SOURCE_URL;
 
 /**
  * This API subscribes or unsubscribes a user from the calendar course event sync job.
@@ -63,15 +63,17 @@ public class ApiCalendarEventImportController {
     public ResponseEntity<ContextJob> subscribe(
             Tenant tenant,
             JwtAuthenticationToken authentication,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString")
                     String userId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']?.toString")
                     String courseId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url,
             // This isn't the timezone of the user, but that of the user who setup the import.
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['timezone']")
-            String timezone
+            String timezone,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_sis_id']")
+            String sisUserId
     ) throws SchedulerException {
         if (!isUserSubscribed(tenant, authentication, userId, url)){
             log.debug("User not currently subscribed so creating calendar course events sync job for user {} using calendar url {}", userId, url);
@@ -91,7 +93,7 @@ public class ApiCalendarEventImportController {
                                     Utils.userIdToContext(userId),
                                     null,
                                     importTimezone,
-                                    Map.of("course.id", courseId, "user.sis_id", user.getUsername())));
+                                    Map.of("course.id", courseId, "user.sis_id", sisUserId)));
             return ResponseEntity.ok(contextJob);
         }
         else {
@@ -104,7 +106,7 @@ public class ApiCalendarEventImportController {
     public ResponseEntity<Void> unsubscribe(
             Tenant tenant,
             JwtAuthenticationToken authentication,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString")
                     String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url)
@@ -119,7 +121,7 @@ public class ApiCalendarEventImportController {
             for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals( groupName))) {
                 Trigger trigger = scheduler.getTrigger(key);
                 JobDataMap config = trigger.getJobDataMap();
-                String configURL = config.getString(SOURCE_PATH);
+                String configURL = config.getString(SOURCE_URL);
                 boolean isReimportJob = ImportType.CSV_REIMPORT.toString().equals(((SimpleTriggerImpl) trigger).getJobName());
                 boolean isUserSubscribedToURL = url.equals(configURL);
                 if (isReimportJob && isUserSubscribedToURL){
@@ -139,7 +141,7 @@ public class ApiCalendarEventImportController {
     public boolean isUserSubscribed(
             Tenant tenant,
             JwtAuthenticationToken authentication,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString")
                     String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url)
@@ -152,7 +154,7 @@ public class ApiCalendarEventImportController {
         for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals( groupName))) {
             Trigger trigger = scheduler.getTrigger(key);
             JobDataMap config = trigger.getJobDataMap();
-            String configURL = config.getString(SOURCE_PATH);
+            String configURL = config.getString(SOURCE_URL);
             boolean isReimportJob = ImportType.CSV_REIMPORT.toString().equals(((SimpleTriggerImpl) trigger).getJobName());
             boolean isUserSubscribedToURL = url.equals(configURL);
             if (isReimportJob && isUserSubscribedToURL){
@@ -167,7 +169,7 @@ public class ApiCalendarEventImportController {
     public ResponseEntity<CalendarImport> getUserSubscription(
             Tenant tenant,
             JwtAuthenticationToken authentication,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString")
                     String userId,
             @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['url']")
                     String url)
@@ -180,7 +182,7 @@ public class ApiCalendarEventImportController {
         for (TriggerKey key : scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals( groupName))) {
             Trigger trigger = scheduler.getTrigger(key);
             JobDataMap config = trigger.getJobDataMap();
-            String configURL = config.getString(SOURCE_PATH);
+            String configURL = config.getString(SOURCE_URL);
             long calendarImportId = config.getLongValue(CALENDAR_IMPORT_ID);
             Optional<CalendarImport> calendarImport = calendarImportRepository.findById(calendarImportId);
             boolean isReimportJob = ImportType.CSV_REIMPORT.toString().equals(((SimpleTriggerImpl) trigger).getJobName());

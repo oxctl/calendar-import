@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
-import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.service.ImportEventService;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
@@ -50,7 +49,7 @@ public class IcalImportJob extends CanvasCalendarJob {
     }
 
     public IcalImportJob(String url) {
-        this.path = url;
+        this.url = url;
     }
 
     public void setiCalEventLimit(int iCalEventLimit) {
@@ -76,7 +75,7 @@ public class IcalImportJob extends CanvasCalendarJob {
         CalendarBuilder builder = new CalendarBuilder();
 
         Progress progress;
-        try (InputStream in = new TerminatingInputStream(depositService.getInputStream(this.path), inputLimit)) {
+        try (InputStream in = new TerminatingInputStream(depositService.getInputStream(this.url, parameters), inputLimit)) {
             log("Reading in file.");
             Calendar calendar = builder.build(in);
             ComponentList<VEvent> events = calendar.getComponents(VEVENT);
