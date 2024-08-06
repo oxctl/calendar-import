@@ -1,30 +1,32 @@
 package uk.ac.ox.it.calendarimporter.service;
 
+import jakarta.annotation.PostConstruct;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Service;
+import uk.ac.ox.it.calendarimporter.utils.DepositUtils;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Service;
-
-import jakarta.annotation.PostConstruct;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import uk.ac.ox.it.calendarimporter.utils.DepositUtils;
+import java.nio.file.Paths;
+import java.util.Map;
 
 @Slf4j
 @Service
-@ConditionalOnExpression("!'${calendar.upload.location}'.startsWith('s3://')")
+@Order(10) // 
+@Qualifier("implementation")
 public class FileSystemDepositService implements DepositService {
-
 
     @Setter
     @Value("${calendar.upload.location}")
@@ -34,7 +36,6 @@ public class FileSystemDepositService implements DepositService {
     @Autowired
     private DepositUtils depositUtils;
 
-
     @PostConstruct
     public void init() throws IOException {
         log.info("Uploading files deposited to: {}", location);
@@ -42,48 +43,45 @@ public class FileSystemDepositService implements DepositService {
     }
 
     @Override
-    public Path deposit(File upload, Type type) throws IOException {
+    public String deposit(File upload, Type type) throws IOException {
         try {
-            Path target = toFinalPath(upload, type);
+            Path target = Paths
+                    .get(location.toString(), depositUtils.resolveTargetPath(upload.getName(), type))
+                    .toAbsolutePath();
             Files.createDirectories(target.getParent());
             Path move = Files.move(upload.toPath(), target);
             log.debug("Deposited file {} to {} ({} bytes)", upload, target, Files.size(target));
-
-            return toDepositPath(move);
+            return move.toUri().toString();
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("The filename isn't valid.", e);
         }
     }
 
     @Override
-    public InputStream getInputStream(@NonNull String deposit) throws FileNotFoundException {
-        Path path = Path.of(deposit);
-
-        if (!path.startsWith(location)) {
-            throw new IllegalArgumentException("Path is outside of the deposit location");
+    public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException {
+        URL url = new URL(deposit);
+        if (!url.getPath().startsWith(location.toUri().getPath())) {
+            throw new AccessDeniedException("File not within: "+ location.toUri());
         }
-
-        File depositFile = path.toFile();
-
-        return new FileInputStream(depositFile);
+        return url.openStream();
     }
 
     @Override
     public void remove(String deposit) {
         try {
-            Path path = location.resolve(deposit);
+            URI uri = URI.create(deposit);
+            Path path = Paths.get(uri);
             Files.delete(path);
             log.debug("Removed file {}", deposit);
         } catch (IOException e) {
-            log.warn("Failed to delete deposit {}", deposit, e);
+            log.warn("Failed to delete deposit: {}, error: {}", deposit, e.getMessage());
         }
     }
-
-    private Path toFinalPath(File file, Type type) {
-        return depositUtils.resolveTargetPath(location, file, type).toAbsolutePath();
+    
+    @Override
+    public boolean canHandle(String deposit) {
+        URI uri = URI.create(deposit);
+        return "file".equals(uri.getScheme());
     }
 
-    private Path toDepositPath(Path actualPath) {
-        return location.relativize(actualPath);
-    }
 }

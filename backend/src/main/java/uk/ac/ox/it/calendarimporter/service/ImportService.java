@@ -9,13 +9,11 @@ import org.quartz.SchedulerException;
 import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
-import org.quartz.impl.matchers.KeyMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import uk.ac.ox.it.calendarimporter.controller.ImportType;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.CleanoutJob;
 import uk.ac.ox.it.calendarimporter.jobs.DeleteJob;
@@ -107,7 +105,7 @@ public class ImportService {
         calendarImport.setContext(importConfig.getContext());
         calendarImport.setCreated(Instant.now());
         calendarImport.setUser(user);
-        calendarImport.setPath(importConfig.getPath());
+        calendarImport.setUrl(importConfig.getUrl());
         calendarImport.setFilename(importConfig.getFilename());
         calendarImport.setType(importConfig.getType());
         if (importConfig.getInto() != null) {
@@ -123,7 +121,7 @@ public class ImportService {
                         .startNow()
                         .withIdentity(
                                 TriggerUtils.toTriggerKey(uuid.toString(), tenant.getName(), user.getSubject()))
-                        .usingJobData(CanvasCalendarJob.SOURCE_PATH, importConfig.getPath())
+                        .usingJobData(CanvasCalendarJob.SOURCE_URL, importConfig.getUrl())
                         .usingJobData(CanvasCalendarJob.CONTEXT, importConfig.getContext())
                         .usingJobData(CanvasCalendarJob.SECTION, section)
                         .usingJobData(CanvasCalendarJob.CALENDAR_IMPORT_ID, calendarImport.getId())

@@ -27,12 +27,13 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.security.WithMockClaims;
-import uk.ac.ox.it.calendarimporter.service.*;
+import uk.ac.ox.it.calendarimporter.service.CourseSection;
+import uk.ac.ox.it.calendarimporter.service.DepositService;
+import uk.ac.ox.it.calendarimporter.service.ImportConfig;
+import uk.ac.ox.it.calendarimporter.service.ImportService;
+import uk.ac.ox.it.calendarimporter.service.UserService;
 
-import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 
@@ -216,11 +217,11 @@ class ApiControllerTest {
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1', 'canvas_user_sis_id': 'sis_id_1'} }")
     public void testRunJob() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
+        when(depositService.deposit(any(), any())).thenReturn("path/to/file");
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -236,15 +237,16 @@ class ApiControllerTest {
                 "course_1",
                 null,
                 TimeZone.getDefault(),
-                Map.of())));
+                Utils.paramBuilder().courseId("1").sisUserId("sis_id_1").build()
+        )));
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'account_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_account_id': '1', 'canvas_user_id': '2'} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'account_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_account_id': '1', 'canvas_user_id': '2', 'canvas_user_sis_id': 'sis_id_1'} }")
     public void testRunJobAccountPlacement() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
+        when(depositService.deposit(any(), any())).thenReturn("path/to/file");
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -260,15 +262,16 @@ class ApiControllerTest {
                 "account_1",
                 null,
                 TimeZone.getDefault(),
-                Map.of())));
+                Utils.paramBuilder().accountId("1").sisUserId("sis_id_1").build()
+        )));
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1', 'person_address_timezone': 'CST'} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1', 'person_address_timezone': 'CST', 'canvas_user_sis_id': 'sis_id_1'} }")
     public void testRunJobWithTimezone() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
+        when(depositService.deposit(any(), any())).thenReturn("path/to/file");
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -284,15 +287,15 @@ class ApiControllerTest {
                 "course_1",
                 null,
                 TimeZone.getTimeZone("CST"),
-                Map.of())));
+                Utils.paramBuilder().courseId("1").sisUserId("sis_id_1").build())));
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1', 'canvas_user_sis_id': 'sis_id_1'} }")
     public void testRunJobWithSection() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
+        when(depositService.deposit(any(), any())).thenReturn("path/to/file");
         when(importService.importNow(any())).thenReturn(contextJob);
 
 
@@ -310,15 +313,15 @@ class ApiControllerTest {
                 "course_1",
                 new CourseSection("sectionId", "sectionName"),
                 TimeZone.getDefault(),
-                Map.of())));
+                Utils.paramBuilder().courseId("1").sisUserId("sis_id_1").build())));
     }
 
     @Test
-    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1'} }")
+    @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_home_sub_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1', 'canvas_user_id': '1', 'canvas_user_sis_id': 'sis_id_1'} }")
     public void testRunJobWithNullFilename() throws Exception {
         when(userService.getUser(any(), any())).thenReturn(user);
         when(importService.getJob(any(), any(), any())).thenReturn(Optional.of(contextJob));
-        when(depositService.deposit(any(), any())).thenReturn(Path.of("path/to/file"));
+        when(depositService.deposit(any(), any())).thenReturn("path/to/file");
         when(importService.importNow(any())).thenReturn(contextJob);
 
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/run")
@@ -333,7 +336,7 @@ class ApiControllerTest {
                 "course_1",
                 null,
                 TimeZone.getDefault(),
-                Map.of())));
+                Utils.paramBuilder().courseId("1").sisUserId("sis_id_1").build())));
     }
 
     @Test

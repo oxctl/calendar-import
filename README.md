@@ -70,9 +70,23 @@ If you are just looking to deploy the service there is documentation on how to d
 ## Configuration
 
 ### Upload deposit
-Calendar uploads and logs are either stored on the filesystem or an AWS S3 bucket. To define where this files should be
-stored set either `calendar.upload.location=/path/to/folder` or `calendar.upload.location=s3://aws-s3-bucket-name`.
-The application will choose the right protocol depending on the location. By default a temporary folder on the filesystem is selected.
+
+Calendar uploads and logs are either stored on the filesystem or an AWS S3 bucket. Without any additional configuration they are stored on the local filesystem.
+
+#### S3 Bucket
+
+To enable the files to be stored in an S3 bucket set:
+```properties
+spring.cloud.aws.s3.enabled=true
+calendar.upload.s3bucket=s3://aws-s3-bucket-name
+```
+
+#### Filesystem
+
+To configure the filesystem local set:
+```properties
+calendar.upload.location=/path/to/folder
+```
 
 ### Predefined Calendars
 
