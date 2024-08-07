@@ -25,39 +25,10 @@ Parameters:
       - "beta"
       - "test"
       - "staging"
-  primaryRegion:
-    Description: "Primary AWS Account Region"
-    Type: String
-    Default: "eu-west-1"
-  drRegion:
-    Description: "DR Region AWS Account Region"
-    Type: String
-    Default: "eu-central-1"
   namePrefix:
     Description: "Naming prefix to ensure more likely uniqueness for objects that demand global uniqueness - 'ox'? 'oxuni'? 'ouit'?"
     Type: String
     Default: oxcanvas
-  accountParentDomain:
-    Description: Allows us to override the parent domain, useful in some situations
-    Type: String
-    Default: "canvas.ox.ac.uk"
-    AllowedValues:
-         - "canvas.ox.ac.uk"
-         - "aws.cloud.it.ox.ac.uk"
-
-Mappings:
-
-  AccountTypeMappings:
-    prod:
-      "cadRootDomainName": "apps"
-    nonprod:
-      "cadRootDomainName": "apps-nonprod"
-
-Conditions:
-  isProdEnv: {"Fn::Equals": [!Ref envType, "prod"]}
-  isNonProdEnv: {"Fn::Not" : [Condition: isProdEnv]}
-  isProdAccount: {"Fn::Equals": [!Ref envType, "prod"]}
-  isNonProdAccount: {"Fn::Not" : [Condition: isProdAccount]}
 
 Resources:
 
@@ -76,15 +47,6 @@ Resources:
               Fn::ImportValue:
                 !Sub "${orgName}-${accountType}-route53-domainname"
 
-
-  applicationLogGroup:
-    # We create the log group here so we can assign permissions to it and we want to set a retention period
-    # which is why we don't have it created when the container is launched
-    # If the name is changed then the value in `Dockerrun-template.aws.json` needs to be updated.
-    Type: "AWS::Logs::LogGroup"
-    Properties:
-      LogGroupName: !Sub '/ecs/${appName}-container'
-      RetentionInDays: 90
 
   #ToDo: review this
   # create NS records in parent r53 domain to make this zone resolvable
@@ -107,308 +69,10 @@ Resources:
       TTL: 60
       Type: NS
 
-  #ToDo: should be in global context only in primary region, will fail in DR region
-  appPolicyNonProd:
-    Type: "AWS::IAM::ManagedPolicy"
-    Condition: isNonProdAccount
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Sid: SESSandboxRecipientAddresses
-          Effect: Allow
-          Action:
-            - ses:SendRawEmail
-            - ses:SendEmail
-            - ses:SendBounce
-            - ses:SendTemplatedEmail
-            - ses:SendBounce
-            - ses:SendBulkTemplatedEmail
-          Resource:
-            - Fn::Sub:
-                - "arn:${par}:ses:${reg}:${acc}:identity/*${dom}.${root}"
-                - par: !Ref AWS::Partition
-                  reg: !Ref primaryRegion
-                  acc: !Ref AWS::AccountId
-                  dom: !FindInMap [AccountTypeMappings, !Ref accountType,cadRootDomainName]
-                  root: !Ref accountParentDomain
-            - Fn::Sub:
-                - "arn:${par}:ses:${reg}:${acc}:identity/*${dom}.${root}"
-                - par: !Ref AWS::Partition
-                  reg: !Ref drRegion
-                  acc: !Ref AWS::AccountId
-                  dom: !FindInMap [AccountTypeMappings, !Ref accountType,   cadRootDomainName]
-                  root: !Ref accountParentDomain
-          Condition:
-            ForAllValues:StringLike:
-              ses:Recipients:
-                - matthew.buckett@it.ox.ac.uk
-                - adam.marshall@it.ox.ac.uk
-                - nick.wilson@it.ox.ac.uk
-                - christopher.johnson@it.ox.ac.uk
-                - admn3366*@canvas-alias.it.ox.ac.uk
-                - ouit0196*@canvas-alias.it.ox.ac.uk
-                - buckett*@canvas-alias.it.ox.ac.uk
-                - adamm*@canvas-alias.it.ox.ac.uk
-                - adamm+*@canvas-alias.it.ox.ac.uk
-        - Sid: AllowReqdSecretsManagerAccess
-          Effect: Allow
-          Action:
-            - secretsmanager:GetSecretValue
-            - secretsmanager:DescribeSecret
-            - secretsmanager:List*
-          Resource:
-            - !Sub "arn:${AWS::Partition}:secretsmanager:${primaryRegion}:${AWS::AccountId}:secret:${appName}/${envType}/*"
-            - !Sub "arn:${AWS::Partition}:secretsmanager:${drRegion}:${AWS::AccountId}:secret:${appName}/${envType}/*"
-        - Sid: SSMLogGroupPermissions
-          Effect: Allow
-          Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:DescribeLogGroups
-            - logs:DescribeLogStreams
-            - logs:PutLogEvents
-          Resource:
-              - Fn::ImportValue:
-                  !Sub "${orgName}-${accountType}-ssm-ec2-log-group"
-        # This is so that ECS tasks can create their log groups and then write logs to it.
-        - Sid: AWSLogPermission
-          Effect: Allow
-          Action:
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-          Resource:
-            - !GetAtt applicationLogGroup.Arn
-        - Sid: SSMs3SharedBucketPermissions
-          Effect: Allow
-          Action:
-            - s3:GetBucketLocation
-            - s3:PutObject
-            - s3:GetObject
-            - s3:GetEncryptionConfiguration
-            - s3:AbortMultipartUpload
-            - s3:ListMultipartUploadParts
-            - s3:ListBucket
-            - s3:ListBucketMultipartUploads
-          Resource:
-            - Fn::Sub:
-              - "arn:${AWS::Partition}:s3:::${bucket}"
-              - bucket:
-                  Fn::ImportValue:
-                    !Sub "${orgName}-${accountType}-shared-bucket1"
-            - Fn::Sub:
-              - "arn:${AWS::Partition}:s3:::${bucket}/*"
-              - bucket:
-                  Fn::ImportValue:
-                    !Sub "${orgName}-${accountType}-shared-bucket1"
-            - !GetAtt appBucketUpload.Arn
-            - Fn::Sub:
-                - "${bucketArn}/*"
-                - bucketArn: !GetAtt appBucketUpload.Arn
-
-  #ToDo: should be in global context only in primary region, will fail in DR region
-  appPolicyProd:
-    Type: "AWS::IAM::ManagedPolicy"
-    Condition: isProdAccount
-    Properties:
-      #forces a need for CAPABILITY_NAMED_IAM during stack build
-      #ManagedPolicyName: !Sub "${appName}-${envType}-ses-policy"
-      #Path: "/"
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: SandboxRecipientAddresses
-            Effect: Allow
-            Action:
-              - ses:SendRawEmail
-              - ses:SendEmail
-              - ses:SendBounce
-              - ses:SendTemplatedEmail
-              - ses:SendBounce
-              - ses:SendBulkTemplatedEmail
-            Resource:
-              - Fn::Sub:
-                  - "arn:${par}:ses:${reg}:${acc}:identity/*${dom}.${root}"
-                  - par: !Ref AWS::Partition
-                    reg: !Ref primaryRegion
-                    acc: !Ref AWS::AccountId
-                    dom: !FindInMap [AccountTypeMappings, !Ref accountType, cadRootDomainName]
-                    root: !Ref accountParentDomain
-              - Fn::Sub:
-                  - "arn:${par}:ses:${reg}:${acc}:identity/*${dom}.${root}"
-                  - par: !Ref AWS::Partition
-                    reg: !Ref drRegion
-                    acc: !Ref AWS::AccountId
-                    dom: !FindInMap [AccountTypeMappings, !Ref accountType, cadRootDomainName]
-                    root: !Ref accountParentDomain
-          - Sid: AllowReqdSecretsManagerAccess
-            Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-              - secretsmanager:DescribeSecret
-              - secretsmanager:List*
-            Resource:
-              - !Sub "arn:${AWS::Partition}:secretsmanager:${primaryRegion}:${AWS::AccountId}:secret:${appName}/${envType}/*"
-              - !Sub "arn:${AWS::Partition}:secretsmanager:${drRegion}:${AWS::AccountId}:secret:${appName}/${envType}/*"
-          - Sid: SSMLogGroupPermissions
-            Effect: Allow
-            Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:DescribeLogGroups
-              - logs:DescribeLogStreams
-              - logs:PutLogEvents
-            Resource:
-              - Fn::ImportValue:
-                  !Sub "${orgName}-${accountType}-ssm-ec2-log-group"
-          # Allow us to write to our application logs
-          - Sid: AWSLogPermission
-            Effect: Allow
-            Action:
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Resource:
-              - !GetAtt applicationLogGroup.Arn
-          - Sid: SSMs3SharedBucketPermissions
-            Effect: Allow
-            Action:
-              - s3:GetBucketLocation
-              - s3:PutObject
-              - s3:GetObject
-              - s3:GetEncryptionConfiguration
-              - s3:AbortMultipartUpload
-              - s3:ListMultipartUploadParts
-              - s3:ListBucket
-              - s3:ListBucketMultipartUploads
-            Resource:
-              - Fn::Sub:
-                - "arn:${AWS::Partition}:s3:::${bucket}"
-                - bucket:
-                    Fn::ImportValue:
-                      !Sub "${orgName}-${accountType}-shared-bucket1"
-              - Fn::Sub:
-                - "arn:${AWS::Partition}:s3:::${bucket}/*"
-                - bucket:
-                    Fn::ImportValue:
-                      !Sub "${orgName}-${accountType}-shared-bucket1"
-              - !GetAtt appBucketUpload.Arn
-              - Fn::Sub:
-                  - "${bucketArn}/*"
-                  - bucketArn: !GetAtt appBucketUpload.Arn
-
-  #ToDo: should be in global context only in primary region, will fail in DR region
-  ebInstanceProfileNonProd:
-    Type: "AWS::IAM::InstanceProfile"
-    Condition: isNonProdEnv
-    Properties:
-      Path: "/"
-      InstanceProfileName: !Sub "${appName}-${envType}-elasticbeanstalk-ec2-role"
-      Roles:
-        - !Ref ebInstanceRoleNonProd
-
-  #ToDo: should be in global context only in primary region, will fail in DR region
-  ebInstanceRoleNonProd:
-    Type: "AWS::IAM::Role"
-    Condition: isNonProdEnv
-    Properties:
-      Path: "/"
-      RoleName: !Sub "${appName}-${envType}-elasticbeanstalk-ec2-role"
-      AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
-      MaxSessionDuration: 3600
-      ManagedPolicyArns:
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker"
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
-      - "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
-      - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
-      - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" # ssm reqd permissions for ssh
-      - !Ref appPolicyNonProd
-      Description: !Sub "Instance profile role for EB - ${appName}-${envType}"
-
-  #ToDo: should be in global context only in primary region, will fail in DR region
-  ebInstanceProfileProd:
-    Type: "AWS::IAM::InstanceProfile"
-    Condition: isProdEnv
-    Properties:
-      Path: "/"
-      InstanceProfileName: !Sub "${appName}-${envType}-elasticbeanstalk-ec2-role"
-      Roles:
-        - !Ref ebInstanceRoleProd
-
-  #ToDo: should be in global context only in primary region, will fail in DR region
-  ebInstanceRoleProd:
-    Type: "AWS::IAM::Role"
-    Condition: isProdEnv
-    Properties:
-      Path: "/"
-      RoleName: !Sub "${appName}-${envType}-elasticbeanstalk-ec2-role"
-      AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
-      MaxSessionDuration: 3600
-      ManagedPolicyArns:
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker"
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
-      - "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
-      - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-      - "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
-      - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" # ssm reqd permissions for ssh
-      - "arn:aws:iam::aws:policy/AmazonElasticFileSystemsUtils" 
-      - !Ref appPolicyProd
-      Description: !Sub "Instance profile role for EB - ${appName}-${envType}"
-
-  #we cannot guarantee that there will be a service role available
-  ## so, best to create app specific service roles .. allow for flexibility
-  ## good idea, but creates issues, bcos AWS is trying to eneforce how the role/policies are used.  WE just have to do the manual dance in future environments
-  #ebServiceRole:
-  #  Type: "AWS::IAM::Role"
-  #  Properties:
-  #    Path: "/"
-  #    RoleName: !Sub "${appName}-${envType}-elasticbeanstalk-service-role"
-  #    AssumeRolePolicyDocument: |
-  #      {
-  #        "Version": "2012-10-17",
-  #        "Statement": [
-  #          {
-  #            "Sid": "",
-  #            "Effect": "Allow",
-  #            "Principal": {
-  #              "Service": "elasticbeanstalk.amazonaws.com"
-  #            },
-  #            "Action": "sts:AssumeRole",
-  #            "Condition": {
-  #              "StringEquals": {
-  #                "sts:ExternalId": "elasticbeanstalk"
-  #              }
-  #            }
-  #          }
-  #        ]
-  #      }
-  #    MaxSessionDuration: 3600
-  #    ManagedPolicyArns:
-  #    - "arn:aws:iam::aws:policy/AWSElasticBeanstalkEnhancedHealth"
-  #    - "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
-  # The bucket that holds the archive versions of the frontend.
-  #ToDo: Regional context
   appBucketDist:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${namePrefix}-${appName}-${envType}-${AWS::Region}-${AWS::AccountId}-dist"
-      # Stop this bucket from being public
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'AES256'
-            BucketKeyEnabled: true
-
-  appBucketUpload:
-    Type: AWS::S3::Bucket
-    Properties:
       # Stop this bucket from being public
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -486,7 +150,13 @@ Outputs:
       Name: !Sub "${appName}-${accountType}-route53-nameservers"
   appDomainName:
     Description: "The Route53 hosted rootdomain name for the account"
-    Value: !Join [".",[ !Ref appName, !FindInMap [AccountTypeMappings, !Ref accountType, cadRootDomainName], !Ref accountParentDomain]]
+    Value:
+      Fn::Sub:
+        - "${app}.${dom}"
+        - app: !Ref appName
+          dom:
+            Fn::ImportValue:
+              !Sub "${orgName}-${accountType}-route53-domainname"
     Export:
       Name: !Sub "${appName}-${accountType}-route53-domainname"
   appFrontendDomain:
@@ -500,50 +170,11 @@ Outputs:
               !Sub "${orgName}-${accountType}-route53-domainname"
     Export:
       Name: !Sub "${appName}-${accountType}-frontend-domain"
-  ebInstanceProfileARNProd:
-    Description: "EB instance profile - prod"
-    Condition: isProdEnv
-    Value: !GetAtt ebInstanceProfileProd.Arn
-    Export:
-      Name: !Sub "${appName}-${envType}-eb-instance-profile-arn"
-  ebInstanceProfileNameProd:
-    Description: "EB instance profile - prod"
-    Condition: isProdEnv
-    Value: !Ref ebInstanceProfileProd
-    Export:
-      Name: !Sub "${appName}-${envType}-eb-instance-profile-name"
-  appEBInstanceProfileARNNonProd:
-    Description: "EB instance profile - nonprod"
-    Condition: isNonProdEnv
-    Value: !GetAtt ebInstanceProfileNonProd.Arn
-    Export:
-      Name: !Sub "${appName}-${envType}-eb-instance-profile-arn"
-  appEBInstanceProfileNameNonProd:
-    Description: "EB instance profile - nonprod"
-    Condition: isNonProdEnv
-    Value: !Ref ebInstanceProfileNonProd
-    Export:
-      Name: !Sub "${appName}-${envType}-eb-instance-profile-name"
-  ## AWS has deliberately made near impossible to use custom service roles
-  ## unless one is pepared to roll his / her own policies, which then may
-  ##  be missed in AWS platform updates.  Using the default means manually
-  ## manually creating an env and applyimg managed updates in each
-  ##  account-region, before attempting a cloudformation deployment
-  #appEBServiceRole:
-  #  Description: "App specifc EB service role"
-  #  Value: !Ref ebServiceRole
-  #  Export:
-  #    Name: !Sub "${appName}-${envType}-eb-service-role"
   distBucketName:
     Description: "The name of the frontend distribution bucket"
     Value: !Ref appBucketDist
     Export:
       Name: !Sub "${AWS::StackName}-dist-bucket-name"
-  uploadBucketName:
-    Description: "The name of the uploads/file deposit bucket for the backend"
-    Value: !Ref appBucketUpload
-    Export:
-      Name: !Sub "${appName}-${envType}-upload-bucket-name"
   ecrRepoARN:
     Description: "TheARN of the ECR Repo"
     Value: !GetAtt ecrRepo.RepositoryUri

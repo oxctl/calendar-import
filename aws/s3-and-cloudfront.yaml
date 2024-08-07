@@ -34,43 +34,12 @@ Parameters:
   wafARN:
     Description: "The ARN for the WebACLV2 for this account.  Check in the cloudformation exports in us-east-1 region, for <orgNam>-<accountType>-waf-arn"
     Type: String
-  switchToDR:
-    Description: "Flag to switch to DR s3 bucket (-dr) for the Cloudfront distribution.  Does nothing in the DR region.  Look it up in the existing cloudfront distribution, or in the exports of this same stack in the live region."
-    Type: String
-    Default: "No"
-    AllowedValues:
-      - "No"
-      - "Yes"
-  switchToDROID:
-    Description: "Provide the origin access id for the distribution, so it can be authorized in the DR region app bucket. Not used in Live region"
-    Type: String
-    Default: ""
-
-
-#refactored and ot rid of mappings
-Mappings: {}
-
-Conditions:
-  #isDRRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-central-1']}
-  #isProdRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-west-1']}
-  #switch to have the origins come from DR buckets?
-  useDROrigin: {"Fn::Equals" : [!Ref switchToDR, "Yes"]}
-  #is OID Provided for switching to DR?
-  drOIDProvided: !Not [!Equals [!Ref switchToDROID, ""]]
-  # only switch is flag is set, and OID is provided
-  doDRSwitch:
-    Fn::And:
-      - Condition: useDROrigin
-      - Condition: drOIDProvided
 
 
 Resources:
 
-
-
   appBucket:
     Type: AWS::S3::Bucket
-    #Condition: isProdRegion
     Properties:
       BucketName: !Sub "${namePrefix}-${appName}-${envType}-${AWS::Region}-${AWS::AccountId}"
       Tags:
@@ -92,7 +61,6 @@ Resources:
 
   appBucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
-    #Condition: isProdRegion
     Properties:
       Bucket: !Ref appBucket
       PolicyDocument:
@@ -108,7 +76,6 @@ Resources:
               AWS:  !Sub "arn:${AWS::Partition}:iam::cloudfront:user/CloudFront Origin Access Identity ${originAccessID}" #originAccessID
 
   cfDistribution:
-    #Condition: isProdRegion
     Type: "AWS::CloudFront::Distribution"
     Properties:
       Tags:
@@ -170,7 +137,6 @@ Resources:
           Prefix: !Sub "cloudfront-static/${appName}-${envType}"
 
   originAccessID:
-    #Condition: isProdRegion
     Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
     Properties:
       CloudFrontOriginAccessIdentityConfig:
@@ -185,7 +151,6 @@ Resources:
 
   cfCachePolicy:
     Type: "AWS::CloudFront::CachePolicy"
-    #Condition: isProdRegion
     Properties:
       CachePolicyConfig:
         Name: !Sub "${appName}-${envType}-static-cache-policy"
@@ -207,7 +172,6 @@ Resources:
 
   cfDNSRecord:
     Type: AWS::Route53::RecordSetGroup
-    #Condition: isProdRegion
     Properties:
       HostedZoneId:
         Fn::ImportValue:
@@ -220,17 +184,14 @@ Resources:
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2  #static, provided by AWS
             DNSName: !GetAtt cfDistribution.DomainName
-    #DependsOn: prodCFDistribution
 
 
 Outputs:
   cfOID:
-    #Condition: isProdRegion
     Value: !Ref originAccessID
     Export:
       Name: !Sub "${appName}-${envType}-cloudfront-oid"
   cfDistributionID:
-    #Condition: isProdRegion
     Value: !Sub "${cfDistribution.Id}"
     Export:
       Name: !Sub "${appName}-${envType}-cloudfront-distribution-id"

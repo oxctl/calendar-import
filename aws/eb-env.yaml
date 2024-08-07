@@ -134,7 +134,123 @@ Conditions:
 
 
 Resources:
+  
+  applicationLogGroup:
+    # We create the log group here so we can assign permissions to it and we want to set a retention period
+    # which is why we don't have it created when the container is launched
+    # If the name is changed then the value in `Dockerrun-template.aws.json` needs to be updated.
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub '/ecs/${appName}-container'
+      RetentionInDays: 90
 
+  appPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowReqdSecretsManagerAccess
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+              - secretsmanager:DescribeSecret
+              - secretsmanager:List*
+            Resource:
+              - !Sub "arn:${AWS::Partition}:secretsmanager:*:${AWS::AccountId}:secret:${appName}/${envType}/*"
+          - Sid: SSMLogGroupPermissions
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+            Resource:
+              - Fn::ImportValue:
+                  !Sub "${orgName}-${accountType}-ssm-ec2-log-group"
+          # Allow us to write to our application logs
+          - Sid: AWSLogPermission
+            Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !GetAtt applicationLogGroup.Arn
+          - Sid: SSMs3SharedBucketPermissions
+            Effect: Allow
+            Action:
+              - s3:GetBucketLocation
+              - s3:PutObject
+              - s3:GetObject
+              - s3:GetEncryptionConfiguration
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+              - s3:ListBucket
+              - s3:ListBucketMultipartUploads
+            Resource:
+              - Fn::Sub:
+                  - "arn:${AWS::Partition}:s3:::${bucket}"
+                  - bucket:
+                      Fn::ImportValue:
+                        !Sub "${orgName}-${accountType}-shared-bucket1"
+              - Fn::Sub:
+                  - "arn:${AWS::Partition}:s3:::${bucket}/*"
+                  - bucket:
+                      Fn::ImportValue:
+                        !Sub "${orgName}-${accountType}-shared-bucket1"
+
+  ebInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref ebInstanceRole                      
+  
+  ebInstanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      MaxSessionDuration: 3600
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker"
+        - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
+        - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
+        - "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+        - "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" # ssm reqd permissions for ssh
+        - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy" #cloud-watch-agent
+        - "arn:aws:iam::aws:policy/AmazonElasticFileSystemsUtils"
+        - !Ref appPolicy
+      Description: !Sub "Instance profile role for EB - ${appName}-${envType}"
+
+  appBucketUpload:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Stop this bucket from being public
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+            BucketKeyEnabled: true
+  
+  
+  
   ApplicationVersion:
     Type: "AWS::ElasticBeanstalk::ApplicationVersion"
     # This is so that we keep the old version in AWS and if things go really wrong we can revert manually in EB
@@ -190,7 +306,7 @@ Resources:
         - Namespace: "aws:elasticbeanstalk:application:environment"
           # The S3 bucket to upload files to
           OptionName: "CALENDAR_UPLOAD_S3BUCKET"
-          Value: !Join ["", ["s3://", Fn::ImportValue: !Sub "${appName}-${envType}-upload-bucket-name"]]
+          Value: !Join ["", ["s3://", !Ref appBucketUpload]]
         - Namespace: "aws:elasticbeanstalk:application:environment"
           # The aud value that is required in JWTs. This is the Canvas LTI Developer Key Client ID.
           OptionName: "JWT_AUDIENCE"
@@ -241,7 +357,7 @@ Resources:
         - ResourceName: "AWSEBAutoScalingLaunchConfiguration"
           Namespace: "aws:autoscaling:launchconfiguration"
           OptionName: "IamInstanceProfile"
-          Value: !Sub "${appName}-${envType}-elasticbeanstalk-ec2-role"
+          Value: !Ref ebInstanceProfile
         - ResourceName: "AWSEBAutoScalingGroup"
           Namespace: "aws:autoscaling:asg"
           OptionName: "MaxSize"

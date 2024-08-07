@@ -30,13 +30,6 @@ Parameters:
     Default: "eu-central-1"
 
 
-Conditions:
-  isProdEnv: {"Fn::Equals": [!Ref envType, "prod"]}
-  isProdAccount: {"Fn::Equals": [!Ref accountType, "prod"]}
-  #isProdRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-west-1']}
-  #isDRRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-central-1']}
-
-
 Resources:
   ebApplication:
     Type: "AWS::ElasticBeanstalk::Application"
