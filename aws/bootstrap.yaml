@@ -554,3 +554,8 @@ Outputs:
     Value: "applicationLogGroup"
     Export:
       Name: !Sub "${AWS::StackName}-application-log-group"
+  appBucketUpload:
+    Description: The S3 bucket used to hold uploaded files.
+    Value: !Ref appBucketUpload
+    Export:
+      Name: !Sub "${AWS::StackName}-app-bucket-upload"
