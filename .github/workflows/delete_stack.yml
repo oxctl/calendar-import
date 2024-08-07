@@ -53,7 +53,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}  #sandbox account
           aws-region: ${{ inputs.region}}
       # The calendar import stores files in a S3 bucket which also needs to be deleted.
-      - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-app-bucket-upload'].Value" --output text) | tee -a $GITHUB_ENV
+      - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-backend-app-bucket-upload'].Value" --output text) | tee -a $GITHUB_ENV
       - run: aws cloudformation delete-stack --stack-name ${{inputs.stack-prefix}}-backend
       - run: aws cloudformation wait stack-delete-complete --stack-name ${{inputs.stack-prefix}}-backend
 
