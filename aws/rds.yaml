@@ -592,7 +592,7 @@ Resources:
     Type: 'AWS::SecretsManager::RotationSchedule'
     Properties:
       SecretId: !Ref roUserSecret  
-      RotateImmediatelyOnUpdate: true
+      RotateImmediatelyOnUpdate: false
       RotationRules:
         ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
       RotationLambdaARN: !GetAtt rotationFunction.Arn
