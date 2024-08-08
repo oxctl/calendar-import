@@ -40,7 +40,8 @@ public interface DepositService {
 
     /**
      * Can this deposit service handle the supplied URI.
-     * @param deposit The deposit URI.
+     * @param deposit The deposit URI, but this might not be a valid URI because it has placeholder in it
+     *                which aren't valid characters in a URI.
      * @return true if this service can handle the deposit.
      */
     public default boolean canHandle(String deposit) {

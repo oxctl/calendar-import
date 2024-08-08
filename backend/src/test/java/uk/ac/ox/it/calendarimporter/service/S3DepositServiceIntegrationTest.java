@@ -43,7 +43,7 @@ import static uk.ac.ox.it.calendarimporter.IntegrationTestCondition.TEST_PROPERT
         RegionProviderAutoConfiguration.class,
 })
 @TestPropertySource(properties = "spring.cloud.aws.s3.enabled=true")
-public class S3DepositServiceTest {
+public class S3DepositServiceIntegrationTest {
 
     @Autowired
     private S3Client s3Client;
@@ -135,5 +135,20 @@ public class S3DepositServiceTest {
             assertEquals("Hello World", contents);
         }
         depositService.remove(deposit);
+    }
+    
+    @Test
+    public void testCanHandleGood() {
+        assertTrue(depositService.canHandle("s3:///tmp/upload"));
+    }
+
+    @Test
+    public void testCanHandleBad() {
+        assertFalse(depositService.canHandle("https://host.test/${placeholder}"));
+    }
+
+    @Test
+    public void testCanHandleNotNotOwned() {
+        assertFalse(depositService.canHandle("other://host"));
     }
 }

@@ -80,8 +80,7 @@ public class FileSystemDepositService implements DepositService {
     
     @Override
     public boolean canHandle(String deposit) {
-        URI uri = URI.create(deposit);
-        return "file".equals(uri.getScheme());
+        return deposit.startsWith("file:/");
     }
 
 }
