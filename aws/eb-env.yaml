@@ -188,6 +188,7 @@ Resources:
               - s3:ListBucket
               - s3:ListBucketMultipartUploads
             Resource:
+              - !GetAtt appBucketUpload.Arn
               - !Join [ "", [ !GetAtt appBucketUpload.Arn, "/*" ] ]
 
   ebInstanceProfile:
