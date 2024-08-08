@@ -27,7 +27,6 @@ public class HttpDepositService implements DepositService {
 
     @Override
     public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException {
-        URI uri = URI.create(deposit);
         if (!canHandle(deposit)) {
             // Put the double check in here so that this doesn't ever become the vector to allowing file://
             // URLs to be accessed.
@@ -47,7 +46,6 @@ public class HttpDepositService implements DepositService {
     
     @Override
     public boolean canHandle(String deposit) {
-        URI uri = URI.create(deposit);
-        return  ("http".equals(uri.getScheme()) || "https".equals(uri.getScheme()));
+        return deposit.startsWith("http://") || deposit.startsWith("https://");
     }
 }

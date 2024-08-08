@@ -97,8 +97,8 @@ public class S3DepositService implements DepositService {
     
     @Override
     public boolean canHandle(String deposit) {
-        URI uri = URI.create(deposit);
-        return "s3".equals(uri.getScheme());
+        // The deposit might not be a valid URI
+        return deposit.startsWith("s3:");
     }
 
     private static String getKey(String deposit) {
