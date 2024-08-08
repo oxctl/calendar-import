@@ -183,22 +183,14 @@ Resources:
               - s3:GetBucketLocation
               - s3:PutObject
               - s3:GetObject
+              - s3:DeleteObject
               - s3:GetEncryptionConfiguration
               - s3:AbortMultipartUpload
               - s3:ListMultipartUploadParts
               - s3:ListBucket
               - s3:ListBucketMultipartUploads
             Resource:
-              - Fn::Sub:
-                  - "arn:${AWS::Partition}:s3:::${bucket}"
-                  - bucket:
-                      Fn::ImportValue:
-                        !Sub "${orgName}-${accountType}-shared-bucket1"
-              - Fn::Sub:
-                  - "arn:${AWS::Partition}:s3:::${bucket}/*"
-                  - bucket:
-                      Fn::ImportValue:
-                        !Sub "${orgName}-${accountType}-shared-bucket1"
+              - !GetAtt appBucketUpload.Arn
 
   ebInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
