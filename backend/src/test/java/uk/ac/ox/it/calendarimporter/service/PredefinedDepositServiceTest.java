@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileSystemDepositServiceTest {
+public class PredefinedDepositServiceTest {
 
     private FileSystemDepositService depositService;
     private Path tempDirectory;
