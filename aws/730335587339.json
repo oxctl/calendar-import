@@ -3,6 +3,6 @@
   "envType=beta",
   "accountType=nonprod",
   "jwtAudience=122010000000000312",
-  "cfSSLCertARN=arn:aws:acm:us-east-1:730335587339:certificate/005cf5c3-e6a1-441d-b754-11065b33651d",
-  "wafARN=arn:aws:wafv2:us-east-1:730335587339:global/webacl/cad-nonprod-webacl/6ae701df-a60e-4115-8f70-2de2add313db"
+  "cfSSLCertARN=arn:aws:acm:us-east-1:730335587339:certificate/dd8737e5-c8e1-4194-9b47-5fa17c856fb3",
+  "wafARN=arn:aws:wafv2:us-east-1:730335587339:global/webacl/cad-nonprod-webacl1/98c8220a-eaca-480d-9309-652734a8cb44"
 ]
