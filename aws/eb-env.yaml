@@ -177,20 +177,18 @@ Resources:
               - logs:PutLogEvents
             Resource:
               - !GetAtt applicationLogGroup.Arn
-          - Sid: SSMs3SharedBucketPermissions
+          - Sid: AppBucketUploadPermissions
             Effect: Allow
             Action:
-              - s3:GetBucketLocation
               - s3:PutObject
               - s3:GetObject
               - s3:DeleteObject
-              - s3:GetEncryptionConfiguration
               - s3:AbortMultipartUpload
               - s3:ListMultipartUploadParts
               - s3:ListBucket
               - s3:ListBucketMultipartUploads
             Resource:
-              - !GetAtt appBucketUpload.Arn
+              - !Join [ "", [ !GetAtt appBucketUpload.Arn, "/*" ] ]
 
   ebInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
