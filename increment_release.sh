@@ -37,7 +37,8 @@ increment_version() {
   echo "$major.$minor.$patch"
 }
 
-LATEST_RELEASE=`git describe --abbrev=0 --tags`
+# This attempts to prevent rouge tags from preventing us from doing a release
+LATEST_RELEASE=`git tag -l "[0-9]*.[0-9]*.[0-9]*" --sort=-creatordate | head -1`
 NEW_RELEASE=`increment_version $LATEST_RELEASE $1`
 echo $NEW_RELEASE
 
