@@ -216,23 +216,6 @@ Resources:
       ReplicaRegions:
         - Region: !FindInMap [RegionMappings, !Ref AWS::Region, replicationRegion]
       KmsKeyId: "alias/aws/secretsmanager"
-      
-  # The logs don't have a retention time by default
-  dbLogsError:
-    Type: "AWS::Logs::LogGroup"
-    Properties:
-      LogGroupName: !Sub 
-        - '/aws/rds/instance/${db}/error'
-        - db: !Ref dbInstance
-      RetentionInDays: 90
-  dbLogsSlowQuery:
-    Type: "AWS::Logs::LogGroup"
-    Properties:
-      LogGroupName: !Sub
-        - '/aws/rds/instance/${db}/slowquery'
-        - db: !Ref dbInstance
-      RetentionInDays: 90
-
   dbInstance:
     Type: "AWS::RDS::DBInstance"
     #DeletionPolicy: Retain
@@ -296,7 +279,7 @@ Resources:
             !Sub "${orgName}-${accountType}-db-sgid"
       DBParameterGroupName: !Ref dbParamGroup
       #OptionGroupName: !Ref dbOptionGroup
-      EnableCloudwatchLogsExports: ["error","slowquery"]
+      #EnableCloudwatchLogsExports: ["error","slowquery"]
       CACertificateIdentifier: "rds-ca-rsa2048-g1" #"rds-ca-2019"
 
   secretAttachmentProdRegion:
@@ -856,4 +839,8 @@ Outputs:
     Value: !GetAtt dbInstance.DBInstanceArn
     Export:
       Name: !Sub "${appName}-${envType}-db-arn"
+  # This was added so that we can set the expiry of the AWS logs created for the RDS instance.
+  dbName:
+    Description: "DB's Name"
+    Value: !Ref dbInstance
 
