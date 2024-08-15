@@ -235,6 +235,10 @@ Resources:
 
   dbInstance:
     Type: "AWS::RDS::DBInstance"
+    # Make sure the logs are created first.
+    DependsOn:
+      - dbLogsError
+      - dbLogsSlowQuery
     #DeletionPolicy: Retain
     #UpdateReplacePolicy: Retain
     Properties:
