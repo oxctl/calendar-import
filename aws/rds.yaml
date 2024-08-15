@@ -296,7 +296,7 @@ Resources:
             !Sub "${orgName}-${accountType}-db-sgid"
       DBParameterGroupName: !Ref dbParamGroup
       #OptionGroupName: !Ref dbOptionGroup
-      EnableCloudwatchLogsExports: "error,slowquery"
+      EnableCloudwatchLogsExports: ["error","slowquery"]
       CACertificateIdentifier: "rds-ca-rsa2048-g1" #"rds-ca-2019"
 
   secretAttachmentProdRegion:
