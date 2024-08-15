@@ -107,7 +107,6 @@ Mappings:
       "backupRetention": "14"  #retain backups for no. of days
       "maintenanceWindow": "tue:01:00-tue:04:00"
       "deletionProtection": "true"
-      "cloudwatchLogs": "audit,error,slowquery"
       "secretRotationSchedule": "cron(0 5 ? * WED#2 *)"
       "dbloadSchedule": "" #just a placeholder
     beta:
@@ -115,7 +114,6 @@ Mappings:
       "backupRetention": "7"  #retain backups for no. of days
       "maintenanceWindow": "mon:01:00-mon:04:00"
       "deletionProtection": "false"
-      "cloudwatchLogs": "error,slowquery"
       "secretRotationSchedule": "cron(0 5 ? * WED#1 *)"  
       "dbloadSchedule": "cron(0 8 ? * 1 *)" #every sunday @ 6am
 
@@ -218,6 +216,22 @@ Resources:
       ReplicaRegions:
         - Region: !FindInMap [RegionMappings, !Ref AWS::Region, replicationRegion]
       KmsKeyId: "alias/aws/secretsmanager"
+      
+  # The logs don't have a retention time by default
+  dbLogsError:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub 
+        - '/aws/rds/instance/${db}/error'
+        - db: !Ref dbInstance
+      RetentionInDays: 90
+  dbLogsSlowQuery:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Sub
+        - '/aws/rds/instance/${db}/slowquery'
+        - db: !Ref dbInstance
+      RetentionInDays: 90
 
   dbInstance:
     Type: "AWS::RDS::DBInstance"
@@ -282,8 +296,7 @@ Resources:
             !Sub "${orgName}-${accountType}-db-sgid"
       DBParameterGroupName: !Ref dbParamGroup
       #OptionGroupName: !Ref dbOptionGroup
-      EnableCloudwatchLogsExports:
-        Fn::Split: [",",!FindInMap [EnvironmentMappings, !Ref envType, cloudwatchLogs]]
+      EnableCloudwatchLogsExports: "error,slowquery"
       CACertificateIdentifier: "rds-ca-rsa2048-g1" #"rds-ca-2019"
 
   secretAttachmentProdRegion:
