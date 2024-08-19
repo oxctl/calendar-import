@@ -99,7 +99,7 @@ Parameters:
   enableSync:
     Type: "String"
     Description: "If true then we sync the production database to development."
-    Default: "false"
+    Default: "true"
 
 
 
