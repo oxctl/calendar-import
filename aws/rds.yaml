@@ -657,7 +657,7 @@ Resources:
 
   dbSyncStack:
     Type: 'AWS::CloudFormation::Stack'
-    Condition: 
+    Condition: enableSync
     Properties:
       TemplateURL: ./rds-sync.yaml
       Parameters:
