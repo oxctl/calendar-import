@@ -5,7 +5,7 @@ name: Backend DEV
 
 on:
   push:
-    branches: [ 'new-account' ]
+    branches: [ 'master' ]
     tags: [ '*' ]
     paths:
       - 'aws/**'
