@@ -1,132 +1,36 @@
-# This builds the repo and then uploads an artifact to a S3 bucket
-# Then it will deploy the newly uploaded version to the public S3 bucket
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Frontend DEV
 
-env:
-  S3_ARTIFACT_BUCKET: ${{ github.repository_owner }}-calendar-import-dist
-  S3_DEV_BUCKET: ${{ github.repository_owner }}-calendar-import-dev
-  AWS_DEFAULT_REGION: "eu-west-1"
-
 on:
-  workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ 'master' ]
     tags: [ '*' ]
     paths:
+      - 'aws/**'
       - 'frontend/**'
       - '.github/workflows/frontend*'
-      - '!frontend/README.md'
-  workflow_call:
-    inputs:
-      tag:
-        description: 'Tag to deploy'
-        type: string
-      sha:
-        description: 'SHA of the TAG commit'
-        type: string
-      ref:
-        description: 'The TAG ref'
-        type: string
+      - '!**/README.md'
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 15
-    env:
-      # If the SHA and the REF come from inputs, then use them. Otherwise stick with the environment GitHub variables.
-      COMMIT_SHA: ${{ inputs.sha != '' && inputs.sha || github.sha }}
-      TAG_REF: ${{ inputs.ref != '' && inputs.ref || github.ref }}
-    defaults:
-      run:
-        working-directory: frontend
-    outputs:
-      artifact: ${{ steps.upload.outputs.artifact }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.COMMIT_SHA }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: 'frontend/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm test
-      - name: Set archive version
-        run: echo "ARCHIVE=calendar-import-${GITHUB_REF#refs/heads/}.${GITHUB_RUN_NUMBER}.tgz" >> $GITHUB_ENV
-      - name: Set archive tag version
-        if: ${{ startsWith(env.TAG_REF, 'refs/tags/') }}
-        run: echo "ARCHIVE=release-${TAG_REF#refs/tags/}.tgz" >> $GITHUB_ENV
-      - name: Upload to AWS S3 Bucket - ${{ env.S3_ARTIFACT_BUCKET }}
-        id: upload
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
-        # The name of the archive must include the build number to allow us to cleanup older versions
-        run: |
-          echo "$ARCHIVE"
-          tar -C build -zcvf $ARCHIVE .
-          aws s3 cp $ARCHIVE s3://${S3_ARTIFACT_BUCKET}/
-          echo artifact="$ARCHIVE" >> $GITHUB_OUTPUT
-        # This isn't used in production but for easy deploys
-      - name: Authenticate to GitHub Packages (containers)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-      - name: Build docker image
-        run: docker build -t ghcr.io/oxctl/calendar-import-frontend .
-      - name: Push docker image
-        run: docker push ghcr.io/oxctl/calendar-import-frontend
-
-  deploy-dev:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 5
-    needs: build
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
-      ARCHIVE: ${{ needs.build.outputs.artifact }}
-    steps:
-      - name: Start deployment
-        uses: bobheadxi/deployments@v1.4.0
-        id: deployment
-        with:
-          step: start
-          env: frontend-dev
-      - name: Download ${{ env.ARCHIVE }} build from S3
-        run: aws s3 cp s3://${S3_ARTIFACT_BUCKET}/${ARCHIVE} build.tgz
-      - run: mkdir files
-      - name: Unzip files
-        run: tar -zxvf build.tgz -C files
-      - uses: oxctl/react-deploy-to-s3-action@main
-        env:
-          AWS_S3_BUCKET: ${{ env.S3_DEV_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          SOURCE_DIR: files
-      - name: Update deployment status
-        uses: bobheadxi/deployments@v1.4.0
-        if: always()
-        with:
-          step: finish
-          env: frontend-dev
-          status: ${{ job.status }}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+  call-build-and-deploy:
+    uses: ./.github/workflows/frontend_build_and_deploy.yml
+    with:
+      sha: ${{ github.sha }}
+      ref: ${{ github.ref }}
+      do_deploy: ${{ github.ref_name == github.event.repository.default_branch }}
+      aws_region: 'eu-west-1'
+      aws_account_id: '730335587339'
+      aws_github_role: 'cad-github-actions-role'
+      aws_parameters: '730335587339.json'
+      github_env: 'dev'
+      execution-environment: DEV
+    secrets: inherit
 
   call-deployment-tests:
-    needs: deploy-dev
+    needs: call-build-and-deploy
     uses: ./.github/workflows/test_deployment.yml
     with:
       execution-environment: DEV
     secrets: inherit
-
-  cleanup-artifacts:
-    runs-on: ubuntu-20.04
-    needs: build
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
-    steps:
-      - name: Delete old versions from S3 bucket
-        run: aws s3 ls s3://${S3_ARTIFACT_BUCKET}/ | sort -rn | awk -v s3_url="s3://${S3_ARTIFACT_BUCKET}/" '$4 ~ /calendar-import-/ {print s3_url $4;}' | tee /dev/stderr | tail -n +21 | xargs -r -n 1 aws s3 rm

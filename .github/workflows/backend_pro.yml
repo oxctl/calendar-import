@@ -1,0 +1,36 @@
+# This is to deploy a tagged version to production.
+
+name: Backend PRO
+run-name: "Deploy ${{ inputs.tag }} to Production"
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
+        type: string
+      sha:
+        description: 'SHA of the TAG commit'
+        type: string
+
+jobs:
+  call-build-and-deploy:
+    uses: ./.github/workflows/backend_build_and_deploy.yml
+    with:
+      sha: ${{ inputs.sha }}
+      ref: ${{ inputs.tag }}
+      do_deploy: true
+      aws_region: 'eu-west-1'
+      aws_account_id: '211125465582'
+      aws_github_role: 'cad-github-actions-role'
+      aws_parameters: '211125465582.json'
+      github_env: 'prod'
+    secrets: inherit
+
+  call-deployment-tests:
+    needs: call-build-and-deploy
+    uses: ./.github/workflows/test_deployment.yml
+    with:
+      execution-environment: PROD
+    secrets: inherit
+

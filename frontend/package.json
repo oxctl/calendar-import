@@ -1,6 +1,6 @@
 {
-  "name": "calendar-import-frontend",
-  "version": "2.6.1",
+  "name": "calendar-import",
+  "version": "3.0.3",
   "homepage": "./",
   "license": "Apache-2.0",
   "scripts": {

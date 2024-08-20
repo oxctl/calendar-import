@@ -1,0 +1,202 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Metadata: {}
+Description: "This creates a set of S3 buckets: ui files buckets for prod and beta, as well as a dist bucket.  It further creates cloudfront distributions to serve the s3 buckets as static websites"
+
+Parameters:
+  orgName:
+    Description: "The name of the organization"
+    Type: String
+    Default: cad
+  accountType:
+    Type: "String"
+    Description: "production or non-production account?"
+    AllowedValues:
+      - "prod"
+      - "nonprod"
+  namePrefix:
+    Description: "Naming prefix to ensure more likely uniqueness for objects that demand global uniqueness - 'ox'? 'oxuni'? 'ouit'?"
+    Type: String
+    Default: oxcanvas
+  appName:
+    Description: "The name of the app"
+    Type: String
+  envType:
+    Description: "The env type: prod, beta, beta, etc"
+    Type: String
+    AllowedValues:
+      - "prod"
+      - "beta"
+      - "test"
+      - "staging"
+  cfSSLCertARN:
+    Description: "The wildcard ssl cert arn for cloudfront for this account (eg. for static-<appName>.apps-nonprod.canvas). Check in the cloudformation exports in us-east-1 region"
+    Type: String
+  wafARN:
+    Description: "The ARN for the WebACLV2 for this account.  Check in the cloudformation exports in us-east-1 region, for <orgNam>-<accountType>-waf-arn"
+    Type: String
+
+
+Resources:
+
+  appBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${namePrefix}-${appName}-${envType}-${AWS::Region}-${AWS::AccountId}"
+      Tags:
+        - Key: purpose
+          Value: website
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+            BucketKeyEnabled: true
+      LifecycleConfiguration:
+        Rules:
+          - AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+            Id: "Various: del old vers after 30-days, transitcurrent to IA after 30-days"
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 30
+
+
+  appBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref appBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:GetObject'
+              - "s3:ListBucket"
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:s3:::${appBucket}"
+              - !Sub "arn:${AWS::Partition}:s3:::${appBucket}/*"
+            Principal:
+              AWS:  !Sub "arn:${AWS::Partition}:iam::cloudfront:user/CloudFront Origin Access Identity ${originAccessID}" #originAccessID
+
+  cfDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      Tags:
+        - Key: environment
+          Value: !Ref envType
+        - Key: "owner"
+          Value: !Ref orgName
+      DistributionConfig:
+        Aliases:
+          - Fn::Sub:
+              - "static-${app}.${dom}"
+              - app: !Ref appName
+                dom:
+                  Fn::ImportValue:
+                    !Sub "${orgName}-${accountType}-route53-domainname"
+        Origins:
+          - DomainName: !GetAtt appBucket.RegionalDomainName
+            Id: !Sub "${appName}-${envType}-static"
+            S3OriginConfig:
+                OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${originAccessID}"
+            ConnectionAttempts: 3
+            ConnectionTimeout: 10
+            OriginPath: ""
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - "HEAD"
+            - "GET"
+          CachedMethods:
+            - "HEAD"
+            - "GET"
+          Compress: true
+          CachePolicyId: !Ref cfCachePolicy
+          TargetOriginId: !Sub "${appName}-${envType}-static"
+          ViewerProtocolPolicy: "redirect-to-https"
+        Comment:
+          Fn::Sub:
+              - "${app}-${env}: static-${app}.${dom}"
+              - app: !Ref appName
+                env: !Ref envType
+                dom:
+                  Fn::ImportValue:
+                    !Sub "${orgName}-${accountType}-route53-domainname"
+        PriceClass: PriceClass_100 # Serve only from edge locations in N.A, Europe, Israel - WAS "PriceClass_All"
+        Enabled: true
+        ViewerCertificate:
+          AcmCertificateArn: !Ref cfSSLCertARN
+          MinimumProtocolVersion: "TLSv1.2_2021"
+          SslSupportMethod: "sni-only"
+        #Restrictions:
+        #  GeoRestriction:
+        #    RestrictionType: "none"
+        HttpVersion: "http2"
+        WebACLId: !Ref wafARN  #link up to WAF
+        DefaultRootObject: "index.html"
+        IPV6Enabled: true
+        Logging:
+          Bucket:
+            Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1-domain-name"
+          Prefix: !Sub "cloudfront-static/${appName}-${envType}"
+
+  originAccessID:
+    Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+          Comment:
+            Fn::Sub:
+              - "OID for ${app}-${env}: static-${app}.${dom}"
+              - app: !Ref appName
+                env: !Ref envType
+                dom:
+                  Fn::ImportValue:
+                    !Sub "${orgName}-${accountType}-route53-domainname"
+
+  cfCachePolicy:
+    Type: "AWS::CloudFront::CachePolicy"
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${appName}-${envType}-static-cache-policy"
+        Comment: !Sub "Cache policy for (${appName}-${envType})"
+        DefaultTTL: 86400
+        MaxTTL: 31536000
+        MinTTL: 1
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig:
+            CookieBehavior: "none"
+          HeadersConfig:
+            HeaderBehavior: "whitelist"
+            Headers:
+            - "X-Original-Uri"
+          QueryStringsConfig:
+            QueryStringBehavior: "none"
+
+  cfDNSRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId:
+        Fn::ImportValue:
+          !Sub "${orgName}-${accountType}-route53-zoneid"
+      RecordSets:
+        - Name:
+            Fn::ImportValue:
+              !Sub "${appName}-${accountType}-frontend-domain"
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2  #static, provided by AWS
+            DNSName: !GetAtt cfDistribution.DomainName
+
+
+Outputs:
+  cfOID:
+    Value: !Ref originAccessID
+    Export:
+      Name: !Sub "${appName}-${envType}-cloudfront-oid"
+  cfDistributionID:
+    Value: !Sub "${cfDistribution.Id}"
+    Export:
+      Name: !Sub "${appName}-${envType}-cloudfront-distribution-id"
+  appBucketName:
+    Description: "The name of the frontend distribution bucket"
+    Value: !Ref appBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-app-bucket-name"

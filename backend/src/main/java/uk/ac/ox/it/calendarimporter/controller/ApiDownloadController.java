@@ -17,12 +17,12 @@ import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
 import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
+import uk.ac.ox.it.calendarimporter.service.DepositService;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.Map;
 
 import static uk.ac.ox.it.calendarimporter.controller.Placement.toPlacement;
 
@@ -39,15 +39,20 @@ public class ApiDownloadController {
     @Autowired
     private CalendarImportRepository calendarImportRepository;
 
+    @Autowired
+    private DepositService depositService;
+
     @GetMapping("/log/{contextJobId}/load")
     public ResponseEntity<InputStreamResource> load(
             @PathVariable() Long contextJobId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-                    Object userId,
-            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-                    Object courseId,
-            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']")
-                    Object accountId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString")
+                    String userId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']?.toString")
+                    String courseId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']?.toString")
+                    String accountId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_sis_id']")
+            String sisUserId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             Tenant tenant)
             throws IOException {
@@ -57,13 +62,20 @@ public class ApiDownloadController {
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getLoad();
         String logfile = jobProgress.getLogfile();
-        return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
+        Map<String, String> parameters = Utils.paramBuilder().courseId(courseId).sisUserId(sisUserId).accountId(accountId).build();
+        return streamContent(logfile, MediaType.TEXT_PLAIN, null, parameters);
     }
 
     @GetMapping("/log/{calendarImportId}/loadByCalendarImportId")
     public ResponseEntity<InputStreamResource> loadByCalendarImportId(
             @PathVariable() Long calendarImportId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']") Object userId
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString") String userId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']?.toString")
+            String courseId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']?.toString")
+            String accountId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_sis_id']")
+            String sisUserId
     ) throws IOException {
         CalendarImport calendarImport = calendarImportRepository.findById(calendarImportId).orElseThrow(() -> new NotFoundException(calendarImportId.toString()));
         if(!Utils.userIdToContext(userId.toString()).equals(calendarImport.getContext())){
@@ -71,18 +83,21 @@ public class ApiDownloadController {
         }
         JobProgress jobProgress = calendarImport.getLoad();
         String logfile = jobProgress.getLogfile();
-        return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
+        Map<String, String> parameters = Utils.paramBuilder().courseId(courseId).sisUserId(sisUserId).accountId(accountId).build();
+        return streamContent(logfile, MediaType.TEXT_PLAIN, null, parameters);
     }
 
     @GetMapping("/log/{contextJobId}/delete")
     public ResponseEntity<InputStreamResource> delete(
             @PathVariable() Long contextJobId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-            Object userId,
-            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-            Object courseId,
-            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']")
-            Object accountId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString")
+            String userId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']?.toString")
+            String courseId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']?.toString")
+            String accountId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_sis_id']")
+            String sisUserId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             Tenant tenant)
             throws IOException {
@@ -92,18 +107,21 @@ public class ApiDownloadController {
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         JobProgress jobProgress = contextJob.getCalendarImport().getDelete();
         String logfile = jobProgress.getLogfile();
-        return streamUrl(logfile, MediaType.TEXT_PLAIN, null);
+        Map<String, String> parameters = Utils.paramBuilder().courseId(courseId).sisUserId(sisUserId).accountId(accountId).build();
+        return streamContent(logfile, MediaType.TEXT_PLAIN, null, parameters);
     }
 
     @GetMapping("/download/{contextJobId}")
     public ResponseEntity<InputStreamResource> download(
             @PathVariable() Long contextJobId,
-            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']")
-            Object userId,
-            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']")
-            Object courseId,
-            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']")
-            Object accountId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_id']?.toString")
+            String userId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_course_id']?.toString")
+            String courseId,
+            @AuthenticationPrincipal( expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_account_id']?.toString")
+            String accountId,
+            @AuthenticationPrincipal(expression = "claims['https://purl.imsglobal.org/spec/lti/claim/custom']['canvas_user_sis_id']")
+            String sisUserId,
             @AuthenticationPrincipal(expression = "claims['https://www.instructure.com/placement']") String ltiPlacement,
             Tenant tenant)
             throws IOException {
@@ -113,8 +131,9 @@ public class ApiDownloadController {
         ContextJob contextJob = getContextJob(contextJobId, tenantAndContext);
         CalendarImport calendarImport = contextJob.getCalendarImport();
         String file = calendarImport.getUrl();
+        Map<String, String> parameters = Utils.paramBuilder().courseId(courseId).sisUserId(sisUserId).accountId(accountId).build();
         // TODO Check it's a local file
-        return streamUrl(file, toMediaType(calendarImport.getType()), calendarImport.getFilename());
+        return streamContent(file, toMediaType(calendarImport.getType()), calendarImport.getFilename(), parameters);
     }
 
     private MediaType toMediaType(ImportType importType) {
@@ -144,20 +163,15 @@ public class ApiDownloadController {
         return contextJob;
     }
 
-    private ResponseEntity<InputStreamResource> streamUrl(
-            String logfile, MediaType mediaType, String filename) throws IOException {
+    private ResponseEntity<InputStreamResource> streamContent(
+            String logfile, MediaType mediaType, String filename, Map<String, String> parameters) throws IOException {
         if (logfile == null || logfile.isEmpty()) {
             throw new NotFoundException();
         }
-        URLConnection connection;
-        URL url = new URL(logfile);
-        connection = url.openConnection();
         try {
             // The InputStreamResource closes the InputStream.
-            InputStream inputStream = url.openStream();
-            long length = connection.getContentLengthLong();
-            ResponseEntity.BodyBuilder bodyBuilder =
-                    ResponseEntity.ok().contentType(mediaType).contentLength(length);
+            InputStream inputStream = depositService.getInputStream(logfile, parameters);
+            ResponseEntity.BodyBuilder bodyBuilder = ResponseEntity.ok().contentType(mediaType);
             if (filename != null) {
                 bodyBuilder.header("Content-Disposition", "attachment; filename=\"" + filename + "\"");
             }
