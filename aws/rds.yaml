@@ -657,9 +657,8 @@ Resources:
 
   dbSyncStack:
     Type: 'AWS::CloudFormation::Stack'
-    Condition: enableSync
     Properties:
-      TemplateURL: ./rds-sync.yaml
+      TemplateURL: ./rds-backup.yaml
       Parameters:
         orgName: !Ref orgName
         accountType: !Ref accountType
@@ -667,6 +666,7 @@ Resources:
         envType: !Ref envType
         namePrefix: !Ref namePrefix
         dbSecret: !Ref dbSecretProdRegion
+        enableSync: !Ref enableSync
 
 Outputs:
 

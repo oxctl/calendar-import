@@ -39,6 +39,13 @@ Parameters:
     Description: "Email for support (Cloud CAD)"
     Type: String
     Default: "cad-aws@it.ox.ac.uk"
+  enableSync:
+    Type: "String"
+    Description: "If true then we sync the production database to development."
+    Default: "No"
+    AllowedValues:
+      - "Yes"
+      - "No"
 
 
 
@@ -96,7 +103,7 @@ Resources:
               - dom:
                   Fn::ImportValue: !Sub "${orgName}-${accountType}-route53-domainname"
           KEEP_DB_NAME: "Yes"
-          INVOKE_DBLOAD: "Yes"
+          INVOKE_DBLOAD: !Ref enableSync
           INVOKE_DBLOAD_FUNCTION:
             Fn::Sub:
               - "arn:${awsp}:lambda:${region}:${acctid}:function:${app}-beta-dbload"
