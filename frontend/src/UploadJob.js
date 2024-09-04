@@ -72,8 +72,11 @@ class UploadJob extends React.Component {
                 })
                 this.props.load()
             } else {
-                this.props.onMessage({text: 'Failed to start import, status: ' + response.status, type: 'error'})
+                throw new Error("HTTP Status - " + response.status)
             }
+        }).catch(e => {
+            // This can be thrown our code, but also if the preflight CORS request fails.
+            this.props.onMessage({text: 'Failed to start import, error: ' + e.message, type: 'error'})
         }).finally(() => {
             this.setState({uploading: false})
         })
