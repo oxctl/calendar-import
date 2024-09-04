@@ -46,6 +46,8 @@ public class HttpDepositService implements DepositService {
     
     @Override
     public boolean canHandle(String deposit) {
-        return deposit.startsWith("http://") || deposit.startsWith("https://");
+        // Some old entries in the DB have leading and trailing whitespace that we need to trim off.
+        String clean = deposit.trim();
+        return clean.startsWith("http://") || clean.startsWith("https://");
     }
 }

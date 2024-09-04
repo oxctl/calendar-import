@@ -21,6 +21,13 @@ public class HttpDepositServiceTest {
         assertTrue(depositService.canHandle("http://host.test/"));
         assertTrue(depositService.canHandle("https://host.test/"));
     }
+    
+    @Test
+    public void testCanHandleOld() {
+        assertTrue(depositService.canHandle("  https://host.test/  "));
+        assertTrue(depositService.canHandle("https://host.test/  "));
+        assertTrue(depositService.canHandle("  https://host.test/"));
+    }
 
     @Test
     public void testCanHandlePlaceholder() {
