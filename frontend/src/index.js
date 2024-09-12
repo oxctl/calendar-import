@@ -21,7 +21,6 @@ import store from './store'
             // We recommend adjusting this value in production
             tracesSampleRate: 1.0
         })
-        console.info(`Loaded sentry config for dsn ${dsn} and environment ${environment}.`)
     } else {
         console.info("Failed to load Sentry config as dsn was not provided.")
     }
