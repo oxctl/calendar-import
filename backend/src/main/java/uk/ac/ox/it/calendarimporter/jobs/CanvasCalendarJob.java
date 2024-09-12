@@ -5,6 +5,8 @@ import edu.ksu.canvas.CanvasApiFactory;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.oauth.OauthToken;
+import lombok.Setter;
+
 import org.quartz.InterruptableJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -56,6 +58,7 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
     // The section to import into.
     protected String section;
     // The URL of the source file to read from.
+    @Setter
     protected String url;
     // The timezone that should be used when importing.
     protected String timeZone;
@@ -93,10 +96,6 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
 
     public void setContext(String context) {
         this.context = context;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
     public void setTimeZone(String timeZone) {

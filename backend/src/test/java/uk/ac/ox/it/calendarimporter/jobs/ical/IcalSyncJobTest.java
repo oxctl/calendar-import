@@ -23,7 +23,11 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVImportJob;
 import uk.ac.ox.it.calendarimporter.jobs.csv.CSVReader;
 import uk.ac.ox.it.calendarimporter.jobs.csv.HeaderException;
@@ -53,7 +57,11 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 class IcalSyncJobTest {
+
+    @Autowired
+    private ResourceLoader resourceLoader;
 
     @Test
     public void testValidCall() throws JobExecutionException, IOException, JOSEException, ParserException, URISyntaxException {
@@ -62,6 +70,7 @@ class IcalSyncJobTest {
         CalendarImport calendarImport = new CalendarImport();
         Trigger trigger = TriggerBuilder.newTrigger().startNow().withIdentity("key").build();
         JobDetail job = JobBuilder.newJob(IcalImportJob.class).build();
+        Resource oneEventCalendarResource = resourceLoader.getResource("classpath:calendar-one-event.ics");
 
         List<CalendarEvent> calendarEvents = new ArrayList<>();
         CalendarEvent calendarEvent = new CalendarEvent();
@@ -102,7 +111,7 @@ class IcalSyncJobTest {
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/calendar-one-event.ics").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_URL, getClass().getResource("/calendar-one-event.ics").toURI().toURL().toString());
 
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
@@ -116,7 +125,8 @@ class IcalSyncJobTest {
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         when(calendarWriter.createCalendarEvent(any())).thenReturn(Optional.of(calendarEvent));
         when(calendarReader.listCurrentUserCalendarEvents(any())).thenReturn(calendarEvents);
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(oneEventCalendarResource.getFile().toString());
+        when(depositService.getInputStream(any(), any())).thenReturn(oneEventCalendarResource.getInputStream());
         when(calendarBuilder.build((InputStream) any())).thenReturn(calendar);
         doNothing().when(importEventService).eventCreated(any(), any(), any());
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
@@ -172,7 +182,7 @@ class IcalSyncJobTest {
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_URL, getClass().getResource("/one-event.csv").toURI().toURL().toString());
         when(context.getMergedJobDataMap()).thenReturn(map);
         when(context.getTrigger()).thenReturn(trigger);
         when(context.getJobDetail()).thenReturn(job);
@@ -196,7 +206,7 @@ class IcalSyncJobTest {
 
         JobDataMap map = new JobDataMap();
         map.put("time_zone",  TimeZone.getTimeZone("UTC").toString());
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_URL, getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -221,7 +231,7 @@ class IcalSyncJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toString());
 
         icalSyncJob.setTenantRepository(tenantRepository);
         icalSyncJob.setUserRepository(userRepository);
@@ -244,7 +254,7 @@ class IcalSyncJobTest {
 
         JobDataMap map = new JobDataMap();
         map.put("calendar_import_id", 118L);
-        map.put("url", getClass().getResource("/one-event.csv").toURI().toURL().toString());
+        map.put(CanvasCalendarJob.SOURCE_URL, getClass().getResource("/one-event.csv").toURI().toURL().toString());
 
         TenantRepository tenantRepository = mock(TenantRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
@@ -267,7 +277,7 @@ class IcalSyncJobTest {
         when(canvasTokenCreator.getToken(any(), any())).thenReturn(oauthToken);
         when(progressService.updateJob(any(), any(), any())).thenReturn(null);
         doNothing().when(canvasCalendarService).resetRetryCounter(any());
-        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toURI().toURL());
+        when(depositService.deposit(any(), any())).thenReturn(getClass().getResource("/one-event.csv").toString());
 
         icalSyncJob.setTenantRepository(tenantRepository);
         icalSyncJob.setUserRepository(userRepository);

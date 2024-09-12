@@ -22,18 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
-import uk.ac.ox.it.calendarimporter.persistence.repo.ImportedEventRepository;
 import uk.ac.ox.it.calendarimporter.service.ImportEventService;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.fortuna.ical4j.model.Component.VEVENT;
@@ -68,7 +64,6 @@ public class IcalImportJob extends CanvasCalendarJob {
 
     public void run() throws IOException, JobExecutionException {
 
-        URL url = new URL(this.url);
         if (writer==null){
             writer = canvasApiFactory.getWriter(CalendarWriter.class, oauthToken);
         }
@@ -79,14 +74,8 @@ public class IcalImportJob extends CanvasCalendarJob {
 
         CalendarBuilder builder = new CalendarBuilder();
 
-        String hiddenData =
-                HiddenData.toHidden(HIDDEN_DATA_PREFIX + UUID.randomUUID().toString().substring(0, 6));
-
-        URLConnection urlConnection = url.openConnection();
-        urlConnection.setReadTimeout(10000);
-        urlConnection.setConnectTimeout(10000);
         Progress progress;
-        try (InputStream in = new TerminatingInputStream(url.openStream(), inputLimit)) {
+        try (InputStream in = new TerminatingInputStream(depositService.getInputStream(this.url, parameters), inputLimit)) {
             log("Reading in file.");
             Calendar calendar = builder.build(in);
             ComponentList<VEvent> events = calendar.getComponents(VEVENT);

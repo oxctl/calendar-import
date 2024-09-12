@@ -3,7 +3,8 @@
     "title_suffix": " demo",
     "lti_registration_id": "calendar-import",
     "lti_account_id": "self",
-    "lti_tool_url": "https://localhost:3000"
+    "lti_tool_url": "https://localhost:3000",
+    "user_only_delete": "true"
   },
   "ltiKey": {
     "tool_configuration": {
@@ -50,7 +51,7 @@
         "custom_fields": {
           "canvas_user_id": "$Canvas.user.id",
           "canvas_course_id": "$Canvas.course.id",
-          "user_only_delete": "true",
+          "user_only_delete": "$USER_ONLY_DELETE",
           "canvas_account_id": "$Canvas.account.id",
           "canvas_course_name": "$Canvas.course.name",
           "canvas_user_sis_id": "$Canvas.user.sisSourceId",

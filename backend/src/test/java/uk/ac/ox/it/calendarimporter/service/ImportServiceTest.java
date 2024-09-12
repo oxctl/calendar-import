@@ -19,6 +19,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ox.it.calendarimporter.controller.ImportType;
+import uk.ac.ox.it.calendarimporter.jobs.CanvasCalendarJob;
 import uk.ac.ox.it.calendarimporter.jobs.CleanoutJob;
 import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
 import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
@@ -217,7 +218,7 @@ public class ImportServiceTest {
     private ImportConfig setUpImportConfig(ImportType importType, Map<String, String> parameters){
         return new ImportConfig(
                 importType,
-                "url",
+                CanvasCalendarJob.SOURCE_URL,
                 "filename",
                 user,
                 "context",

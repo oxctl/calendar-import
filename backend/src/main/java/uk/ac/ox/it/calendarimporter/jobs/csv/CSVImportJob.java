@@ -14,16 +14,13 @@ import uk.ac.ox.it.calendarimporter.service.ImportEventService;
 import uk.ac.ox.it.calendarimporter.utils.HiddenData;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
-import java.util.UUID;
 
 /**
- * This job reads a CSV from a URL (probably local), parses it and then uploads the events into
+ * This job reads a CSV from the DepositService, parses it and then uploads the events into
  * Canvas.
  */
 public class CSVImportJob extends CanvasCalendarJob {
@@ -57,16 +54,13 @@ public class CSVImportJob extends CanvasCalendarJob {
         // don't clash
         String hiddenData = HiddenData.toHidden(HIDDEN_DATA_PREFIX + id);
         log("Import started, timezone of: " + timeZone.getID());
-        URL url = new URL(this.url);
-        log.debug("Attempting to load CSV file: {}", url);
+        log.debug("Attempting to load CSV file: {}", this.url);
         log("Reading in file.");
         // Programmers are 0 based, users are 1 based
         TrackingErrorHandler errorHandler = new TrackingErrorHandler();
         List<CalendarEvent> calendarEvents;
         try {
-            URLConnection connection = url.openConnection();
-            connection.setReadTimeout(10000);
-            calendarEvents = reader.parseCSV(connection.getInputStream(), timeZone, errorHandler);
+            calendarEvents = reader.parseCSV(depositService.getInputStream(this.url, parameters), timeZone, errorHandler);
         } catch (HeaderException he) {
             failure("Failed to read file: " + he.getLocalizedMessage());
             return;

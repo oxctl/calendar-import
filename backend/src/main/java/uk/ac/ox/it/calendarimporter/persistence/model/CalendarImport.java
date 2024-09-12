@@ -44,7 +44,7 @@ public class CalendarImport {
     @JsonView(Views.Public.class)
     private Instant created;
     /**
-     * The URL of the import.
+     * The url of the import.
      */
     private String url;
 

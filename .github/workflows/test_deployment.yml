@@ -24,7 +24,9 @@ on:
 
 jobs:
   deployment-tests:
-    runs-on: ubuntu-20.04
+    # Only run the checks when on the default branch
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     environment: ${{ inputs.execution-environment }}
     env:
@@ -42,7 +44,7 @@ jobs:
         run: curl -I --show-error --silent --retry 10 --retry-connrefused --retry-delay 10 ${{ env.BACKEND_URL }}
       - uses: actions/setup-node@v4
         with:
-          node-version-file: deployment/.nvmrc
+          node-version-file: 'deployment/.nvmrc'
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - run: npm ci

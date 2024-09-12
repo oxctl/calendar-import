@@ -6,10 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 import uk.ac.ox.it.calendarimporter.ApiWebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.WebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.persistence.model.*;
@@ -18,9 +21,12 @@ import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.UserRepository;
 import uk.ac.ox.it.calendarimporter.security.WithMockClaims;
+import uk.ac.ox.it.calendarimporter.service.DepositService;
 
+import java.io.FileNotFoundException;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,6 +37,9 @@ public class ApiDownloadControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
 
     @MockBean
     private ContextJobRepository contextJobRepository;
@@ -44,6 +53,9 @@ public class ApiDownloadControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    private DepositService depositService;
 
     @BeforeEach
     public void setUp() {
@@ -59,8 +71,9 @@ public class ApiDownloadControllerTest {
     public void testDownloadLogfile() throws Exception {
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setLoad(progress);
@@ -72,6 +85,7 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(),any())).thenReturn(logfileResource.getInputStream());
         mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/log/1234/load"))
                 .andExpect(status().isOk())
@@ -84,8 +98,9 @@ public class ApiDownloadControllerTest {
     public void testDownloadLogfileAccount() throws Exception {
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setLoad(progress);
@@ -97,6 +112,7 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(),any())).thenReturn(logfileResource.getInputStream());
         mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/log/1234/load"))
                 .andExpect(status().isOk())
@@ -108,7 +124,7 @@ public class ApiDownloadControllerTest {
     @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileMissing() throws Exception {
         JobProgress progress = new JobProgress();
-        String logfile = "file:///doesnotexist.txt";
+        String logfile = "doesnotexist.txt";
         progress.setLogfile(logfile);
 
         CalendarImport calendarImport = new CalendarImport();
@@ -121,13 +137,14 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(logfile, Utils.paramBuilder().courseId("1").build())).thenThrow(new FileNotFoundException());
         mockMvc.perform(MockMvcRequestBuilders.get("/api/log/1234/load")).andExpect(status().is(404));
     }
 
     @Test
     public void testDownloadLogfileNotAuthenticated() throws Exception {
         JobProgress progress = new JobProgress();
-        String logfile = "file:///doesnotexist.txt";
+        String logfile = "doesnotexist.txt";
         progress.setLogfile(logfile);
 
         CalendarImport calendarImport = new CalendarImport();
@@ -147,8 +164,8 @@ public class ApiDownloadControllerTest {
     @WithMockClaims(claims = "{'aud': '5678', 'https://www.instructure.com/placement': 'course_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '2'} }")
     public void testDownloadLogfileWrongContext() throws Exception {
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setLoad(progress);
@@ -167,8 +184,8 @@ public class ApiDownloadControllerTest {
     @WithMockClaims(claims = "{'aud': 'wrong', 'https://www.instructure.com/placement': 'course_navigation', 'https://purl.imsglobal.org/spec/lti/claim/custom': {'canvas_course_id': '1'} }")
     public void testDownloadLogfileWrongTenant() throws Exception {
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setLoad(progress);
@@ -242,8 +259,8 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
@@ -251,6 +268,7 @@ public class ApiDownloadControllerTest {
         calendarImport.setLoad(progress);
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
+        when(depositService.getInputStream(any(), any())).thenReturn(logfileResource.getInputStream());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/log/2/loadByCalendarImportId"))
                 .andExpect(status().isOk())
@@ -267,8 +285,8 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
@@ -276,6 +294,7 @@ public class ApiDownloadControllerTest {
         calendarImport.setLoad(progress);
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.empty());
+        when(depositService.getInputStream(any(), any())).thenReturn(logfileResource.getInputStream());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/log/2/loadByCalendarImportId"))
                 .andExpect(status().is4xxClientError());
@@ -290,8 +309,8 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
@@ -299,6 +318,7 @@ public class ApiDownloadControllerTest {
         calendarImport.setLoad(progress);
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
+        when(depositService.getInputStream(any(), any())).thenReturn(logfileResource.getInputStream());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/log/2/loadByCalendarImportId"))
                 .andExpect(status().is4xxClientError());
@@ -313,8 +333,8 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
@@ -330,6 +350,7 @@ public class ApiDownloadControllerTest {
         job.setCalendarImport(calendarImport);
 
         when(contextJobRepository.findById((long) 1234)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(logfileResource.getInputStream());
 
         mockMvc
                 .perform(MockMvcRequestBuilders.get("/api/log/1234/delete"))
@@ -347,8 +368,8 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
@@ -356,6 +377,7 @@ public class ApiDownloadControllerTest {
         calendarImport.setDelete(progress);
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
+        when(depositService.getInputStream(any(), any())).thenReturn(logfileResource.getInputStream());
 
         ContextJob job = new ContextJob();
         job.setId(1234);
@@ -377,14 +399,15 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
         calendarImport.setContext("user_1");
         calendarImport.setLoad(progress);
-        calendarImport.setUrl(getClass().getResource("example.html").toExternalForm());
+        calendarImport.setUrl(exampleHtmlResource.getFile().toPath().toString());
         calendarImport.setType(ImportType.TEST);
         calendarImport.setFilename("filename");
 
@@ -397,6 +420,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         String expected = """
                 <!DOCTYPE html>
@@ -426,14 +450,15 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
         calendarImport.setContext("user_1");
         calendarImport.setLoad(progress);
-        calendarImport.setUrl(getClass().getResource("example.html").toExternalForm());
+        calendarImport.setUrl(exampleHtmlResource.getFile().toPath().toString());
         calendarImport.setType(ImportType.ICAL);
         calendarImport.setFilename("filename");
 
@@ -446,6 +471,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         String expected = """
                 <!DOCTYPE html>
@@ -474,14 +500,15 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
         calendarImport.setContext("user_1");
         calendarImport.setLoad(progress);
-        calendarImport.setUrl(getClass().getResource("example.html").toExternalForm());
+        calendarImport.setUrl(exampleHtmlResource.getFile().toPath().toString());
         calendarImport.setType(ImportType.CSV);
         calendarImport.setFilename("filename");
 
@@ -494,6 +521,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         String expected = """
                 <!DOCTYPE html>
@@ -522,14 +550,15 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
         calendarImport.setContext("user_1");
         calendarImport.setLoad(progress);
-        calendarImport.setUrl(getClass().getResource("example.html").toExternalForm());
+        calendarImport.setUrl(exampleHtmlResource.getFile().toPath().toString());
         calendarImport.setType(ImportType.TEST);
         calendarImport.setFilename("filename");
 
@@ -542,6 +571,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.empty());
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/download/1234"))
                 .andExpect(status().is4xxClientError());
@@ -556,14 +586,15 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
         calendarImport.setContext("user_1");
         calendarImport.setLoad(progress);
-        calendarImport.setUrl(getClass().getResource("example.html").toExternalForm());
+        calendarImport.setUrl(exampleHtmlResource.getFile().toPath().toString());
         calendarImport.setType(ImportType.TEST);
         calendarImport.setFilename("filename");
 
@@ -576,6 +607,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/download/1234"))
                 .andExpect(status().is4xxClientError());
@@ -589,8 +621,9 @@ public class ApiDownloadControllerTest {
         userRepository.save(user);
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
@@ -609,6 +642,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/download/1234"))
                 .andExpect(status().is4xxClientError());
@@ -622,8 +656,9 @@ public class ApiDownloadControllerTest {
         userRepository.save(user);
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
@@ -642,6 +677,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/download/1234"))
                 .andExpect(status().is4xxClientError());
@@ -656,14 +692,15 @@ public class ApiDownloadControllerTest {
 
 
         JobProgress progress = new JobProgress();
-        String logfile = getClass().getResource("log.txt").toExternalForm();
-        progress.setLogfile(logfile);
+        Resource logfileResource = resourceLoader.getResource("classpath:log.txt");
+        Resource exampleHtmlResource = resourceLoader.getResource("classpath:example.html");
+        progress.setLogfile(logfileResource.getFile().toPath().toString());
 
         CalendarImport calendarImport = new CalendarImport();
         calendarImport.setId(2);
         calendarImport.setContext("user_1");
         calendarImport.setLoad(progress);
-        calendarImport.setUrl(getClass().getResource("example.html").toExternalForm());
+        calendarImport.setUrl(exampleHtmlResource.getFile().toPath().toString());
         calendarImport.setType(ImportType.TEST);
         calendarImport.setFilename(null);
 
@@ -676,6 +713,7 @@ public class ApiDownloadControllerTest {
         calendarImportRepository.save(calendarImport);
         when(calendarImportRepository.findById(2L)).thenReturn(Optional.of(calendarImport));
         when(contextJobRepository.findById(1234L)).thenReturn(Optional.of(job));
+        when(depositService.getInputStream(any(), any())).thenReturn(exampleHtmlResource.getInputStream());
 
         String expected = """
                 <!DOCTYPE html>

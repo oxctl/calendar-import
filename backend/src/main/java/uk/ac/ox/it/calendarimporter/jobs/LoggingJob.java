@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -25,7 +24,7 @@ public abstract class LoggingJob implements Job {
     private final Duration updateInterval = Duration.ofSeconds(1);
 
     @Autowired
-    private DepositService depositService;
+    protected DepositService depositService;
 
     @Autowired
     private ProgressService progressService;
@@ -64,10 +63,8 @@ public abstract class LoggingJob implements Job {
             // Persist the log, as this is done after the job has completed, if a job is interrupted the
             // log is lost
             // and a recovery run will be in the logs instead.
-            URL deposit;
             try {
-                deposit = depositService.deposit(logfile, DepositService.Type.LOG);
-                result.logfile = deposit.toExternalForm();
+                result.logfile = depositService.deposit(logfile, DepositService.Type.LOG); 
                 context.setResult(result);
             } catch (IOException e) {
                 log.error("Failed to save logfile.", e);

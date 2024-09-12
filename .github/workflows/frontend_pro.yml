@@ -1,67 +1,36 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Frontend PROD
+name: Frontend PRO
 run-name: "Deploy ${{ inputs.tag }} to Production"
 
-env:
-  S3_ARTIFACT_BUCKET: ${{ github.repository_owner }}-calendar-import-dist
-  S3_PROD_BUCKET: ${{ github.repository_owner }}-calendar-import-prod
-  AWS_DEFAULT_REGION: "eu-west-1"
-
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to deploy'
-        required: true
   workflow_call:
     inputs:
       tag:
         description: 'Tag to deploy'
-        required: true
+        type: string
+      sha:
+        description: 'SHA of the TAG commit'
         type: string
 
 jobs:
-  deploy-prod:
-    runs-on: ubuntu-20.04
-    timeout-minutes: 5
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
-      TAG: ${{ inputs.tag }}
-    steps:
-      - name: Start deployment
-        uses: bobheadxi/deployments@v1.4.0
-        id: deployment
-        with:
-          step: start
-          env: frontend-prod
-          desc: Production deploy of ${{ env.TAG }}
-          ref: refs/tags/${{ env.TAG }}
-      - name: Download release with tag ${{ env.TAG }}
-        run: aws s3 cp s3://${S3_ARTIFACT_BUCKET}/release-${TAG}.tgz build.tgz
-      - run: mkdir files
-      - name: Unzip files
-        run: tar -zxvf build.tgz -C files
-      - uses: oxctl/react-deploy-to-s3-action@main
-        env:
-          AWS_S3_BUCKET: ${{ env.S3_PROD_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          SOURCE_DIR: files
-      - name: Update deployment status
-        uses: bobheadxi/deployments@v1.4.0
-        if: always()
-        with:
-          step: finish
-          env: frontend-prod
-          status: ${{ job.status }}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+  call-build-and-deploy:
+    uses: ./.github/workflows/frontend_build_and_deploy.yml
+    with:
+      sha: ${{ inputs.sha }}
+      ref: ${{ inputs.tag }}
+      do_deploy: true
+      aws_region: 'eu-west-1'
+      aws_account_id: '211125465582'
+      aws_github_role: 'cad-github-actions-role'
+      aws_parameters: '211125465582.json'
+      github_env: 'prod'
+      execution-environment: PROD
+    secrets: inherit
 
   call-deployment-tests:
-    needs: deploy-prod
+    needs: call-build-and-deploy
     uses: ./.github/workflows/test_deployment.yml
     with:
       execution-environment: PROD

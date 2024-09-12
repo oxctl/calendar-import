@@ -16,9 +16,9 @@ fi
 ## $2: number of part: 0 – major, 1 – minor, 2 – patch
 increment_version() {
 
-  major=`echo "$1" | cut -d "." -f 1`
-  minor=`echo "$1" | cut -d "." -f 2`
-  patch=`echo "$1" | cut -d "." -f 3`
+  major=`echo "$1" | cut -d "." -f 1  | sed 's/[^0-9]*//g'`
+  minor=`echo "$1" | cut -d "." -f 2  | sed 's/[^0-9]*//g'`
+  patch=`echo "$1" | cut -d "." -f 3  | sed 's/[^0-9]*//g'`
 
   case "$2" in
     "Major")
@@ -37,7 +37,8 @@ increment_version() {
   echo "$major.$minor.$patch"
 }
 
-LATEST_RELEASE=`git fetch --prune --unshallow && git describe --abbrev=0 --tags`
+# This attempts to prevent rouge tags from preventing us from doing a release
+LATEST_RELEASE=`git tag -l "[0-9]*.[0-9]*.[0-9]*" --sort=-creatordate | head -1`
 NEW_RELEASE=`increment_version $LATEST_RELEASE $1`
 echo $NEW_RELEASE
 
