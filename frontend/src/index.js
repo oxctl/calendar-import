@@ -4,23 +4,26 @@ import {Provider} from 'react-redux'
 import * as Sentry from "@sentry/react";
 import App from './App'
 import store from './store'
-import {settings} from "./utils/settings";
 
 {
     // Load sentry setup if defined.
     // This is done early in the application to catch as much as possible.
-    const dsn = settings?.sentryDsn
+    const dsn = process.env.REACT_APP_SENTRY_DSN
     if (dsn) {
+        const environment = process.env.REACT_APP_SENTRY_ENV
         Sentry.init({
-            dsn,
-            environment: settings.sentryEnv?settings.sentryEnv:"unknown",
+            dsn: dsn,
+            environment,
             integrations: [Sentry.browserTracingIntegration()],
 
             // Set tracesSampleRate to 1.0 to capture 100%
             // of transactions for performance monitoring.
             // We recommend adjusting this value in production
-            tracesSampleRate: 1.0,
-        });
+            tracesSampleRate: 1.0
+        })
+        console.info(`Loaded sentry config for dsn ${dsn} and environment ${environment}.`)
+    } else {
+        console.info("Failed to load Sentry config as dsn was not provided.")
     }
 }
 
