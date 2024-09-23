@@ -655,19 +655,6 @@ Resources:
         ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
       RotationLambdaARN: !GetAtt rotationFunction.Arn
 
-  dbSyncStack:
-    Type: 'AWS::CloudFormation::Stack'
-    Properties:
-      TemplateURL: ./rds-backup.yaml
-      Parameters:
-        orgName: !Ref orgName
-        accountType: !Ref accountType
-        appName: !Ref appName
-        envType: !Ref envType
-        namePrefix: !Ref namePrefix
-        dbSecret: !Ref dbSecretProdRegion
-        enableSync: !Ref enableSync
-
 Outputs:
 
   dbSecretProdRegion:
