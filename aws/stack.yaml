@@ -1,6 +1,5 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::LanguageExtensions
 Description: "Create Elastic Beanstalk environment (for beta / prod envtypes).  Assumes the EB application (eb-app.yaml template) has already been created"
 Parameters:
   appName:
