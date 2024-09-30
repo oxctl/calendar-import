@@ -23,6 +23,9 @@ Parameters:
   snapshotToUse:
     Type: String
     Default: ""
+  solutionStack:
+    Type: String
+
 Resources:
   AppRegion:
     Type: AWS::CloudFormation::Stack
@@ -54,6 +57,7 @@ Resources:
         jwtAudience: !Ref jwtAudience
         cfSSLCertARN: !Ref cfSSLCertARN
         wafARN: !Ref wafARN
+        solutionStack: !Ref solutionStack
 Outputs:
   envRef:
     Value: !GetAtt AppEB.Outputs.envRef

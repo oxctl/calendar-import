@@ -85,6 +85,9 @@ Parameters:
     Type: String
     #deliberately used eb-env to avoid collision with the manually created secrets using eb-app/config
     Default: "eb-env/config"
+  solutionStack:
+    Description: "Solution stack"
+    Type: "String"
 
 Mappings:
 
@@ -108,19 +111,6 @@ Mappings:
       "jwtIssuer": "https://lti-dev.canvas.ox.ac.uk"
       "jwtJWKSURI": "https://lti-dev.canvas.ox.ac.uk/.well-known/jwks.json"
 
-
-  
-  # Consider using mappings to avoid updates reverting to older versions
-  RegionMappings:
-    eu-west-1:
-      "solutionStack": "64bit Amazon Linux 2023 v4.0.7 running ECS"
-      #"solutionStack": "Docker running on 64bit Amazon Linux 2023/4.3.0"
-    eu-central-1:
-      "solutionStack": "64bit Amazon Linux 2023 v4.0.7 running ECS"
-      #"solutionStack": "Docker running on 64bit Amazon Linux 2023/4.3.0"
-
-
-
 Conditions:
   isProdRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-west-1']}
   isDRRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-central-1']}
@@ -141,7 +131,7 @@ Resources:
     # If the name is changed then the value in `Dockerrun-template.aws.json` needs to be updated.
     Type: "AWS::Logs::LogGroup"
     Properties:
-      LogGroupName: !Sub '/ecs/${appName}-container'
+      LogGroupName: !Sub '/ecs/${appName}-app'
       RetentionInDays: 90
 
   appPolicy:
@@ -269,11 +259,8 @@ Resources:
     Type: AWS::ElasticBeanstalk::ConfigurationTemplate
     Properties:
       ApplicationName: !Ref appName
-      SolutionStackName: !FindInMap [RegionMappings, !Ref 'AWS::Region', solutionStack]
-      SourceConfiguration:
-        TemplateName: !Ref cadStandardConfigTemplate
-        ApplicationName: !Ref appName
-      Description: !Sub "App specific EB config template - ${appName}"
+      SolutionStackName: !Ref solutionStack
+      Description: !Sub "Config template - ${appName}"
       OptionSettings:
         - Namespace: "aws:elasticbeanstalk:application:environment"
           # The Secret Manager name that contains the database hostname/port/username/password/
@@ -319,15 +306,9 @@ Resources:
 
 
 
-  #all option settings that apply to  all EB apps/env in this template
-  cadStandardConfigTemplate:
-    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
-    Properties:
-      ApplicationName: !Ref appName
-      SolutionStackName: !FindInMap [RegionMappings, !Ref 'AWS::Region', solutionStack] 
-      Description: "CAD's standard EB configuration template"
-      #EnvironmentId: !Ref Environment
-      OptionSettings:
+          # At one point this used to be in a different configuration template but cloudformation doesn't update
+          # templates that use `SourceConfiguration` so it was un-updatable. These options are now included in the main
+          # configuration template
         - ResourceName: "AWSEBSecurityGroup"
           Namespace: "aws:ec2:vpc"
           OptionName: "VPCId"
@@ -373,6 +354,14 @@ Resources:
           OptionName: "SecurityGroups"
           Value:
             Fn::ImportValue: !Sub "${orgName}-${accountType}-eb-sgid"
+        - ResourceName: "AWSEBAutoScalingGroup"
+          Namespace: "aws:autoscaling:updatepolicy:rollingupdate"
+          OptionName: "RollingUpdateEnabled"
+          Value: !If [ isProd, "true", "false" ]
+        - ResourceName: "AWSEBAutoScalingGroup"
+          Namespace: "aws:autoscaling:updatepolicy:rollingupdate"
+          OptionName: "RollingUpdateType"
+          Value: !If [ isProd, "Immutable", "Time" ]
         - Namespace: "aws:ec2:instances"
           OptionName: "SupportedArchitectures"
           Value: "x86_64"
