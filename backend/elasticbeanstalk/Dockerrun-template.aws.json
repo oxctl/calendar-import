@@ -16,7 +16,7 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/${APP_NAME}-container",
+          "awslogs-group": "/ecs/${APP_NAME}-app",
           "awslogs-region": "${AWS_REGION}",
           "awslogs-stream-prefix": "${APP_NAME}"
         }

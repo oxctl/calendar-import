@@ -53,6 +53,7 @@ jobs:
       contents: read
     outputs:
       ecr_repo_uri: ${{ steps.query.outputs.ecr_repo_uri }}
+      solution_stack: ${{ steps.query-eb.outputs.solution_stack }}
     env:
       APP_NAME: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
       ENV_TYPE: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
@@ -81,6 +82,9 @@ jobs:
       - name: Query Cloudformation exports for ECR repository
         id: query
         run: echo ecr_repo_uri=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.AWS_STACK_PREFIX }}-bootstrap-ecr-repo-uri'].Value" --output text) | tee -a $GITHUB_OUTPUT
+      - name: Query Elastic Beanstalk for latest solution stack
+        id: query-eb
+        run: echo solution_stack=$(aws elasticbeanstalk list-available-solution-stacks --query="(SolutionStacks[?starts_with(@, '64bit Amazon Linux 2023')]|[?ends_with(@, 'running ECS')])[0]" --output text) | tee -a $GITHUB_OUTPUT
 
   build:
     runs-on: ubuntu-22.04
@@ -157,13 +161,14 @@ jobs:
       deployments: write
     env:
       # We use toJSON here so that we escape quotes in the JSON string (hopefully)
-      ADDITIONAL_PARAMS: ${{ toJSON(format('appVersionDesc={0}', needs.build.outputs.message)) }}
+      APP_VERSION: ${{ toJSON(format('appVersionDesc={0}', needs.build.outputs.message)) }}
       APP_NAME: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
       ENV_TYPE: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
       ACCOUNT_TYPE: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
       SNAPSHOT_TO_USE: ${{ fromJSON(needs.aws-params.outputs.json).snapshotToUse }}
       AWS_ACCESS_KEY_ID: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+      SOLUTION_STACK: ${{ toJSON(format('solutionStack={0}', needs.bootstrap.outputs.solution_stack)) }}
     steps:
       - name: Download AWS artifact
         uses: actions/download-artifact@v4
@@ -194,7 +199,7 @@ jobs:
       - run: echo AWS_STACK_PREFIX="${{ env.APP_NAME }}-${{ env.ENV_TYPE }}-${{ env.ACCOUNT_TYPE }}" | tee -a $GITHUB_ENV
         # This is dynamic so we append this to the parameters file
         # As we've already escaped the values to JSON we should be ok.
-      - run: jq ". += [${ADDITIONAL_PARAMS}]" < ${{ inputs.aws_parameters }} > parameters.json
+      - run: jq ". += [${APP_VERSION}, ${SOLUTION_STACK}]" < ${{ inputs.aws_parameters }} > parameters.json
       - id: deploy
         run: aws cloudformation deploy
           --capabilities CAPABILITY_NAMED_IAM 
