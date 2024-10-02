@@ -235,6 +235,13 @@ Resources:
         # Enable daily backup to AWS Backup Vault (and replication out of region)
         - Key: backup
           Value: daily
+      LifecycleConfiguration:
+        Rules:
+          - AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+            Id: "Various: del old vers after 30-days"
+            Status: "Enabled"
+            NoncurrentVersionExpirationInDays: 30
       # Stop this bucket from being public
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
