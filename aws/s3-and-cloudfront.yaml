@@ -42,15 +42,9 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${namePrefix}-${appName}-${envType}-${AWS::Region}-${AWS::AccountId}"
-      # Need versioning for backup
-      VersioningConfiguration:
-        Status: Enabled
       Tags:
         - Key: purpose
           Value: website
-        # Enable daily backup to AWS Backup Vault (and replication out of region)
-        - Key: backup
-          Value: daily
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
