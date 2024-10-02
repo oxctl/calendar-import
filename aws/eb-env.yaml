@@ -228,6 +228,13 @@ Resources:
   appBucketUpload:
     Type: AWS::S3::Bucket
     Properties:
+      # Need versioning for backup
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        # Enable daily backup to AWS Backup Vault (and replication out of region)
+        - Key: backup
+          Value: daily
       # Stop this bucket from being public
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
