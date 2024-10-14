@@ -221,6 +221,10 @@ Resources:
     #DeletionPolicy: Retain
     #UpdateReplacePolicy: Retain
     Properties:
+      Tags:
+        # Enable daily backup to AWS Backup Vault (and replication out of region)
+        - Key: backup
+          Value: daily
       AllocatedStorage: "20"
       DBInstanceClass: !Ref dbInstanceSize
       Engine: "mysql"
