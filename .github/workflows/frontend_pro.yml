@@ -26,7 +26,7 @@ jobs:
       aws_region: 'eu-central-1'
       aws_account_id: ${{ vars.AWS_ACCOUNT_ID_PROD }}
       aws_github_role: 'cad-github-actions-role'
-      aws_parameters: "211125465582.json"
+      aws_parameters: "${{ vars.AWS_ACCOUNT_ID_PROD }}.json"
       github_env: 'prod'
       execution-environment: PROD
     secrets: inherit

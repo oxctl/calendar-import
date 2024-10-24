@@ -5,5 +5,5 @@
   "jwtAudience=122010000000000172",
   "cfSSLCertARN=arn:aws:acm:us-east-1:211125465582:certificate/de5e7b9c-da4c-40ba-8b4b-68b11c05a445",
   "wafARN=arn:aws:wafv2:us-east-1:211125465582:global/webacl/cad-prod-webacl1/1eeb1dc5-299f-4720-b243-c3573bf7b564",
-  "snapshotToUse:arn:aws:rds:eu-west-1:211125465582:snapshot:awsbackup:job-4df6ae3c-d262-1387-cfaa-cd27b4b84f72"
+  "snapshotToUse=arn:aws:rds:eu-west-1:211125465582:snapshot:awsbackup:job-4df6ae3c-d262-1387-cfaa-cd27b4b84f72"
 ]
