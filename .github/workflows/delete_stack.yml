@@ -1,5 +1,5 @@
 name: Delete Stack
-run-name: "Delete ${{ inputs.stack-prefix }} stacks on ${{ inputs.region }} ${{ inputs.account-id }}"
+run-name: "Delete ${{ inputs.stack-prefix }} stacks on ${{ inputs.region }} ${{ ${{ fromJson(vars.AWS_ACCOUNT_IDS_MAP)[inputs.account-id] }} }}"
 
 env:
   AWS_GITHUB_ROLE: 'cad-github-actions-role'
