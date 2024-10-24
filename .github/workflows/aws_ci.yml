@@ -6,7 +6,7 @@ on:
 
 env:
   AWS_REGION: 'eu-west-1'
-  AWS_ACCOUNT_ID: '730335587339'  # Development AWS Account
+  AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID_NONPROD }}
   
 jobs:
   validate:

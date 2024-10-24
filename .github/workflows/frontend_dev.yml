@@ -21,11 +21,11 @@ jobs:
       sha: ${{ github.sha }}
       ref: ${{ github.ref }}
       do_deploy: ${{ github.ref_name == github.event.repository.default_branch }}
-      aws_region: 'eu-west-1'
-      aws_account_id: '730335587339'
-      aws_github_role: 'cad-github-actions-role'
-      aws_parameters: '730335587339.json'
-      github_env: 'dev'
+      aws_region: eu-west-1
+      aws_account_id: ${{ vars.AWS_ACCOUNT_ID_NONPROD }}
+      aws_github_role: cad-github-actions-role
+      aws_parameters: ${{ vars.AWS_ACCOUNT_ID_NONPROD }}.json
+      github_env: dev
       execution-environment: DEV
     secrets: inherit
 
