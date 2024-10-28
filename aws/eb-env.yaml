@@ -368,6 +368,10 @@ Resources:
           OptionName: "SecurityGroups"
           Value:
             Fn::ImportValue: !Sub "${orgName}-${accountType}-eb-sgid"
+        - Namespace: "aws:autoscaling:launchconfiguration"
+          OptionName: "DisableIMDSv1"
+          # this is the default, but we added it to force elastic beanstalk to use launch templates.
+          Value: "true"
         - ResourceName: "AWSEBAutoScalingGroup"
           Namespace: "aws:autoscaling:updatepolicy:rollingupdate"
           OptionName: "RollingUpdateEnabled"
