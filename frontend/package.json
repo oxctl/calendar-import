@@ -4,10 +4,22 @@
   "homepage": "./",
   "license": "Apache-2.0",
   "scripts": {
-    "start": "react-scripts start",
     "build": "REACT_APP_GIT_SHA=`git rev-parse --short HEAD` react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "start": "react-scripts start",
+    "test": "react-scripts test"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "dependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
@@ -16,7 +28,6 @@
     "@instructure/emotion": "^8.56.0",
     "@instructure/ui-a11y-content": "^8.56.0",
     "@instructure/ui-alerts": "^8.56.0",
-    "@instructure/ui-babel-preset": "^8.56.0",
     "@instructure/ui-billboard": "^8.56.0",
     "@instructure/ui-buttons": "^8.56.0",
     "@instructure/ui-checkbox": "^8.56.0",
@@ -45,12 +56,12 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-redux": "^7.2.4",
-    "react-scripts": "5.0.1",
     "redux": "^4.1.0",
     "redux-thunk": "^2.3.0",
     "uuid": "^8.0.0"
   },
   "devDependencies": {
+    "@instructure/ui-babel-preset": "^8.56.0",
     "@instructure/ui-eslint-config": "^8.53.1",
     "@instructure/ui-stylelint-config": "^8.53.1",
     "@instructure/ui-webpack-config": "^8.53.1",
@@ -60,18 +71,7 @@
     "@testing-library/react": "^12.1.5",
     "@testing-library/user-event": "^14.4.3",
     "html-webpack-plugin": "^4",
-    "msw": "^0.47.4"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "msw": "^0.47.4",
+    "react-scripts": "5.0.1"
   }
 }
