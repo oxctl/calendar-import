@@ -47,7 +47,7 @@
     "@instructure/ui-themes": "^8.56.0",
     "@instructure/ui-view": "^8.56.0",
     "@oxctl/ui-lti": "^1.5.1",
-    "@sentry/react": "^7.119.2",
+    "@sentry/react": "^8.37.1",
     "env": "0.0.2",
     "jwt-decode": "^3.1.2",
     "parse-link-header": "^2.0.0",
