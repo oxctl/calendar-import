@@ -4,7 +4,6 @@ Metadata: {}
 Description: "Creates an RDS DB instance, along with it's option and parameter groups"
 
 Parameters:
-
   orgName:
     Description:  "org name used in naming"
     Type: String
@@ -28,7 +27,6 @@ Parameters:
     AllowedValues:
       - "a"
       - "b"
-      #- "c"
     Default: 'b'
   envType:
     Description: "The env type: prod, beta, test, etc"
@@ -66,8 +64,8 @@ Parameters:
     Description:  "The size of the instance.  Needs to support encryption"
     Type: String
     AllowedValues:
-      - "db.t3.micro" #for all, except user-mgt
-      - "db.t3.small" #for user-mgt
+      - "db.t3.micro" # for all, except user-mgt
+      - "db.t3.small" # for user-mgt
     Default: "db.t3.micro"
   snapshotToUse:
     Description: "This is useful if you need to populate the new DB from an existing manual snapshot or aws backup snapshot. Leave BLANK to create a blank DB. Format of the parameter is the ARN of the snapshot to use. For DR, this is a required parameter or the template will not build on account of backup replication."
@@ -76,10 +74,6 @@ Parameters:
     Description: "Email for support (Cloud CAD)"
     Type: String
     Default: "cad-aws@it.ox.ac.uk"
-  csstSupportEmail:
-    Description: "Email for support (Cloud Services)"
-    Type: String
-    Default: "cloud-services@it.ox.ac.uk"
   roUserName:
     Description: "Username for read only user.  Leave blank to create none, type 'default' to create a user named 'rouser', or give a custom name"
     Type: "String"
@@ -96,55 +90,50 @@ Parameters:
     Type: "String"
     Description: "The version of the dbdump/dbload code in ECR to run"
     Default: "2"
-  enableSync:
-    Type: "String"
-    Description: "If true then we sync the production database to development."
-    Default: "No"
-
-
 
 Mappings:
-
   EnvironmentMappings:
     prod:
-      "backupWindow": "10:18-00:08"  #ToDo: make param ?
-      "backupRetention": "14"  #retain backups for no. of days
+      "backupWindow": "10:18-00:08"
+      "backupRetention": "14" # retain backups for no. of days
       "maintenanceWindow": "tue:01:00-tue:04:00"
       "deletionProtection": "true"
+      "cloudwatchLogs": "audit,error,slowquery"
       "secretRotationSchedule": "cron(0 5 ? * WED#2 *)"
+      "dbloadSchedule": "" # just a placeholder
     beta:
-      "backupWindow": "10:18-00:08"  #ToDo: make param ?
-      "backupRetention": "7"  #retain backups for no. of days
+      "backupWindow": "10:18-00:08"
+      "backupRetention": "7" # retain backups for no. of days
       "maintenanceWindow": "mon:01:00-mon:04:00"
       "deletionProtection": "false"
-      "secretRotationSchedule": "cron(0 5 ? * WED#1 *)"  
+      "cloudwatchLogs": "error,slowquery"
+      "secretRotationSchedule": "cron(0 5 ? * WED#1 *)"
+      "dbloadSchedule": "cron(0 6 ? * 1 *)" # every sunday @ 6am
 
   RegionMappings:
     eu-west-1:
       "replicationRegion": "eu-central-1"
-      "rdsKeyId": "arn:aws:kms:eu-central-1:211125465582:key/bb8c5e12-14fa-4a6a-93be-f9aeff2b1c81"  # temp solution for KMS
+      "rdsKeyId": "arn:aws:kms:eu-central-1:211125465582:key/bb8c5e12-14fa-4a6a-93be-f9aeff2b1c81" # temp solution for KMS
     eu-central-1:
       "replicationRegion": "eu-west-2"
-      "rdsKeyId": "arn:aws:kms:eu-west-2:211125465582:key/8f92930d-f10e-47c1-a0fe-42536fed03b6"   # temp solution for KMS
+      "rdsKeyId": "arn:aws:kms:eu-west-2:211125465582:key/8f92930d-f10e-47c1-a0fe-42536fed03b6" # temp solution for KMS
 
 
 Conditions:
-  enableSync: !Equals ["no", "true"]
   isProdEnv: {"Fn::Equals" : [!Ref envType, 'prod']}
   isBetaEnv: {"Fn::Equals" : [!Ref envType, 'beta']}
   isTestEnv: {"Fn::Equals" : [!Ref envType, 'test']}
   isNonProdEnv: !Or
     - !Condition isBetaEnv
     - !Condition isTestEnv
+  isProdAccount: {"Fn::Equals" : [!Ref accountType, 'prod']}
+  isNonProdAccount: {"Fn::Equals" : [!Ref accountType, 'nonprod']}
   noSnapshot: {"Fn::Equals" : [!Ref snapshotToUse, ""]}
-  ###
   dontCreateROUser: {"Fn::Equals" : [!Ref roUserName, '']}
   createROUser: !Not [Condition: dontCreateROUser]
   defaultROUserName: {"Fn::Equals" : [!Ref roUserName, 'default']}
 
-
 Resources:
-
   dbParamGroup:
     Type: "AWS::RDS::DBParameterGroup"
     Properties:
@@ -168,36 +157,6 @@ Resources:
         long_query_time: "5"
         slow_query_log: "1"
 
-  #dbOptionGroup:
-  #  Type: "AWS::RDS::OptionGroup"
-  #  Properties:
-  #    OptionGroupName:
-  #      Fn::Sub:
-  #        - "mysql${ver}-${app}-${env}"
-  #        - ver: !Select [0, !Split [".", !Ref dbEngineMajorVer]]
-  #          app: !Ref appName
-  #          env: !Ref envType
-  #    EngineName: "mysql"
-  #    MajorEngineVersion: !Sub "${dbEngineMajorVer}"
-  #    OptionGroupDescription: !Sub "Option group for ${appName}-${envType}"
-  #    OptionConfigurations:
-  #    - OptionName: "MARIADB_AUDIT_PLUGIN"
-  #      OptionSettings:
-  #      - Name: "SERVER_AUDIT_FILE_PATH"
-  #        Value: "/rdsdbdata/log/audit/"
-  #      - Name: "SERVER_AUDIT_FILE_ROTATIONS"
-  #        Value: "4"
-  #      - Name: "SERVER_AUDIT_QUERY_LOG_LIMIT"
-  #        Value: "1024"
-  #      - Name: "SERVER_AUDIT"
-  #        Value: "FORCE_PLUS_PERMANENT"
-  #      - Name: "SERVER_AUDIT_LOGGING"
-  #        Value: "ON"
-  #      - Name: "SERVER_AUDIT_FILE_ROTATE_SIZE"
-  #        Value: "5000000"
-  #      - Name: "SERVER_AUDIT_EVENTS"
-  #        Value: "CONNECT,QUERY_DCL,QUERY_DDL"
-
   dbSecretProdRegion:
     Type: "AWS::SecretsManager::Secret"
     Properties:
@@ -218,8 +177,6 @@ Resources:
       KmsKeyId: "alias/aws/secretsmanager"
   dbInstance:
     Type: "AWS::RDS::DBInstance"
-    #DeletionPolicy: Retain
-    #UpdateReplacePolicy: Retain
     Properties:
       Tags:
         # Enable daily backup to AWS Backup Vault (and replication out of region)
@@ -228,8 +185,7 @@ Resources:
       AllocatedStorage: "20"
       DBInstanceClass: !Ref dbInstanceSize
       Engine: "mysql"
-      #NOTE: MasterUsername/Password not used when db is restored from snapshots
-      ##     You inherit what was already there
+      # NOTE: MasterUsername/Password not used when db is restored from snapshots (you inherit what was already there)
       MasterUsername:
         Fn::Sub: "{{resolve:secretsmanager:${dbSecretProdRegion}::username}}"
       MasterUserPassword:
@@ -245,8 +201,8 @@ Resources:
           - noSnapshot
           - !Ref "AWS::NoValue"
           - !Ref snapshotToUse
-      PreferredBackupWindow: !FindInMap [EnvironmentMappings, !Ref envType,backupWindow]
-      ## don't repliucate snapshots for nonprod
+      PreferredBackupWindow: !FindInMap [EnvironmentMappings, !Ref envType, backupWindow]
+      # don't replicate snapshots for nonprod
       AutomaticBackupReplicationRegion:
         Fn::If:
           - isNonProdEnv
@@ -257,22 +213,21 @@ Resources:
           - isNonProdEnv
           - !Ref AWS::NoValue
           - !FindInMap [RegionMappings, !Ref AWS::Region, rdsKeyId]
-      BackupRetentionPeriod: !FindInMap [EnvironmentMappings, !Ref envType,backupRetention]  #0 disables RDS automtic backups #ToDo
+      BackupRetentionPeriod: !FindInMap [EnvironmentMappings, !Ref envType, backupRetention]
       AvailabilityZone: !Sub "${AWS::Region}${availabilityZone}"
       DBSubnetGroupName:
         Fn::ImportValue:
             !Sub "${orgName}-${accountType}-db-subnet-group-private"
-      PreferredMaintenanceWindow: !FindInMap [EnvironmentMappings, !Ref envType,maintenanceWindow]
+      PreferredMaintenanceWindow: !FindInMap [EnvironmentMappings, !Ref envType, maintenanceWindow]
       MultiAZ: false
-      #NetworkType: IPV4
-      EngineVersion: !Ref dbEngineMinorVer #"8.0.20"
+      EngineVersion: !Ref dbEngineMinorVer # "8.0.20"
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
       LicenseModel: "general-public-license"
       PubliclyAccessible: false
       StorageType: !Ref ebStorageType
       Port: !Ref dbPort
-      StorageEncrypted: true #encrypt all DBs
+      StorageEncrypted: true # encrypt all DBs
       CopyTagsToSnapshot: true
       MonitoringInterval: 0
       EnableIAMDatabaseAuthentication: false
@@ -282,9 +237,9 @@ Resources:
         - Fn::ImportValue:
             !Sub "${orgName}-${accountType}-db-sgid"
       DBParameterGroupName: !Ref dbParamGroup
-      #OptionGroupName: !Ref dbOptionGroup
-      EnableCloudwatchLogsExports: ["error","slowquery"]
-      CACertificateIdentifier: "rds-ca-rsa2048-g1" #"rds-ca-2019"
+      EnableCloudwatchLogsExports:
+      Fn::Split: [",",!FindInMap [EnvironmentMappings, !Ref envType, cloudwatchLogs]]
+      CACertificateIdentifier: "rds-ca-rsa2048-g1"
 
   secretAttachmentProdRegion:
     Type: "AWS::SecretsManager::SecretTargetAttachment"
@@ -293,7 +248,7 @@ Resources:
       TargetId: !Ref dbInstance
       TargetType: AWS::RDS::DBInstance
 
-  #Add alarms, sns topics and subscriptions ... only for prod instance
+  # Add alarms, sns topics and subscriptions ... only for prod instance
   rdsAlarmTopic:
     Type: AWS::SNS::Topic
     Condition: isProdEnv
@@ -325,7 +280,6 @@ Resources:
             Service:
               - events.amazonaws.com
               - cloudwatch.amazonaws.com
-            #AWS: '*' # Allow CloudWatch Alarms
           Action: 'sns:Publish'
           Resource: !Ref rdsAlarmTopic
           Condition:
@@ -359,22 +313,20 @@ Resources:
       - rdsTopicPolicy
       - dbInstance
 
-  #RDS Alarms - adjusted to stop alerts
+  # RDS Alarms - adjusted to stop alerts
   freeableMemoryTooLowAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn: rdsAlarmSubCST
     Condition: isProdEnv
     Properties:
-      #AlarmDescription: "RDS Alarm: Freeable Memory <= 128MB"
       AlarmDescription: "RDS Alarm: Freeable Memory <= 64MB"
       Namespace: AWS/RDS
       MetricName: FreeableMemory
       Unit: Bytes
       Statistic: Average
-      #Period: 300
       Period: 1800
       EvaluationPeriods: 3
-      Threshold: 65536000 #64mb ... 128MB = 131072000 ... 262144000 = 256MB
+      Threshold: 65536000 # 64mb ... 128MB = 131072000 ... 262144000 = 256MB
       ComparisonOperator: LessThanOrEqualToThreshold
       Dimensions:
         - Name: DBInstanceIdentifier
@@ -404,7 +356,7 @@ Resources:
         Value: !Ref dbInstance
       Period: 300
       EvaluationPeriods: 3
-      Threshold: 1024000000   #1GB ... 2048000000 = 2GB,  500000000 = 500mb
+      Threshold: 1024000000 # 1GB ... 2048000000 = 2GB,  500000000 = 500mb
       ComparisonOperator: LessThanThreshold
 
   cpuUsageTooHighAlarm:
@@ -473,7 +425,7 @@ Resources:
       Threshold: 500
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
-  #subscribe to RDS events (prod only)
+  # subscribe to RDS events (prod only)
   rdsEventSub:
     DependsOn: rdsAlarmSubCST
     Type: 'AWS::RDS::EventSubscription'
@@ -489,11 +441,10 @@ Resources:
       SnsTopicArn: !Ref rdsAlarmTopic
       SourceIds:
         - !Ref dbInstance
-        #- !Sub "${appName}-${envType}"
       SourceType: 'db-instance'
 
-  #** readonly user lambda
-  ## create an sm secret for readonly user
+  ## readonly user lambda
+  # create an sm secret for readonly user
   roUserSecret:
     Type: "AWS::SecretsManager::Secret"
     Condition: createROUser
@@ -518,7 +469,7 @@ Resources:
       KmsKeyId: "alias/aws/secretsmanager"
 
 
-  #reate a readonly user, if indicated
+  # Create a readonly user, if indicated
   roUserFunction:
     Type: "AWS::Lambda::Function"
     Condition: createROUser
@@ -527,7 +478,7 @@ Resources:
       FunctionName: !Sub "${appName}-${envType}-rouser"
       Handler: "rouser.create_rouser"
       Architectures: 
-        - "x86_64"
+      - "x86_64"
       Code: 
         S3Bucket:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
@@ -535,10 +486,9 @@ Resources:
       PackageType: Zip
       Environment:
         Variables:
-          APP_NAME: !Ref appName  #this should be instance name
+          APP_NAME: !Ref appName
           ENV_TYPE: !Ref envType
           ROUSER_SECRET_ID: !Ref roUserSecret
-          #DB_SECRET_ID: !Ref dbSecret
       MemorySize: 256
       Role: 
         Fn::ImportValue: !Sub "${orgName}-${accountType}-readonly-user-role-arn"
@@ -598,7 +548,7 @@ Resources:
       RotationLambdaARN: !GetAtt rotationFunction.Arn
       
 
-  #** secrets rotation lambda
+  # secrets rotation lambda
   rotationFunction:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -611,7 +561,7 @@ Resources:
       FunctionName: !Sub "${appName}-${envType}-secret-rotation"
       Handler: "rotate_secret.lambda_handler"
       Architectures: 
-        - "x86_64"
+      - "x86_64"
       Code: 
         S3Bucket:
           Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
@@ -661,8 +611,172 @@ Resources:
         ScheduleExpression: !FindInMap [EnvironmentMappings, !Ref envType,secretRotationSchedule]
       RotationLambdaARN: !GetAtt rotationFunction.Arn
 
-Outputs:
+      # **dbdump starts here**
+      # this is to dbload to the beta env
+      dbdumpFunctionBeta:
+        Condition: isProdEnv
+        Type: "AWS::Lambda::Function"
+        Properties:
+          Description: !Sub "Backup rds db for ${appName}-${envType} to a given s3 bucket prefix"
+          FunctionName: !Sub "${appName}-${envType}-dbdump"
+          Architectures:
+            - "x86_64"
+          Code:
+            ImageUri:
+              Fn::Sub:
+                - "${repo}:dbdump.${ver}"
+                - repo:
+                    Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-ecr-repo-uri"
+                  ver: !Ref ecrTagVersion
+          PackageType: Image
+          Environment:
+            Variables:
+              APP_NAME: !Ref appName
+              ENV_TYPE: !Ref envType
+              SECRET_ID: !Ref dbSecretProdRegion
+              S3_BUCKET: # we want the dbdump to go into the nonprod shared S3 buckt
+                Fn::Sub:
+                  - "${prefix}-nonprod-${region}-${accId}"
+                  - prefix: !Ref namePrefix
+                    region: !Ref 'AWS::Region'
+                    accId:
+                      Fn::ImportValue: !Sub "${orgName}-nonprod-aws-account-id"
+              BUCKET_PREFIX: !Sub "dbdump/${appName}-${envType}/"
+              TO_ADDRESS: !Ref supportEmail
+              FROM_ADDRESS:
+                Fn::Sub:
+                  - "noreply@${dom}"
+                  - dom:
+                      Fn::ImportValue: !Sub "${orgName}-${accountType}-route53-domainname"
+              KEEP_DB_NAME: "Yes"
+              INVOKE_DBLOAD: "Yes"
+              INVOKE_DBLOAD_FUNCTION:
+                Fn::Sub:
+                  - "arn:${awsp}:lambda:${region}:${acctid}:function:${app}-beta-dbload"
+                  - awsp: !Ref AWS::Partition
+                    region: !Ref 'AWS::Region'
+                    acctid:
+                      Fn::ImportValue: !Sub "${orgName}-nonprod-aws-account-id"
+                    app: !Ref appName
+              INVOKE_DBLOAD_ROLE:
+                Fn::Sub:
+                  - "arn:${awsp}:iam::${acctid}:role/${org}-nonprod-dbload-role"
+                  - awsp: !Ref AWS::Partition
+                    acctid:
+                      Fn::ImportValue: !Sub "${orgName}-nonprod-aws-account-id"
+                    org: !Ref orgName
+          MemorySize: 256
+          Role:
+            Fn::ImportValue: !Sub "${orgName}-${accountType}-dbdump-xa-role-arn"
+          Timeout: 300
+          VpcConfig:
+            SubnetIds:
+              Fn::Split:
+                - ","
+                - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+            SecurityGroupIds:
+              - Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
+          EphemeralStorage:
+            Size: 512
+          LoggingConfig:
+            ApplicationLogLevel: INFO
+            LogFormat: JSON
+            SystemLogLevel: INFO
+            LogGroup: !Ref dbdumpLogGroup
 
+      # logging for dbdump for all envTypes
+      dbdumpLogGroup:
+        Type: "AWS::Logs::LogGroup"
+        Condition: isProdAccount
+        Properties:
+          LogGroupName: !Sub "/lambda/${appName}-${accountType}-dbdump"
+          RetentionInDays: 30
+
+      scheduleDBDumpToBeta:
+        Condition: isProdEnv
+        Type: "AWS::Scheduler::Schedule"
+        Properties:
+          Name: !Sub "${appName}-dbdump-to-beta-schedule"
+          Description: "Schedule mysql backups to given s3 bucket"
+          State: "ENABLED"
+          GroupName: "default"
+          ScheduleExpression: !FindInMap [EnvironmentMappings, "beta", dbloadSchedule]
+          ScheduleExpressionTimezone: "Europe/London"
+          FlexibleTimeWindow:
+            Mode: "OFF"
+          Target:
+            Arn: !GetAtt dbdumpFunctionBeta.Arn
+            RetryPolicy:
+              MaximumEventAgeInSeconds: 86400
+              MaximumRetryAttempts: 0
+            RoleArn:
+              Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-scheduler-role-arn"
+
+      # **dbload starts here**
+      # dbload for beta envType - duplicate for more envTypes
+      ## deployed but not scheduled - will be invoked from prod
+      dbloadFunctionBeta:
+        Condition: isBetaEnv
+        Type: "AWS::Lambda::Function"
+        Properties:
+          Description: !Sub "Load rds db for ${appName}-beta from a given s3 bucket prefix"
+          FunctionName: !Sub "${appName}-beta-dbload"
+          Architectures:
+            - "x86_64"
+          Code:
+            ImageUri:
+              Fn::Sub:
+                - "${repo}:dbload.${ver}"
+                - repo:
+                    Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-ecr-repo-uri"
+                  ver: !Ref ecrTagVersion
+          PackageType: Image
+          Environment:
+            Variables:
+              APP_NAME: !Ref appName
+              ENV_TYPE: !Ref envType
+              SECRET_ID: !Ref dbSecretProdRegion
+              S3_BUCKET:
+                Fn::ImportValue: !Sub "${orgName}-${accountType}-shared-bucket1"
+              SRC_BUCKET_PREFIX: !Sub "dbdump/${appName}-prod/"
+              DEST_BUCKET_PREFIX: !Sub "dbload/${appName}-${envType}/done/"
+              TO_ADDRESS: !Ref supportEmail
+              FROM_ADDRESS:
+                Fn::Sub:
+                  - "noreply@${dom}"
+                  - dom:
+                      Fn::ImportValue: !Sub "${orgName}-${accountType}-route53-domainname"
+              SAME_DB_NAME: "Yes"
+          MemorySize: 256
+          Role:
+            Fn::ImportValue: !Sub "${orgName}-${accountType}-dbload-role-arn"
+          Timeout: 30
+          TracingConfig:
+            Mode: "PassThrough"
+          VpcConfig:
+            SubnetIds:
+              Fn::Split:
+                - ","
+                - Fn::ImportValue: !Sub "${orgName}-${accountType}-vpc-private-subnets"
+            SecurityGroupIds:
+              - Fn::ImportValue: !Sub "${orgName}-${accountType}-lambda-sgid"
+          EphemeralStorage:
+            Size: 512
+          LoggingConfig:
+            ApplicationLogLevel: INFO
+            LogFormat: JSON
+            SystemLogLevel: INFO
+            LogGroup: !Ref dbloadLogGroup
+
+      # logging for dbload for all envTypes
+      dbloadLogGroup:
+        Condition: isNonProdAccount
+        Type: "AWS::Logs::LogGroup"
+        Properties:
+          LogGroupName: !Sub "/lambda/${appName}-${accountType}-dbload"
+          RetentionInDays: 30
+
+Outputs:
   dbSecretProdRegion:
     Description: "DB secret ARN (Secrets Manager), same thing as secret id"
     Value: !Ref dbSecretProdRegion

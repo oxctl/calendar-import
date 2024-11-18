@@ -25,10 +25,6 @@ Parameters:
       - "beta"
       - "test"
       - "staging"
-  drRegion:
-    Type: String
-    Default: "eu-central-1"
-
 
 Resources:
   ebApplication:
@@ -42,7 +38,6 @@ Resources:
             Enabled: true
             MaxAgeInDays: 90
             DeleteSourceFromS3: true
-
 
 Outputs:
   appName:

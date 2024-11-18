@@ -1,6 +1,5 @@
 ---
-# Template to create an EB env.  Assumes the containg App has been created.
-#
+# Template to create an EB env.  Assumes the containing App has been created.
 # For RDS instance name, if 'default' is set, will be appName-envType .. or specify a name
 AWSTemplateFormatVersion: '2010-09-09'
 Metadata: {}
@@ -35,10 +34,6 @@ Parameters:
     AllowedValues:
       - "Yes"
       - "No"
-  #appVersion:
-  #  Description: "The github version of the app zipfile to deploy.  typical format is github-master-NNN or github-version-NNN. Assumes full filename is appVersion.<appVersionFileExtension>.  In DR sessions, we get this value from secrets-manager, see the wiki." #Leave as 'SampleApp' to deploy the standard AWS sample apps
-  #  Type: String
-    #Default: "SampleApp"
   appVersionDesc:
     Description: "The description for this app version, typically the commit comment for the code version."
     Type: String
@@ -54,7 +49,7 @@ Parameters:
     AllowedValues:
       - "t3.micro"
       - "t2.micro"
-  ## LB health-check url
+  # LB health-check url
   lbHealthCheckPath:
     Type: String
     Default: "/actuator/health"
@@ -62,12 +57,12 @@ Parameters:
     Description: "Email for notifying CSST"
     Type: String
     Default: "cloud-services@it.ox.ac.uk"
-  #SPRING_CONFIG_IMPORT
+  # SPRING_CONFIG_IMPORT
   springConfigPrefix:
     Description: "String prefix for locating the config in secrets manager"
     Type: String
     Default: "aws-secretsmanager:"
-  ##ControlTower exports important stuff
+  # ControlTower exports important stuff
   jwtAudience:
     Description: "The audience that the JWT will be signed with"
     Type: String
@@ -78,53 +73,44 @@ Parameters:
     Type: String
   # This cannot be an import because it is cross region.
   wafARN:
-    Description: "The ARN for the WebACLV2 for this account.  Check in the cloudformation exports in us-east-1 region, for <orgNam>-<accountType>-waf-arn"
+    Description: "The ARN for the WebACLV2 for this account. Check in the cloudformation exports in us-east-1 region, for <orgNam>-<accountType>-waf-arn"
     Type: String
   configSecretsPath:
-    Description: "The path for the dummy scret to be created.  This allows us to change the path easily"
+    Description: "The path for the dummy secret to be created. This allows us to change the path easily"
     Type: String
-    #deliberately used eb-env to avoid collision with the manually created secrets using eb-app/config
+    # deliberately used eb-env to avoid collision with the manually created secrets using eb-app/config
     Default: "eb-env/config"
   solutionStack:
     Description: "Solution stack"
     Type: "String"
 
 Mappings:
-
-  
-  #AccountTypeMappings:
-  #  prod:
-  #    "cadRootDomainName": "apps"
-  #  nonprod:
-  #    "cadRootDomainName": "apps-nonprod"
-
   EnvironmentMappings:
     prod:
       "mngdUpdates": "TUE:06:00"
-      "springProfile": "aws" #SPRING_PROFILES_ACTIVE
+      "instanceLogRetentionDays": "90"
+      "instanceStreamLogs": "true"
+      "healthLogRetentionDays": "7"
+      "healthStreamLogs": "true"
+      "springProfile": "aws" # SPRING_PROFILES_ACTIVE
       "jwtIssuer": "https://lti.canvas.ox.ac.uk"
       "jwtJWKSURI": "https://lti.canvas.ox.ac.uk/.well-known/jwks.json"
     beta:
       "mngdUpdates": "MON:06:00"
+      "instanceLogRetentionDays": "90"
+      "instanceStreamLogs": "true"
+      "healthLogRetentionDays": "7"
+      "healthStreamLogs": "false"
       # We have an additional profile that unsets things on the non-prod account
-      "springProfile": "aws,nonprod" #SPRING_PROFILES_ACTIVE
+      "springProfile": "aws,nonprod" # SPRING_PROFILES_ACTIVE
       "jwtIssuer": "https://lti-dev.canvas.ox.ac.uk"
       "jwtJWKSURI": "https://lti-dev.canvas.ox.ac.uk/.well-known/jwks.json"
 
 Conditions:
-  isProdRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-west-1']}
-  isDRRegion: {"Fn::Equals" : [!Ref "AWS::Region", 'eu-central-1']}
   isProd: {"Fn::Equals": [!Ref envType, "prod"]}
-  isProdMain: !And
-    - !Condition isProdRegion
-    - !Condition isProd
-  isNonProdMain: {"Fn::Not" : [Condition: isProdMain]}
   isNonProd: {"Fn::Not" : [Condition: isProd]}
-  #disableSentry: {"Fn::Equals" : [!Ref disableSentryIO, "Yes"]}  #ToDo: how to disable SENTRY in test deployments now it's in secrets-manager?
-
 
 Resources:
-  
   applicationLogGroup:
     # We create the log group here so we can assign permissions to it and we want to set a retention period
     # which is why we don't have it created when the container is launched
@@ -167,6 +153,18 @@ Resources:
               - logs:PutLogEvents
             Resource:
               - !GetAtt applicationLogGroup.Arn
+          - Sid: ElasticBeanstalkHealthAccess
+            Effect: Allow
+            Action:
+              - elasticbeanstalk:PutInstanceStatistics
+            Resource:
+              - "arn:aws:elasticbeanstalk:*:*:application/*"
+              - "arn:aws:elasticbeanstalk:*:*:environment/*"
+          - Sid: AllowSNSFull
+            Effect: Allow
+            Action:
+              - "sns:*"
+            Resource: "*"
           - Sid: AppBucketUploadPermissions
             Effect: Allow
             Action:
@@ -180,14 +178,36 @@ Resources:
             Resource:
               - !GetAtt appBucketUpload.Arn
               - !Join [ "", [ !GetAtt appBucketUpload.Arn, "/*" ] ]
+          - Sid: SSMs3SharedBucketPermissions
+            Effect: Allow
+            Action:
+              - s3:GetBucketLocation
+              - s3:PutObject
+              - s3:GetObject
+              - s3:GetEncryptionConfiguration
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+              - s3:ListBucket
+              - s3:ListBucketMultipartUploads
+            Resource:
+              - Fn::Sub:
+                  - "arn:${AWS::Partition}:s3:::${bucket}"
+                  - bucket:
+                      Fn::ImportValue:
+                        !Sub "${orgName}-${accountType}-shared-bucket1"
+              - Fn::Sub:
+                  - "arn:${AWS::Partition}:s3:::${bucket}/*"
+                  - bucket:
+                      Fn::ImportValue:
+                        !Sub "${orgName}-${accountType}-shared-bucket1"
 
   ebInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
       Path: "/"
       Roles:
-        - !Ref ebInstanceRole                      
-  
+        - !Ref ebInstanceRole
+
   ebInstanceRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -206,11 +226,11 @@ Resources:
         - "arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker"
         - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
         - "arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier"
-        - "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy"
         - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
         - "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
-        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" # ssm reqd permissions for ssh
-        - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy" #cloud-watch-agent
+        - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore" # ssm required permissions for ssh
+        - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy" # cloud-watch-agent
         - "arn:aws:iam::aws:policy/AmazonElasticFileSystemsUtils"
         - !Ref appPolicy
       Description: !Sub "Instance profile role for EB - ${appName}-${envType}"
@@ -262,7 +282,6 @@ Resources:
       EnvironmentName: !Sub "${appName}-${envType}"
       ApplicationName: !Ref appName
       VersionLabel: !Ref ApplicationVersion
-      #SolutionStackName: !Ref ebSolutionStack
       TemplateName: !Ref appConfigTemplate
       Tier:
         Name: "WebServer"
@@ -293,6 +312,7 @@ Resources:
           Value: !FindInMap [ EnvironmentMappings, !Ref envType, springProfile ]
         - Namespace: "aws:elasticbeanstalk:application:environment"
           # The URL to the frontend files.
+          # TODO this is "SIGNUP_UI_ORIGIN" in signup should it also have app name here?
           OptionName: "FRONTEND_ORIGINS"
           Value: !Join ["", ["https://", Fn::ImportValue: !Sub "${appName}-${accountType}-frontend-domain"]]
         - Namespace: "aws:elasticbeanstalk:application:environment"
@@ -316,10 +336,6 @@ Resources:
           OptionName: "HOSTNAME"
           Value:
             Fn::ImportValue: !Sub "${appName}-${accountType}-route53-domainname"
-
-
-
-
           # At one point this used to be in a different configuration template but cloudformation doesn't update
           # templates that use `SourceConfiguration` so it was un-updatable. These options are now included in the main
           # configuration template
@@ -335,7 +351,7 @@ Resources:
         - ResourceName: "AWSEBAutoScalingLaunchConfiguration"
           Namespace: "aws:ec2:vpc"
           OptionName: "AssociatePublicIpAddress"
-          Value: "false" #"true".. yeah, LB allows private nets
+          Value: "false"
         - Namespace: "aws:ec2:vpc"
           OptionName: "ELBSubnets"
           Value:
@@ -352,11 +368,6 @@ Resources:
           Namespace: "aws:autoscaling:asg"
           OptionName: "MinSize"
           Value: "1"
-        ## avoid keyPair mgt and use ssm session mgt
-        #- ResourceName: "AWSEBAutoScalingLaunchConfiguration"
-        #  Namespace: "aws:autoscaling:launchconfiguration"
-        #  OptionName: "EC2KeyName"
-        #  Value: !Ref envKeyPair
         - Namespace: "aws:autoscaling:launchconfiguration"
           OptionName: "InstanceType"
           Value: !Ref instanceSize
@@ -385,24 +396,23 @@ Resources:
           Value: "x86_64"
         - Namespace: "aws:elasticbeanstalk:cloudwatch:logs"
           OptionName: "RetentionInDays"
-          Value: "90"
+          Value: !FindInMap [ EnvironmentMappings, !Ref envType, instanceLogRetentionDays ]
         - Namespace: "aws:elasticbeanstalk:cloudwatch:logs"
           OptionName: "StreamLogs"
-          Value: "true"
+          Value: !FindInMap [ EnvironmentMappings, !Ref envType, instanceStreamLogs ]
         - Namespace: "aws:elasticbeanstalk:cloudwatch:logs:health"
           OptionName: "HealthStreamingEnabled"
-          Value: "true"
+          Value: !FindInMap [ EnvironmentMappings, !Ref envType, healthStreamLogs ]
         - Namespace: "aws:elasticbeanstalk:cloudwatch:logs:health"
           OptionName: "RetentionInDays"
-          Value: "7"
+          Value: !FindInMap [ EnvironmentMappings, !Ref envType, healthLogRetentionDays ]
         - Namespace: "aws:elasticbeanstalk:command"
           OptionName: "DeploymentPolicy"
           Value: !If [isProd, "Immutable", "AllAtOnce"]
         - Namespace: "aws:elasticbeanstalk:control"
           OptionName: "DefaultSSHPort"
           Value: "22"
-          #  Fn::ImportValue: !Sub "${orgName}-${accountType}-ssh-port"
-        ## LOad Balancer bits
+        # Load Balancer bits
         - Namespace: "aws:elasticbeanstalk:environment"
           OptionName: "EnvironmentType"
           Value: "LoadBalanced"  #"SingleInstance"
@@ -418,7 +428,7 @@ Resources:
         - Namespace: "aws:elasticbeanstalk:healthreporting:system"
           OptionName: "EnhancedHealthAuthEnabled"
           Value: "true"
-        #ToDo: use 'Warning' or 'Degraded' for success threshold ?
+        # ToDo: use 'Warning' or 'Degraded' for success threshold ?
         - Namespace: "aws:elasticbeanstalk:healthreporting:system"
           OptionName: "HealthCheckSuccessThreshold"
           Value: "Warning"
@@ -429,7 +439,7 @@ Resources:
         - Namespace: "aws:elasticbeanstalk:hostmanager"
           OptionName: "LogPublicationControl"
           Value: "true"
-        ## enable managed platform updates - #ToDo: Make this a parameter?
+        # enable managed platform updates
         - Namespace: "aws:elasticbeanstalk:managedactions"
           OptionName: "ManagedActionsEnabled"
           Value: "true"
@@ -439,22 +449,17 @@ Resources:
         - Namespace: "aws:elasticbeanstalk:managedactions"
           OptionName: "ServiceRoleForManagedUpdates"
           Value: "AWSServiceRoleForElasticBeanstalkManagedUpdates"
-        ##ToDo: is there a case for using 'major' or 'patch' ?
         - Namespace: "aws:elasticbeanstalk:managedactions:platformupdate"
           OptionName: "UpdateLevel"
           Value: "minor"
         - Namespace: "aws:elasticbeanstalk:command"
           OptionName: "IgnoreHealthCheck"
           Value: "false"
-        #enable additional metrics (besides EnironmentHealth) only for -prod
+        # enable additional metrics (besides EnironmentHealth) only for -prod
         - Namespace: "aws:elasticbeanstalk:healthreporting:system"
           OptionName: "ConfigDocument"
-          Value:
-            Fn::If:
-              - isProd
-              - "{\n  \"Version\": 1,\n  \"CloudWatchMetrics\": {\n    \"Instance\": {\n      \"RootFilesystemUtil\": 60,\n      \"CPUIrq\": null,\n      \"LoadAverage5min\": 60,\n      \"ApplicationRequests5xx\": 60,\n      \"ApplicationRequests4xx\": 60,\n      \"CPUUser\": 60,\n      \"LoadAverage1min\": 60,\n      \"ApplicationLatencyP50\": null,\n      \"CPUIdle\": 60,\n      \"InstanceHealth\": 60,\n      \"ApplicationLatencyP95\": null,\n      \"ApplicationLatencyP85\": null,\n      \"ApplicationLatencyP90\": null,\n      \"CPUSystem\": 60,\n      \"ApplicationLatencyP75\": null,\n      \"CPUSoftirq\": null,\n      \"ApplicationLatencyP10\": null,\n      \"ApplicationLatencyP99\": null,\n      \"ApplicationRequestsTotal\": 60,\n      \"ApplicationLatencyP99.9\": null,\n      \"ApplicationRequests3xx\": 60,\n      \"ApplicationRequests2xx\": 60,\n      \"CPUIowait\": 60,\n      \"CPUNice\": null\n    },\n    \"Environment\": {\n      \"InstancesSevere\": 60,\n      \"InstancesDegraded\": 60,\n      \"ApplicationRequests5xx\": 60,\n      \"ApplicationRequests4xx\": 60,\n      \"ApplicationLatencyP50\": null,\n      \"ApplicationLatencyP95\": null,\n      \"ApplicationLatencyP85\": null,\n      \"InstancesUnknown\": 60,\n      \"ApplicationLatencyP90\": null,\n      \"InstancesInfo\": null,\n      \"InstancesPending\": 60,\n      \"ApplicationLatencyP75\": null,\n      \"ApplicationLatencyP10\": null,\n      \"ApplicationLatencyP99\": 60,\n      \"ApplicationRequestsTotal\": 60,\n      \"InstancesNoData\": 60,\n      \"ApplicationLatencyP99.9\": null,\n      \"ApplicationRequests3xx\": null,\n      \"ApplicationRequests2xx\": 60,\n      \"InstancesOk\": 60,\n      \"InstancesWarning\": null\n    }\n  },\n  \"Rules\": {\n    \"Environment\": {\n      \"ELB\": {\n        \"ELBRequests4xx\": {\n          \"Enabled\": true\n        }\n      },\n      \"Application\": {\n        \"ApplicationRequests4xx\": {\n          \"Enabled\": true\n        }\n      }\n    }\n  }\n}"
-              - "{\n  \"Version\": 1,\n  \"CloudWatchMetrics\": {\n    \"Instance\": {\n      \"RootFilesystemUtil\": null,\n      \"CPUIrq\": null,\n      \"LoadAverage5min\": null,\n      \"ApplicationRequests5xx\": null,\n      \"ApplicationRequests4xx\": null,\n      \"CPUUser\": null,\n      \"LoadAverage1min\": null,\n      \"ApplicationLatencyP50\": null,\n      \"CPUIdle\": null,\n      \"InstanceHealth\": null,\n      \"ApplicationLatencyP95\": null,\n      \"ApplicationLatencyP85\": null,\n      \"ApplicationLatencyP90\": null,\n      \"CPUSystem\": null,\n      \"ApplicationLatencyP75\": null,\n      \"CPUSoftirq\": null,\n      \"ApplicationLatencyP10\": null,\n      \"ApplicationLatencyP99\": null,\n      \"ApplicationRequestsTotal\": null,\n      \"ApplicationLatencyP99.9\": null,\n      \"ApplicationRequests3xx\": null,\n      \"ApplicationRequests2xx\": null,\n      \"CPUIowait\": null,\n      \"CPUNice\": null\n    },\n    \"Environment\": {\n      \"InstancesSevere\": null,\n      \"InstancesDegraded\": null,\n      \"ApplicationRequests5xx\": null,\n      \"ApplicationRequests4xx\": null,\n      \"ApplicationLatencyP50\": null,\n      \"ApplicationLatencyP95\": null,\n      \"ApplicationLatencyP85\": null,\n      \"InstancesUnknown\": null,\n      \"ApplicationLatencyP90\": null,\n      \"InstancesInfo\": null,\n      \"InstancesPending\": null,\n      \"ApplicationLatencyP75\": null,\n      \"ApplicationLatencyP10\": null,\n      \"ApplicationLatencyP99\": null,\n      \"ApplicationRequestsTotal\": null,\n      \"InstancesNoData\": null,\n      \"ApplicationLatencyP99.9\": null,\n      \"ApplicationRequests3xx\": null,\n      \"ApplicationRequests2xx\": null,\n      \"InstancesOk\": null,\n      \"InstancesWarning\": null\n    }\n  },\n  \"Rules\": {\n    \"Environment\": {\n      \"ELB\": {\n        \"ELBRequests4xx\": {\n          \"Enabled\": true\n        }\n      },\n      \"Application\": {\n        \"ApplicationRequests4xx\": {\n          \"Enabled\": true\n        }\n      }\n    }\n  }\n}"
-        ## default is public
+          Value: "{\n  \"Version\":1,\n  \"CloudWatchMetrics\":{\n    \"Instance\":{\n      \"InstanceHealth\":60,\n      \"RootFilesystemUtil\":60,\n      \"CPUIrq\":60,\n      \"CPUSoftirq\":60,\n      \"CPUSystem\":60,\n      \"CPUUser\":60,\n      \"CPUIdle\":60,\n      \"CPUIowait\":60,\n      \"CPUNice\":60,\n      \"LoadAverage5min\":60,\n      \"LoadAverage1min\":60,\n      \"ApplicationRequestsTotal\":60,\n      \"ApplicationRequests2xx\":60,\n      \"ApplicationRequests3xx\":60,\n      \"ApplicationRequests4xx\":60,\n      \"ApplicationRequests5xx\":60,\n      \"ApplicationLatencyP50\":60,\n      \"ApplicationLatencyP90\":60,\n      \"ApplicationLatencyP99\":60\n      },\n      \"Environment\":{\n      \"InstancesSevere\":60,\n      \"InstancesDegraded\":60,\n      \"InstancesOk\":60,\n      \"InstancesWarning\":60,\n      \"InstancesInfo\":60,\n      \"InstancesPending\":60,\n      \"InstancesNoData\":60,\n      \"InstancesUnknown\":60,\n      \"ApplicationRequestsTotal\":60,\n      \"ApplicationRequests3xx\":60,\n      \"ApplicationRequests2xx\":60,\n      \"ApplicationRequests4xx\":60,\n      \"ApplicationRequests5xx\":60,\n      \"ApplicationLatencyP50\":60,\n      \"ApplicationLatencyP90\":60,\n      \"ApplicationLatencyP99\":60\n    }\n  },\n  \"Rules\":{\n    \"Environment\":{\n      \"ELB\":{\n        \"ELBRequests4xx\":{\n        \"Enabled\":true\n        }\n      },\n      \"Application\":{\n        \"ApplicationRequests4xx\":{\n      \"Enabled\":true\n        }\n      }\n    }\n  }\n}"
+        # default is public
         - Namespace: "aws:ec2:vpc"
           OptionName: "ELBScheme"
           Value: "internal"
@@ -475,7 +480,7 @@ Resources:
           OptionName: "SharedLoadBalancer"
           Value:
             Fn::ImportValue: !Sub "${orgName}-${accountType}-eb-lb-arn"
-        #default process ..
+        # default process
         - ResourceName: "AWSEBV2LoadBalancerTargetGroup"
           Namespace: "aws:elasticbeanstalk:environment:process:default"
           OptionName: "Port"
@@ -493,7 +498,7 @@ Resources:
           OptionName: "MatcherHTTPCode"
           Value: 200 
         ## lbRules
-        #make 443 listener default
+        # make 443 listener default
         - ResourceName: ":default"
           Namespace: "aws:elbv2:listener:443"
           OptionName: "Rules"
@@ -571,8 +576,8 @@ Resources:
             - "HEAD"
             - "GET"
           Compress: false
-          CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" #!Ref cfCachePolicy
-          OriginRequestPolicyId:  "33f36d7e-f396-46d9-90e0-52428a34d9dc"   #!Ref origReqPolicy
+          CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+          OriginRequestPolicyId:  "33f36d7e-f396-46d9-90e0-52428a34d9dc"
           SmoothStreaming: false
           TargetOriginId: !Sub "${appName}-${envType}-alb"
           ViewerProtocolPolicy: "redirect-to-https"
@@ -593,7 +598,7 @@ Resources:
         Restrictions:
           GeoRestriction:
             RestrictionType: "none"
-        WebACLId: !Ref wafARN    #link to WAF protection
+        WebACLId: !Ref wafARN  # link to WAF protection
         HttpVersion: "http2and3"
         DefaultRootObject: ""
         IPV6Enabled: false
@@ -603,44 +608,38 @@ Resources:
           IncludeCookies: false
           Prefix: !Sub "cloudfront-lb/${appName}-${envType}"
 
-  #add alias record for cloudfront
+  # add alias record for cloudfront
   cfR53AliasRec1:
     Type: AWS::Route53::RecordSetGroup
-    Condition: isProdRegion
     Properties:
       HostedZoneId:
         Fn::ImportValue:
           !Sub "${appName}-${accountType}-route53-zoneid"
       RecordSets:
-        #add primary access fqdn
+        # add primary access fqdn
         - Name:
             Fn::ImportValue: !Sub "${appName}-${accountType}-route53-domainname"
           Type: A
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2  #AWS provided static vale - cf.
             DNSName: !GetAtt lbCFDistribution.DomainName
-    #DependsOn: lbCFDistribution
 
-  # We create a blank secrets manager resource .. to be manually updated as reqd
+  # We create a blank secrets manager resource to be manually updated as required
   envDummyConfigSecret:
     Type: "AWS::SecretsManager::Secret"
     Properties:
-      #if you change this next below, also change SPRING_CONFIG_IMPORT in EB resource to match
+      # if you change this next below, also change SPRING_CONFIG_IMPORT in EB resource to match
       Name: !Sub "${appName}/${envType}/${configSecretsPath}"
       Description: !Sub "${appName}-${envType} - Config Secret"
       KmsKeyId: "alias/aws/secretsmanager"
-
-
   ebTopic:
     Type: "AWS::SNS::Topic"
-    #Condition: isProd
     Properties:
       DisplayName: !Sub "EB status updates for ${appName}-${envType}"
       KmsMasterKeyId: "alias/aws/sns"
 
   ebTopicPolicy:
     Type: 'AWS::SNS::TopicPolicy'
-    #Condition: isProd
     Properties:
       PolicyDocument:
         Id: Id1
@@ -660,8 +659,6 @@ Resources:
 
   SNSTopicPolicy:
     Type: "AWS::SNS::TopicPolicy"
-    #Condition: isProd
-    #Description: ""  #ToDo: is this allowed ?
     Properties:
       PolicyDocument:
         Id: ""
@@ -672,12 +669,8 @@ Resources:
               AWS: !Ref AWS::AccountId
             Action:
               - SNS:Publish
-              #- SNS:RemovePermission
-              #- SNS:SetTopicAttributes
-              #- SNS:DeleteTopic
               - SNS:ListSubscriptionsByTopic
               - SNS:GetTopicAttributes
-              #- SNS:AddPermission
               - SNS:Subscribe
             Resource: !Ref ebTopic
             Condition:
@@ -692,29 +685,25 @@ Resources:
       Topics:
       - !Ref ebTopic
 
-  #notify CST
+  # notify CST
   ebTopicSubCSST:
     Type: "AWS::SNS::Subscription"
-    #Condition: isProd
     Properties:
       TopicArn: !Ref ebTopic
       Endpoint: !Ref csstEmail
       Protocol: email
       Region: !Ref AWS::Region
 
-  #notify CAD
+  # notify CAD
   ebTopicSubCAD:
     Type: "AWS::SNS::Subscription"
-    #Condition: isProd
     Properties:
       TopicArn: !Ref ebTopic
       Endpoint: !Ref cadEmail
       Protocol: email
       Region: !Ref AWS::Region
 
-
   eventRuleEBEnvUpdates:
-    #Condition: isProd
     Type: AWS::Events::Rule
     Properties:
       Name: !Sub "${appName}-${envType}-env-eb-envupdates" 
@@ -734,13 +723,11 @@ Resources:
       State: ENABLED
       Targets:
         - Id: !Sub "${appName}${envType}envupdates"
-          #Just ref the topic here
+          # Just ref the topic here
           Arn: !Ref ebTopic
-          #Arn: !Sub "arn:$(AWS::Partition):sns:$(AWS::Region):$(AWS::AccountId):${appName}-${envType}-eb-envstatus"
           InputPath: $.detail
 
   eventRuleHealthstatus:
-    #Condition: isProd
     Type: AWS::Events::Rule
     Properties:
       Name: !Sub "${appName}-${envType}-env-eb-healthstatus"
@@ -757,17 +744,15 @@ Resources:
           Severity:
             - ERROR
           EnvironmentName:
-            - !Ref Environment #!Sub "${appName}-${envType}-env"
+            - !Ref Environment
       State: ENABLED
       Targets:
         - Id: !Sub "${appName}${envType}healthstatus"
-          #Just ref the topic here
+          # Just ref the topic here
           Arn: !Ref ebTopic
-          #Arn: !Sub "arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${appName}-${envType}-eb-envstatus"
           InputPath: $.detail
 
   eventRuleMgdUpdates:
-    #Condition: isProd
     Type: AWS::Events::Rule
     Properties:
       Name: !Sub "${appName}-${envType}-env-eb-mgdupdates"
@@ -784,13 +769,12 @@ Resources:
           Severity:
             - INFO
           EnvironmentName:
-            - !Ref Environment #!Sub "${appName}-${envType}-env"
+            - !Ref Environment
       State: ENABLED
       Targets:
         - Id: !Sub "${appName}${envType}mgdupdates"
-          #Just ref the topic here
+          # Just ref the topic here
           Arn: !Ref ebTopic
-          #Arn: !Sub "arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${appName}-${envType}-eb-envstatus"
           InputPath: $.detail
 
 Outputs:
@@ -828,4 +812,3 @@ Outputs:
               !Sub "${orgName}-${accountType}-route53-domainname"
     Export:
       Name: !Sub "${appName}-${envType}-ebenv-cf-admin-url"
-
