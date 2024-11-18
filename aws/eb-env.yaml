@@ -160,11 +160,6 @@ Resources:
             Resource:
               - "arn:aws:elasticbeanstalk:*:*:application/*"
               - "arn:aws:elasticbeanstalk:*:*:environment/*"
-          - Sid: AllowSNSFull
-            Effect: Allow
-            Action:
-              - "sns:*"
-            Resource: "*"
           - Sid: AppBucketUploadPermissions
             Effect: Allow
             Action:
@@ -178,28 +173,6 @@ Resources:
             Resource:
               - !GetAtt appBucketUpload.Arn
               - !Join [ "", [ !GetAtt appBucketUpload.Arn, "/*" ] ]
-          - Sid: SSMs3SharedBucketPermissions
-            Effect: Allow
-            Action:
-              - s3:GetBucketLocation
-              - s3:PutObject
-              - s3:GetObject
-              - s3:GetEncryptionConfiguration
-              - s3:AbortMultipartUpload
-              - s3:ListMultipartUploadParts
-              - s3:ListBucket
-              - s3:ListBucketMultipartUploads
-            Resource:
-              - Fn::Sub:
-                  - "arn:${AWS::Partition}:s3:::${bucket}"
-                  - bucket:
-                      Fn::ImportValue:
-                        !Sub "${orgName}-${accountType}-shared-bucket1"
-              - Fn::Sub:
-                  - "arn:${AWS::Partition}:s3:::${bucket}/*"
-                  - bucket:
-                      Fn::ImportValue:
-                        !Sub "${orgName}-${accountType}-shared-bucket1"
 
   ebInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
