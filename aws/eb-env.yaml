@@ -312,7 +312,6 @@ Resources:
           Value: !FindInMap [ EnvironmentMappings, !Ref envType, springProfile ]
         - Namespace: "aws:elasticbeanstalk:application:environment"
           # The URL to the frontend files.
-          # TODO this is "SIGNUP_UI_ORIGIN" in signup should it also have app name here?
           OptionName: "FRONTEND_ORIGINS"
           Value: !Join ["", ["https://", Fn::ImportValue: !Sub "${appName}-${accountType}-frontend-domain"]]
         - Namespace: "aws:elasticbeanstalk:application:environment"
