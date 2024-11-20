@@ -5,7 +5,8 @@ Parameters:
   appName:
     Type: String
     # This can't contain anything than letters and characters, and a dash (-) (as it's used in DB name)
-    AllowedPattern: "^[a-zA-Z0-9-]*$"
+    AllowedPattern: "^[a-z][a-z0-9-]*$"
+    MaxLength: 20
   appVersionDesc:
     Type: String
     Description: The label for the elastic beanstalk version.
@@ -68,7 +69,6 @@ Outputs:
     Value: !GetAtt AppEB.Outputs.versionRef
     Export:
       Name: !Sub "${AWS::StackName}-version"
-  
   dbName:
     Description: "DB's Name"
     Value: !GetAtt AppRDS.Outputs.dbName
