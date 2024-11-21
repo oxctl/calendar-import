@@ -41,7 +41,7 @@ GitHub Actions to build the application and deploy it to AWS using CloudFormatio
    - AWS Backup -> Vaults -> {Vault name} -> Restore
    - Restore type -> Restore entire bucket
    - Restore destination -> Use existing bucket -> Bucket name {the bucket you enabled ACLs for}
-   - Restore role Info -> Choose an IAM role -> Role name: `cad-aws-account-backup-BackupRole-wGW598INwjvB`
+   - Restore role Info -> Choose an IAM role -> Role name: `cad-aws-account-backup-BackupRole...`
 7. Finally, disable the ACLs that you enabled in step 5.
 
 ### Tear things down
