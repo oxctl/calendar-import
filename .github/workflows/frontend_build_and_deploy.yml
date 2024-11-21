@@ -168,7 +168,7 @@ jobs:
       - id: deploy
         run: aws cloudformation deploy
           --capabilities CAPABILITY_NAMED_IAM
-          --template-file ./3.s3-and-cloudfront.yaml
+          --template-file ./s3-and-cloudfront.yaml
           --stack-name ${{ env.AWS_STACK_PREFIX }}-frontend
           --parameter-overrides file://${{ inputs.aws_parameters }}.json
           --no-fail-on-empty-changeset
