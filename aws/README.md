@@ -26,7 +26,8 @@
 ## Prerequisites for using the templates in this directory
 
 Before running any templates in this app
- 
+
+**TODO: this seems out of date - these files don't exist any more**
 * Ensure the templates in the following folders have been run to provision resources the templates are dependent on:
   * `..\..\0.cad-account-global`
   * `..\..\0.cad-account-region` - for the region in which we wish to run the app templates
