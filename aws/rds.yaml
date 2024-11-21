@@ -238,7 +238,7 @@ Resources:
             !Sub "${orgName}-${accountType}-db-sgid"
       DBParameterGroupName: !Ref dbParamGroup
       EnableCloudwatchLogsExports:
-      Fn::Split: [",",!FindInMap [EnvironmentMappings, !Ref envType, cloudwatchLogs]]
+        Fn::Split: [",",!FindInMap [EnvironmentMappings, !Ref envType, cloudwatchLogs]]
       CACertificateIdentifier: "rds-ca-rsa2048-g1"
 
   secretAttachmentProdRegion:
