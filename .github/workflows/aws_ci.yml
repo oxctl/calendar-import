@@ -2,11 +2,11 @@
 name: PR validation of CloudFormation
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ 'master' ]
 
 env:
   AWS_REGION: 'eu-west-1'
-  AWS_ACCOUNT_ID: '730335587339'  # Development AWS Account
+  AWS_ACCOUNT_ID: '730335587339'  # Development AWS Account (cad-non-production)
   
 jobs:
   validate:
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/cad-github-actions-role  #sandbox account
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/cad-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
       # Check that the templates are at least valid.
       - run: aws cloudformation validate-template --template-body file://aws/stack.yaml

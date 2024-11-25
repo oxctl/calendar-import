@@ -1,5 +1,5 @@
 name: Delete Stack
-run-name: "Delete ${{ inputs.stack-prefix }} stacks on ${{ inputs.region }} ${{ inputs.account-id }}"
+run-name: "Delete ${{ inputs.stack-prefix }} stacks on ${{ inputs.region }} ${{ fromJson(vars.AWS_ACCOUNT_IDS_MAP)[inputs.account-id] }}"
 
 env:
   AWS_GITHUB_ROLE: 'cad-github-actions-role'
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}  #sandbox account
+          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}
           aws-region: ${{ inputs.region}}
         # There's no sensible way to have cloudformation empty a bucket
       - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-frontend-app-bucket-name'].Value" --output text) | tee -a $GITHUB_ENV
@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}  #sandbox account
+          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}
           aws-region: ${{ inputs.region}}
       # The calendar import stores files in a S3 bucket which also needs to be deleted.
       - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-backend-app-bucket-upload'].Value" --output text) | tee -a $GITHUB_ENV
@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}  #sandbox account
+          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}
           aws-region: ${{ inputs.region}}
         # There's no sensible way to have cloudformation empty a bucket
       - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-bootstrap-dist-bucket-name'].Value" --output text) | tee -a $GITHUB_ENV

@@ -3,78 +3,65 @@ name: Build and Deploy Frontend
 on:
   workflow_call:
     inputs:
-      sha:
-        description: 'SHA of the TAG commit'
+      account_type:
+        description: 'Prod or nonprod AWS account'
         type: string
-      ref:
-        description: 'The TAG ref'
-        type: string
-      aws_region:
-        description: 'The AWS region'
+      app_name:
+        description: 'The name of the app'
         type: string
       aws_account_id:
         description: 'The AWS account id'
         type: string
-      aws_github_role:
-        description: 'The AWS GitHub role'
-        type: string
       aws_parameters:
         description: 'The AWS parameters'
+        type: string
+      aws_region:
+        description: 'The AWS region'
         type: string
       do_deploy:
         description: 'Flag for whether to deploy or not'
         type: boolean
-      github_env:
-        description: 'The GitHub environment'
+      env_type:
+        description: 'The environment type, e.g. test, beta, prod'
         type: string
       execution-environment:
         description: 'The GitHub environment to pull variables from'
         type: string
+      github_env:
+        description: 'The GitHub environment'
+        type: string
+      ref:
+        description: 'The TAG ref'
+        type: string
+      sha:
+        description: 'SHA of the TAG commit'
+        type: string
 
 jobs:
-  aws-params:
-    # This attempts to parse the AWS parameters file and load it into JSON that's usable in GitHib Actions.
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    # This is needed for AWS assume role
-    outputs:
-      json: ${{ steps.parse.outputs.json }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: parse
-        run: |
-          PARAMS=$(jq 'map(split("=")|  { (.[0]|tostring): .[1]} ) | add'  < ./aws/${{ inputs.aws_parameters }})
-          echo json=${PARAMS} | tee -a $GITHUB_OUTPUT
-
   bootstrap:
     concurrency: bootstrap-${{ inputs.github_env }}
     runs-on: ubuntu-22.04
     timeout-minutes: 15
-    needs: [aws-params]
     permissions:
       id-token: write
       contents: read
     outputs:
       s3_artifact_bucket: ${{ steps.query.outputs.s3_artifact_bucket }}
-    env:
-      APP_NAME: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
-      ENV_TYPE: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
-      ACCOUNT_TYPE: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_github_role }}  #sandbox account
+          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
-      - run: echo AWS_STACK_PREFIX="${{ env.APP_NAME }}-${{ env.ENV_TYPE }}-${{ env.ACCOUNT_TYPE }}" | tee -a $GITHUB_ENV
+      - run: echo AWS_STACK_PREFIX="${{ inputs.app_name }}-${{ inputs.env_type }}-${{ inputs.account_type }}" | tee -a $GITHUB_ENV
       - id: deploy
         run: aws cloudformation deploy
           --capabilities CAPABILITY_NAMED_IAM
           --template-file ./aws/bootstrap.yaml
           --stack-name ${{ env.AWS_STACK_PREFIX }}-bootstrap
-          --parameter-overrides file://aws/${{ inputs.aws_parameters }}
+          --parameter-overrides file://aws/${{ inputs.aws_parameters }}.json
           --no-fail-on-empty-changeset
-          --tags "email-contact=cad-aws@it.ox.ac.uk" "billing=canvas-bau" "application-name=${{ env.APP_NAME }}" "environment=${{ env.ENV_TYPE }}"
+          --tags "email-contact=cad-aws@it.ox.ac.uk" "billing=canvas-bau" "application-name=${{ inputs.app_name }}" "environment=${{ inputs.env_type }}"
       - if: failure() && steps.deploy.outcome != 'success'
         # If we had a problem attempt to get a useful list of error messages.
         # YAML seems the most readable in a text console (GitHub Actions log)
@@ -86,7 +73,7 @@ jobs:
         run: echo s3_artifact_bucket=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.AWS_STACK_PREFIX }}-bootstrap-dist-bucket-name'].Value" --output text) | tee -a $GITHUB_OUTPUT
 
   build:
-    needs: [aws-params, bootstrap]
+    needs: [ bootstrap ]
     runs-on: ubuntu-22.04
     timeout-minutes: 15
     # This is needed for AWS assume role
@@ -98,9 +85,8 @@ jobs:
       COMMIT_SHA: ${{ inputs.sha }}
       TAG_REF: ${{ inputs.ref }}
       S3_ARTIFACT_BUCKET: ${{ needs.bootstrap.outputs.s3_artifact_bucket }}
-      APP_NAME: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
-      REACT_APP_SENTRY_DSN: ${{ vars.REACT_APP_SENTRY_DSN }}
-      REACT_APP_SENTRY_ENV: ${{ vars.REACT_APP_SENTRY_ENV }}
+      VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+      VITE_SENTRY_ENV: ${{ vars.VITE_SENTRY_ENV }}
     defaults:
       run:
         working-directory: frontend
@@ -119,7 +105,7 @@ jobs:
       - run: npm run build --if-present
       - run: npm test
       - name: Set archive version
-        run: echo "ARCHIVE=${{ env.APP_NAME }}-${GITHUB_REF#refs/heads/}.${GITHUB_RUN_NUMBER}.tgz" | tee -a $GITHUB_ENV
+        run: echo "ARCHIVE=${{ inputs.app_name }}-${GITHUB_REF#refs/heads/}.${GITHUB_RUN_NUMBER}.tgz" | tee -a $GITHUB_ENV
       - name: Set archive tag version
         if: ${{ startsWith(env.TAG_REF, 'refs/tags/') }}
         run: echo "ARCHIVE=release-${TAG_REF#refs/tags/}.tgz" | tee -a $GITHUB_ENV
@@ -129,7 +115,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_github_role }}  #sandbox account
+          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
       - name: Upload to AWS S3 Bucket - ${{ env.S3_ARTIFACT_BUCKET }}
         id: upload
@@ -149,7 +135,7 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
-    needs: [aws-params, build, bootstrap]
+    needs: [ build, bootstrap ]
     concurrency: frontend-${{ inputs.github_env }}
     # This is needed for AWS assume role
     permissions:
@@ -159,9 +145,6 @@ jobs:
     env:
       ARCHIVE: ${{ needs.build.outputs.artifact }}
       S3_ARTIFACT_BUCKET: ${{ needs.bootstrap.outputs.s3_artifact_bucket }}
-      APP_NAME: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
-      ENV_TYPE: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
-      ACCOUNT_TYPE: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
     steps:
       - name: Download AWS artifact
         uses: actions/download-artifact@v4
@@ -178,18 +161,18 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         id: aws-credentials
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_github_role }}  #sandbox account
+          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
           output-credentials: true
-      - run: echo AWS_STACK_PREFIX="${{ env.APP_NAME }}-${{ env.ENV_TYPE }}-${{ env.ACCOUNT_TYPE }}" | tee -a $GITHUB_ENV
+      - run: echo AWS_STACK_PREFIX="${{ inputs.app_name }}-${{ inputs.env_type }}-${{ inputs.account_type }}" | tee -a $GITHUB_ENV
       - id: deploy
         run: aws cloudformation deploy
           --capabilities CAPABILITY_NAMED_IAM
           --template-file ./s3-and-cloudfront.yaml
           --stack-name ${{ env.AWS_STACK_PREFIX }}-frontend
-          --parameter-overrides file://${{ inputs.aws_parameters }}
+          --parameter-overrides file://${{ inputs.aws_parameters }}.json
           --no-fail-on-empty-changeset
-          --tags "email-contact=cad-aws@it.ox.ac.uk" "billing=canvas-bau" "application-name=${{ env.APP_NAME }}" "environment=${{ env.ENV_TYPE }}"
+          --tags "email-contact=cad-aws@it.ox.ac.uk" "billing=canvas-bau" "application-name=${{ inputs.app_name }}" "environment=${{ inputs.env_type }}"
       - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.AWS_STACK_PREFIX }}-frontend-app-bucket-name'].Value" --output text) | tee -a $GITHUB_ENV
       - name: Download ${{ env.ARCHIVE }} build from S3
         run: aws s3 cp s3://${{ env.S3_ARTIFACT_BUCKET }}/${{ env.ARCHIVE }} build.tgz
@@ -215,17 +198,15 @@ jobs:
 
   cleanup-artifacts:
     runs-on: ubuntu-22.04
-    needs: [aws-params, build]
+    needs: [ build ]
     permissions:
       id-token: write
       contents: read
-    env:
-      APP_NAME: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_github_role }}  #sandbox account
+          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
       - name: Delete old versions from S3 bucket
-        run: aws s3 ls s3://${S3_ARTIFACT_BUCKET}/ | sort -rn | awk -v s3_url="s3://${S3_ARTIFACT_BUCKET}/" '$4 ~ /${{ env.APP_NAME }}-/ {print s3_url $4;}' | tee /${{ inputs.github_env }}/stderr | tail -n +21 | xargs -r -n 1 aws s3 rm
+        run: aws s3 ls s3://${S3_ARTIFACT_BUCKET}/ | sort -rn | awk -v s3_url="s3://${S3_ARTIFACT_BUCKET}/" '$4 ~ /${{ inputs.app_name }}-/ {print s3_url $4;}' | tee /${{ inputs.github_env }}/stderr | tail -n +21 | xargs -r -n 1 aws s3 rm
