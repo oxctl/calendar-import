@@ -37,8 +37,9 @@ GitHub Actions to build the application and deploy it to AWS using CloudFormatio
 
 5. To restore the S3 bucket contents, first find the S3 bucket you wish to restore to and enable ACLs (this is to allow backups to work).
    - In the AWS Console, go to Amazon S3 -> Buckets -> click into the bucket -> Permissions tab -> Object Ownership -> Edit and change to "ACLs enabled".
+   - (This will be in the DR region.)
 6. Locate the S3 backups in the AWS Backup Vault and restore to the existing S3 buckets.
-   - AWS Backup -> Vaults -> {Vault name} -> Restore
+   - AWS Backup -> Vaults -> {Vault name} -> {Recovery point} -> Restore
    - Restore type -> Restore entire bucket
    - Restore destination -> Use existing bucket -> Bucket name {the bucket you enabled ACLs for}
    - Restore role Info -> Choose an IAM role -> Role name: `cad-aws-account-backup-BackupRole...`
