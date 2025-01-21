@@ -60,6 +60,11 @@ Resources:
         wafARN: !Ref wafARN
         solutionStack: !Ref solutionStack
 Outputs:
+  appBucketUpload:
+    Description: The S3 bucket used to hold uploaded files.
+    Value: !GetAtt AppEB.Outputs.appBucketUpload
+    Export:
+      Name: !Sub "${AWS::StackName}-app-bucket-upload"
   envRef:
     Value: !GetAtt AppEB.Outputs.envRef
     Export:

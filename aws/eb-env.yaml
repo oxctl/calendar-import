@@ -747,8 +747,6 @@ Outputs:
   appBucketUpload:
     Description: The S3 bucket used to hold uploaded files.
     Value: !Ref appBucketUpload
-    Export:
-      Name: !Sub "${AWS::StackName}-app-bucket-upload"
   envUrl:
     Value: !GetAtt Environment.EndpointURL
     Export:
