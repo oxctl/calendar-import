@@ -26,6 +26,9 @@ Parameters:
     Default: ""
   solutionStack:
     Type: String
+  snsArn:
+    Fn::ImportValue:
+      !Sub "${accountType}-admin-notifications"
 
 Resources:
   AppRegion:
@@ -59,6 +62,9 @@ Resources:
         cfSSLCertARN: !Ref cfSSLCertARN
         wafARN: !Ref wafARN
         solutionStack: !Ref solutionStack
+        snsArn:
+          Fn::ImportValue:
+            !Sub "${accountType}-admin-notifications"
 Outputs:
   appBucketUpload:
     Description: The S3 bucket used to hold uploaded files.
