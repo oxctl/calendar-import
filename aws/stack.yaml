@@ -45,6 +45,9 @@ Resources:
         envType: !Ref envType
         accountType: !Ref accountType
         snapshotToUse: !Ref snapshotToUse
+        snsArn:
+          Fn::ImportValue:
+            !Sub "${accountType}-admin-notifications"
   AppEB:
     Type: AWS::CloudFormation::Stack
     DependsOn: [AppRegion, AppRDS]
@@ -59,7 +62,15 @@ Resources:
         cfSSLCertARN: !Ref cfSSLCertARN
         wafARN: !Ref wafARN
         solutionStack: !Ref solutionStack
+        snsArn:
+          Fn::ImportValue:
+            !Sub "${accountType}-admin-notifications"
 Outputs:
+  appBucketUpload:
+    Description: The S3 bucket used to hold uploaded files.
+    Value: !GetAtt AppEB.Outputs.appBucketUpload
+    Export:
+      Name: !Sub "${AWS::StackName}-app-bucket-upload"
   envRef:
     Value: !GetAtt AppEB.Outputs.envRef
     Export:
