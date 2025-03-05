@@ -63,13 +63,13 @@ The following can be undertaken via the Github web UI or on your local desktop a
 ## S3 buckets
 
 5. To restore the S3 bucket contents, first find the S3 bucket you wish to restore to and enable ACLs (this is to allow backups to work).
-   - In the AWS Console, go to `Amazon S3 -> Buckets` then click into the bucket then `Permissions tab -> Object Ownership -> Edit` and change to "ACLs enabled".
-   - (This will be in the DR region.)
+   - In the AWS Console, double check you are in the DR region then navigate to `Amazon S3 > General Purpose Buckets` then click into the bucket then `Permissions` tab, scroll down to  `Object Ownership` then click `Edit` and select `ACLs enabled`. Copy the bucket name for use later on.
+   
 6. Locate the S3 backups in the AWS Backup Vault and restore to the existing S3 buckets.
-   - `AWS Backup -> Vaults -> {Vault name} -> {Recovery point} -> Restore`
-   - `Restore type -> Restore entire bucket`
-   - `Restore destination -> Use existing bucket -> Bucket name` {the bucket you enabled ACLs for}
-   - Restore role `Info -> Choose an IAM role -> Role name`: `cad-aws-account-backup-BackupRole...`
+   - `AWS Backup > Vaults > dr` filter the list by `S3` and click on the desired recovery point (usually the most recent). Click the  `Restore` button (top right)
+   - `Restore type > Restore entire bucket`
+   - `Restore destination > Use existing bucket` then type in the `Bucket name` which is the bucket you enabled ACLs for
+   - In the `Restore role` section, select `Choose an IAM role` the `Role name` is `cad-aws-account-backup-BackupRole-*`
 7. Finally, disable the ACLs that you enabled in step 5.
 
    
