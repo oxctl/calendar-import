@@ -70,7 +70,8 @@ The following can be undertaken via the Github web UI or on your local desktop a
    - `Restore type > Restore entire bucket`
    - `Restore destination > Use existing bucket` then type in the `Bucket name` which is the bucket you enabled ACLs for
    - In the `Restore role` section, select `Choose an IAM role` the `Role name` is `cad-aws-account-backup-BackupRole-*`
-7. Finally, disable the ACLs that you enabled in step 5.
+   - Click `Restore backup`
+7. Finally, revert the changes to the ACLs made during step 5, select `ACLs disabled (recommended)`.
 
    
 ### Tear things down
