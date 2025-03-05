@@ -89,6 +89,6 @@ In Github, run the `Delete Stack` Action. In the dialogue box that appears:
 
 Before removing all the CloudFormation stacks it will empty the created S3 buckets (if there are any) so that the CloudFormation stacks can be successfully deleted (CF will refuse to delete a non-empty S3 bucket).
 
-If the `Delete Stack` Action then the stack can be 'force deleted' via the AWS UI.
+If the `Delete Stack` Action fails then the stack can be 'force deleted' via the AWS UI.
 
 Once the DR process has been completed, delete the branch, e.g., `dr-calendar-import` in Github.
