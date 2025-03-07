@@ -11,3 +11,5 @@ localhost.pem
 .env
 build
 *.iml
+node_modules/
+user.json
