@@ -32,9 +32,8 @@ GitHub Actions is able to connect to the AWS account (should work if low-level i
 
 The following can be undertaken via the Github web UI or on your local desktop assuming you have cloned the repository and ensured it is up to date:
 
-1. Create a new branch named with `dr-` at the start, `dr-calendar-import`. Switch to that branch.
+1. Create a new branch named with `dr-` at the start, `dr-calendar-import`. Switch to that branch. :warning: **if the branch does not start with `dr-` then the DR process will not work**
 2. Situate yourself at the point you wish to deploy the repository; this will probably be the latest commit (the 'master' branch) but can be earlier in the repository history.
-   - **if the branch does not start with `dr-` then the DR process will not work**
 3. Login to AWS production account and switch to the DR region 
 4. Find the RDS backup you want to restore in [AWS DR Backup Vault](https://eu-central-1.console.aws.amazon.com/backup/home?region=eu-central-1#/backupvaults/details/dr), this is usually the most recent. Click on the `Recovery point ID` (hyperlink), copy the *ARN* then, **after checking you are on the `dr-calendar-import` branch in Github**, edit `calendar-import/aws/dr.json` and set the value of 'snapshotToUse' to be the *ARN*, commit changes and push the new branch:
     ```json
