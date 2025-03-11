@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "install-browsers": "npx playwright install",
-    "test": "npx playwright test --retries=2"
+    "test": "npx playwright test",
+    "test:ci": "CI=true npm run test"
   },
   "devDependencies": {
-    "@playwright/test": "^1.27.1",
-    "dotenv": "^16.0.3"
+    "@playwright/test": "^1.36.2",
+    "dotenv": "^16.3.1"
   }
 }

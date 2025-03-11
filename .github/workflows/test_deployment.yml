@@ -32,7 +32,6 @@ jobs:
     env:
       CANVAS_HOST: ${{ vars.CANVAS_HOST }}
       OAUTH_TOKEN: ${{ secrets.DEPLOYMENT_TESTS_OAUTH_TOKEN }}
-      COURSE_ID: ${{ vars.COURSE_ID }}
       TOOL_ID: ${{ vars.TOOL_ID }}
       BACKEND_URL: ${{ vars.BACKEND_URL }}
     defaults:
