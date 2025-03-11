@@ -49,3 +49,10 @@ jobs:
       - run: npm ci
       - run: npm run install-browsers
       - run: npm test
+      - name: Upload test-results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ github.event.repository.name }}-test-results-${{ github.run_number }}-${{ github.run_attempt }}
+          path: ./deployment/playwright-report/
+          retention-days: 1
