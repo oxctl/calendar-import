@@ -1,0 +1,1 @@
+open ./playwright-report/index.html
