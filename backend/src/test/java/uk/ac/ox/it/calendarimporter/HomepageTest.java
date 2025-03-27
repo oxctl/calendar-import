@@ -31,7 +31,7 @@ public class HomepageTest {
     void frontPageWorks() throws IOException {
         // Check that everything starts up and we respond to a request for the homepage (doesn't need authentication)
         HtmlPage page = localHostWebClient.getPage("/");
-        assertEquals("Canvas Calendar Import", page.getTitleText());
+        assertEquals("Calendar Import", page.getTitleText());
     }
 
 }
