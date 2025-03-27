@@ -249,6 +249,14 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <!-- This is needed otherwise the filtering doesn't appear to happen despite messages to the contrary -->
+        <!-- This is used to get the git SHA into the index.html file -->
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -269,9 +277,8 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <version>2.2.6</version>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
         <configuration>
           <verbose>false</verbose>
         </configuration>
