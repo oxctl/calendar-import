@@ -5,11 +5,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>uk.ac.ox.it</groupId>
-  <artifactId>canvas-calendar-importer</artifactId>
+  <artifactId>calendar-importer</artifactId>
   <version>3.1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Calendar Importer for Canvas</name>
+  <name>Calendar Import</name>
   <description>Tool to allow CSV files to be imported into Canvas calendar.</description>
   <licenses>
     <license>
