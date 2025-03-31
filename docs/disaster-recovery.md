@@ -21,9 +21,12 @@ You must be able to login to, and / or have the relevant access to
   - the secrets required by the application
   - the institutional DNS update interface :warning: only for real disasters!
 
-The low-level infrastructure, for example, VPC,  has been deployed to the AWS region where recovery is to happen.
+Check that:
+  - the low-level infrastructure, for example, VPC,  has been deployed to the AWS region where recovery is to happen
+  - the regional stacks exists, see: https://github.com/oxctl/aws-shared/blob/main/docs/disaster_recovery.md
+  - GitHub Actions is able to connect to the AWS account (should work if low-level infrastructure is present)
 
-GitHub Actions is able to connect to the AWS account (should work if low-level infrastructure is present).
+![image](https://github.com/user-attachments/assets/e2d14219-6c56-471c-973b-8c7d33606f90)
 
 ## Steps
 
