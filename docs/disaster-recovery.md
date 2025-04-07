@@ -64,7 +64,7 @@ The following can be undertaken via the Github web UI or on your local desktop a
 
 
 
-### S3 buckets
+### Restore S3 buckets
 
 1. To restore the S3 bucket contents, first find the S3 bucket you wish to restore to and enable ACLs (this is to allow backups to work).
    - In the AWS Console, double check you are in the DR region then navigate to `Amazon S3 > General Purpose Buckets` then click into the bucket then `Permissions` tab, scroll down to  `Object Ownership` then click `Edit` and select `ACLs enabled`. Copy the bucket name for use later on.
@@ -82,7 +82,7 @@ The following can be undertaken via the Github web UI or on your local desktop a
 
 If something didn't work correctly, and you wish to start again there is a GitHub action called `Delete Stack` that will attempt to clean-up everything associated with a deployment. 
 
-#### Tear Down Application
+#### Tear down application
 
 1. in AWS, remove delete protection on the RDS DB (the prodution DB will always have this set)
 
@@ -98,10 +98,10 @@ Before removing all the CloudFormation stacks it will empty the created S3 bucke
 
 If the `Delete Stack` Action fails then the stack can be 'force deleted' via the AWS UI.
 
-#### Tear Down Regional Stacks
+#### Tear down regional stacks
 
 Remove the regional stacks, see: https://github.com/oxctl/aws-shared/blob/main/docs/disaster_recovery.md
 
-#### Tidy Up Github
+#### Tidy up Github
 
 Once the DR process has been completed, delete the branch, e.g., `dr-calendar-import` in Github.
