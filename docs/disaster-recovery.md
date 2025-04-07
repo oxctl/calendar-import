@@ -64,9 +64,9 @@ The following can be undertaken via the Github web UI or on your local desktop a
 
 
 
-## S3 buckets
+### S3 buckets
 
-5. To restore the S3 bucket contents, first find the S3 bucket you wish to restore to and enable ACLs (this is to allow backups to work).
+1. To restore the S3 bucket contents, first find the S3 bucket you wish to restore to and enable ACLs (this is to allow backups to work).
    - In the AWS Console, double check you are in the DR region then navigate to `Amazon S3 > General Purpose Buckets` then click into the bucket then `Permissions` tab, scroll down to  `Object Ownership` then click `Edit` and select `ACLs enabled`. Copy the bucket name for use later on.
    
 6. Locate the S3 backups in the AWS Backup Vault and restore to the existing S3 buckets.
