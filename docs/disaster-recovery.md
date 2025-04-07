@@ -23,10 +23,14 @@ You must be able to login to, and / or have the relevant access to
 
 Check that:
   - the low-level infrastructure, for example, VPC,  has been deployed to the AWS region where recovery is to happen
-  - the regional stacks exists, see: https://github.com/oxctl/aws-shared/blob/main/docs/disaster_recovery.md
+
   - GitHub Actions is able to connect to the AWS account (should work if low-level infrastructure is present)
 
 ## Steps
+
+### Deploy the regional stacks
+
+Create the regional stacks, see: https://github.com/oxctl/aws-shared/blob/main/docs/disaster_recovery.md
 
 ### Deploy the application
 
