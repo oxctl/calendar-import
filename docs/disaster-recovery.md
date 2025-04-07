@@ -26,8 +26,6 @@ Check that:
   - the regional stacks exists, see: https://github.com/oxctl/aws-shared/blob/main/docs/disaster_recovery.md
   - GitHub Actions is able to connect to the AWS account (should work if low-level infrastructure is present)
 
-![image](https://github.com/user-attachments/assets/e2d14219-6c56-471c-973b-8c7d33606f90)
-
 ## Steps
 
 ### Deploy the application
@@ -80,10 +78,12 @@ The following can be undertaken via the Github web UI or on your local desktop a
 
 If something didn't work correctly, and you wish to start again there is a GitHub action called `Delete Stack` that will attempt to clean-up everything associated with a deployment. 
 
+#### Tear Down Application
+
 1. in AWS, remove delete protection on the RDS DB (the prodution DB will always have this set)
 
    
-In Github, run the `Delete Stack` Action. In the dialogue box that appears:
+Run the `Delete Stack` Action. In the dialogue box that appears:
 
 1. the workflow resides on the `master` branch
 1. the names of the stacks to delete are derived from 'appName' (which in this case is `calendar-import-dr` (defined in [calendar-import dr.json](../aws/dr.json))). The Stack 'prefix' can be found in 'Cloudformation > Stacks' in the DR region - it is everything up to, but not including, the final hyphen: `calendar-import-dr-prod-prod`. NB, it is sometimes necessary to use a contracted version of `appName` due to limitation on the number of characters allowed.
@@ -93,5 +93,11 @@ In Github, run the `Delete Stack` Action. In the dialogue box that appears:
 Before removing all the CloudFormation stacks it will empty the created S3 buckets (if there are any) so that the CloudFormation stacks can be successfully deleted (CF will refuse to delete a non-empty S3 bucket).
 
 If the `Delete Stack` Action fails then the stack can be 'force deleted' via the AWS UI.
+
+#### Tear Down Regional Stacks
+
+Remove the regional stacks, see: https://github.com/oxctl/aws-shared/blob/main/docs/disaster_recovery.md
+
+#### Tidy Up Github
 
 Once the DR process has been completed, delete the branch, e.g., `dr-calendar-import` in Github.
