@@ -62,8 +62,9 @@ test('Calendar import deployment tests', async ({context, page}, testInfo) => {
 
     await expect(ltiToolFrame.getByText('Calendar import started, click "Reload" button to follow its progress.')).toBeVisible();
 
-    // TODO: ideally we would test for Import Completed
-    //  but complicated as there will be an audit of all previous imports an no date on Import: Completed
-    //  We should be able use the purge endpoint to clear out the previous imports
+    /* ideally we would test for Import Completed
+    but complicated as there will be an audit of all previous imports an no date on Import: Completed
+    We should be able to use the purge endpoint to clear out the previous imports */
+    // however as we're moving away from this sort of in-depth testing in the deployment tests, we should just make sure it's covered by whatever replaces them
   })
 })
