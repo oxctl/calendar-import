@@ -132,7 +132,6 @@ public class ApiDownloadController {
         CalendarImport calendarImport = contextJob.getCalendarImport();
         String file = calendarImport.getUrl();
         Map<String, String> parameters = Utils.paramBuilder().courseId(courseId).sisUserId(sisUserId).accountId(accountId).build();
-        // TODO Check it's a local file
         return streamContent(file, toMediaType(calendarImport.getType()), calendarImport.getFilename(), parameters);
     }
 
