@@ -166,4 +166,47 @@ public class DateTimeParserTest {
                     LocalTime time = DateTimeParser.parseTime("01:00:0");
                 });
     }
+
+    @Test
+    public void testParseISODate() {
+        LocalDate date = DateTimeParser.parseDate("2023-01-15");
+        assertEquals(LocalDate.of(2023, 1, 15), date);
+    }
+
+    @Test
+    public void testParseTwoDigitMonthDayUKFormat() {
+        LocalDate date = DateTimeParser.parseDate("15/01/2023");
+        assertEquals(LocalDate.of(2023, 1, 15), date);
+    }
+
+    @Test
+    public void testParseSingleDigitMonthDayUKFormat() {
+        LocalDate date = DateTimeParser.parseDate("5/1/2023");
+        assertEquals(LocalDate.of(2023, 1, 5), date);
+    }
+
+    @Test
+    public void testParseTwoDigitYearUKFormat() {
+        LocalDate date = DateTimeParser.parseDate("15/01/23");
+        assertEquals(LocalDate.of(2023, 1, 15), date);
+    }
+
+    @Test
+    public void testParseSingleDigitMonthDayTwoDigitYearUKFormat() {
+        LocalDate date = DateTimeParser.parseDate("5/1/23");
+        assertEquals(LocalDate.of(2023, 1, 5), date);
+    }
+
+    // testing that "invalid" dates throw an exception
+    @Test
+    public void testParseUSDateThrowsException() {
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> DateTimeParser.parseDate("01/15/2023")
+        );
+        assertEquals(
+                "Failed to parse date: 01/15/2023. Please use format DD/MM/YYYY or YYYY-MM-DD",
+                exception.getMessage()
+        );
+    }
 }
