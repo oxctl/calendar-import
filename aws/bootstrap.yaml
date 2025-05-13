@@ -172,9 +172,3 @@ Outputs:
     Value: !GetAtt ecrRepo.RepositoryUri
     Export:
       Name: !Sub "${AWS::StackName}-ecr-repo-uri"
-  # TODO: should this be in eb-env?
-  applicationLogGroup:
-    Description: "The log group for the application"
-    Value: "applicationLogGroup"
-    Export:
-      Name: !Sub "${AWS::StackName}-application-log-group"
