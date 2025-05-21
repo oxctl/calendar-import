@@ -1,9 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import mkcert from 'vite-plugin-mkcert'
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
-import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
-import nodePolyfills from 'rollup-plugin-polyfill-node'
 
 export default defineConfig({
     // This is needed for deploying to GitHub pages where we might
@@ -27,25 +24,10 @@ export default defineConfig({
             // Node.js global to browser globalThis
             define: {
                 global: 'globalThis'
-            },
-            // Enable esbuild polyfill plugins
-            plugins: [
-                NodeGlobalsPolyfillPlugin({
-                    process: true,
-                    buffer: true
-                }),
-                NodeModulesPolyfillPlugin()
-            ]
+            }
         }
     },
     build: {
-        rollupOptions: {
-            plugins: [
-                // Enable rollup polyfills plugin
-                // used during production bundling
-                nodePolyfills()
-            ]
-        },
         // This means we don't have to change the config in cloudflare.
         outDir: 'build',
         // so we still have the same build directory structure as CRA for legacy reasons
