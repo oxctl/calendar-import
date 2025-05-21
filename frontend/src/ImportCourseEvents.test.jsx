@@ -1,18 +1,18 @@
 import React from 'react'
 import {screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {rest} from 'msw'
+import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
-import '@testing-library/jest-dom/extend-expect'
 import ImportCourseEvents from "./ImportCourseEvents";
 import {renderWithProviders} from "./utils/test-utils";
-import {expect, jest, test} from '@jest/globals';
+import {describe, expect, test, beforeAll, afterAll, afterEach, vi} from 'vitest'
+import '@testing-library/jest-dom'
 
 const server = setupServer(
     // This is the endpoint that takes the deep linking request and signs
     // a JWT with it.
-    rest.post('/deep-linking', (req, res, ctx) => {
-        return res(ctx.json({jwt: 'JWT'}))
+    http.post('/deep-linking', () => {
+        return HttpResponse.json({jwt: 'JWT'})
     })
 )
 
@@ -35,7 +35,7 @@ describe("setup of calendar link", () => {
         )
         // Testing Library encourages using either the text in the page or explicit testing IDs
         // We can't handle page navigation so we have to wait for the submit handler
-        const formSubmit = jest.fn()
+        const formSubmit = vi.fn()
         const form = screen.getByTestId('deepLinkingForm')
         form.submit = formSubmit
 
@@ -71,7 +71,7 @@ describe("setup of calendar link", () => {
         )
 
         // We can't handle page navigation so we have to wait for the submit handler
-        const formSubmit = jest.fn()
+        const formSubmit = vi.fn()
         const form = screen.getByTestId('deepLinkingForm')
         form.submit = formSubmit
 
@@ -98,13 +98,13 @@ describe("setup of calendar link", () => {
             />
         )
         server.use(
-            rest.post('/deep-linking', (req, res, ctx) => {
-                return res(ctx.status(500))
+            http.post('/deep-linking', () => {
+                return new HttpResponse(null, { status: 500 })
             })
         )
 
         // We can't handle page navigation so we have to wait for the submit handler
-        const formSubmit = jest.fn()
+        const formSubmit = vi.fn()
         const form = screen.getByTestId('deepLinkingForm')
         form.submit = formSubmit
 
