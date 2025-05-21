@@ -1,11 +1,11 @@
 /* Tool specific config. */
 import 'dotenv/config.js'
 
-export const token = import.meta.env.OAUTH_TOKEN
-export const host = import.meta.env.CANVAS_HOST
-export const toolId = import.meta.env.TOOL_ID
+export const token = process.env.OAUTH_TOKEN
+export const host = process.env.CANVAS_HOST
+export const toolId = process.env.TOOL_ID
 export const courseId = 186641
-export const networkPreset = import.meta.env.NETWORK_PRESET
+export const networkPreset = process.env.NETWORK_PRESET
 export const toolAnchorMethod = 'getByText'
 export const toolAnchorText = 'Section'
 export const toolAnchorOptions = { exact: true }
