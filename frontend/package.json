@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "VITE_GIT_SHA=`git rev-parse --short HEAD` vite build",
-    "start": "vite",
+    "start": "VITE_GIT_SHA=`git rev-parse --short HEAD` vite",
     "test": "vitest"
   },
   "browserslist": {
@@ -44,7 +44,7 @@
     "@instructure/ui-text-input": "^10.17.0",
     "@instructure/ui-themes": "^10.17.0",
     "@instructure/ui-view": "^10.17.0",
-    "@oxctl/ui-lti": "^1.5.1",
+    "@oxctl/ui-lti": "^10.0.2",
     "@sentry/react": "^8.37.1",
     "env": "0.0.2",
     "jwt-decode": "^3.1.2",
