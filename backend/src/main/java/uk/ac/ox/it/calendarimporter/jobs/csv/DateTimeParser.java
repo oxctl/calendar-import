@@ -46,8 +46,13 @@ public class DateTimeParser {
         return duration;
     }
 
+    /**
+     * Parses dates in the following formats:
+     * - yyyy-MM-dd (ISO)
+     * - dd/MM/yyyy or d/M/yyyy (UK format)
+     * - dd/MM/yy or d/M/yy (UK format, 2-digit year)
+     */
     static LocalDate parseDate(String string) {
-        // TODO Locale handling, at the moment it's all in the default locale
         List<DateTimeFormatter> patterns = new ArrayList<>();
         // We use ISO for standard imports.
         patterns.add(DateTimeFormatter.ISO_DATE);
@@ -61,7 +66,8 @@ public class DateTimeParser {
                 // Try another pattern
             }
         }
-        throw new RuntimeException("Failed to parse date: " + string);
+        throw new RuntimeException("Failed to parse date: " + string +
+                ". Please use format DD/MM/YYYY or YYYY-MM-DD");
     }
 
     static LocalTime parseTime(String string) {

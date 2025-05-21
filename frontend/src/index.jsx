@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import {Provider} from 'react-redux'
 import * as Sentry from "@sentry/react";
 import App from './App'
@@ -8,9 +8,9 @@ import store from './store'
 {
     // Load sentry setup if defined.
     // This is done early in the application to catch as much as possible.
-    const dsn = process.env.REACT_APP_SENTRY_DSN
+    const dsn = import.meta.env.VITE_SENTRY_DSN
     if (dsn) {
-        const environment = process.env.REACT_APP_SENTRY_ENV
+        const environment = import.meta.env.VITE_SENTRY_ENV
         Sentry.init({
             dsn: dsn,
             environment,
@@ -26,8 +26,6 @@ import store from './store'
     }
 }
 
-ReactDOM.render(
-    <Provider store={store}>
-        <App/>
-    </Provider>,
-    document.getElementById('app'))
+const container = document.getElementById('app')
+const root = createRoot(container)
+root.render(<Provider store={store}><App /></Provider>);

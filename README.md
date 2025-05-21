@@ -132,6 +132,7 @@ Then when configuring the calendar import tool from the Modules tool set the URL
 
 ## Sentry
 
-Application errors are reported using https://sentry.io for this application. There are 2 DSNs, one for development and one for production. There's no DSN for local development. Sentry is setup as early as possible in the application to capture as many errors as possible.
+Application errors are reported using https://sentry.io for this application. There is one DSNs to be used for both development and production. There's no DSN for local development. Sentry is setup as early as possible in the application to capture as many errors as possible.
+
 
 The frontend and backend have different sentry projects.

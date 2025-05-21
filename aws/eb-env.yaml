@@ -619,7 +619,21 @@ Resources:
         - Id: !Sub "${appName}${envType}envupdates"
           # Just ref the topic here
           Arn: !Ref snsArn
-          InputPath: $.detail
+          InputTransformer:
+            InputPathsMap:
+              Status: "$.detail.Status"
+              EventDate: "$.detail.EventDate"
+              ApplicationName: "$.detail.ApplicationName"
+              Message: "$.detail.Message"
+              EnvironmentName: "$.detail.EnvironmentName"
+              Severity: "$.detail.Severity"
+            InputTemplate: |
+              "Status: <Status>"
+              "EventDate: <EventDate>"
+              "ApplicationName: <ApplicationName>"
+              "Message: <Message>"
+              "EnvironmentName: <EnvironmentName>"
+              "Severity: <Severity>"
 
   eventRuleHealthstatus:
     Type: AWS::Events::Rule
@@ -644,7 +658,21 @@ Resources:
         - Id: !Sub "${appName}${envType}healthstatus"
           # Just ref the topic here
           Arn: !Ref snsArn
-          InputPath: $.detail
+          InputTransformer:
+            InputPathsMap:
+              Status: "$.detail.Status"
+              EventDate: "$.detail.EventDate"
+              ApplicationName: "$.detail.ApplicationName"
+              Message: "$.detail.Message"
+              EnvironmentName: "$.detail.EnvironmentName"
+              Severity: "$.detail.Severity"
+            InputTemplate: |
+              "Status: <Status>"
+              "EventDate: <EventDate>"
+              "ApplicationName: <ApplicationName>"
+              "Message: <Message>"
+              "EnvironmentName: <EnvironmentName>"
+              "Severity: <Severity>"
 
   eventRuleMgdUpdates:
     Type: AWS::Events::Rule
@@ -669,7 +697,23 @@ Resources:
         - Id: !Sub "${appName}${envType}mgdupdates"
           # Just ref the topic here
           Arn: !Ref snsArn
-          InputPath: $.detail
+          InputTransformer:
+            InputPathsMap:
+              Status: "$.detail.Status"
+              EventDate: "$.detail.EventDate"
+              ApplicationName: "$.detail.ApplicationName"
+              Message: "$.detail.Message"
+              EnvironmentName: "$.detail.EnvironmentName"
+              Severity: "$.detail.Severity"
+              ChangeType: "$.detail.ChangeType"
+            InputTemplate: |
+              "Status: <Status>"
+              "EventDate: <EventDate>"
+              "ApplicationName: <ApplicationName>"
+              "Message: <Message>"
+              "EnvironmentName: <EnvironmentName>"
+              "Severity: <Severity>"
+              "ChangeType: <ChangeType>"
 
 Outputs:
   appBucketUpload:

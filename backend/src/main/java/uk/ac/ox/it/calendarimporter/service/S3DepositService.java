@@ -55,7 +55,7 @@ public class S3DepositService implements DepositService {
 
         log.info("bucketName: {}", bucketName);
 
-        Assert.isTrue(bucketExists(bucketName),
+        Assert.isTrue(s3Operations.bucketExists(bucketName),
                 "Bucket with name '" + bucketName + "' does not exist or we can't access it.");
 
         log.info("Uploading files to S3 bucket: {}", bucketName);
@@ -111,19 +111,5 @@ public class S3DepositService implements DepositService {
 
     private String getDepositPath(File file, Type type) {
         return String.join("/", depositUtils.resolveTargetPath(file.getName(), type));
-    }
-
-    /**
-     * Checks if a S3 bucket exists
-     * TODO: Use s3Operations.bucketExists, at the time of development it is not available yet
-     */
-    private boolean bucketExists(String bucketName) {
-        try {
-            s3Client.headBucket(request -> request.bucket(bucketName));
-        } catch (S3Exception e) {
-            return false;
-        }
-
-        return true;
     }
 }

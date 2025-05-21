@@ -5,11 +5,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>uk.ac.ox.it</groupId>
-  <artifactId>canvas-calendar-importer</artifactId>
+  <artifactId>calendar-importer</artifactId>
   <version>3.1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Calendar Importer for Canvas</name>
+  <name>Calendar Import</name>
   <description>Tool to allow CSV files to be imported into Canvas calendar.</description>
   <licenses>
     <license>
@@ -48,7 +48,7 @@
       <dependency>
         <groupId>io.awspring.cloud</groupId>
         <artifactId>spring-cloud-aws-dependencies</artifactId>
-        <version>3.0.1</version>
+        <version>3.1.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -249,6 +249,14 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <!-- This is needed otherwise the filtering doesn't appear to happen despite messages to the contrary -->
+        <!-- This is used to get the git SHA into the index.html file -->
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -269,9 +277,8 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <version>2.2.6</version>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
         <configuration>
           <verbose>false</verbose>
         </configuration>

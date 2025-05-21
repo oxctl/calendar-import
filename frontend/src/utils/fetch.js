@@ -12,13 +12,13 @@ export const handleErrors = async (response) => {
     } else if (response.status === 401) {
       const authHeader = response.headers.get('WWW-Authenticate')
       if (authHeader) {
-        if (!authHeader.includes('proxy')) {
+        const headerData = parseAuthHeader(authHeader);
+        if (headerData.realm !== 'proxy') {
           // This will typically happen when someone has deleted their token
           throw new LoginError('Your token isn\'t valid any more')
         }
-        // TODO We should have better parsing of the header
-        if (authHeader.includes('invalid_token')) {
-          throw new Error('Your session has expired, please try relaunching the tool')
+        if (headerData.error === 'invalid_token') {
+          throw new Error(headerData.error_description || 'Your session has expired, please try relaunching the tool');
         }
       }
       // If there's no auth header look in the JSON
@@ -40,6 +40,20 @@ export const handleErrors = async (response) => {
     }
   }
   return response
+}
+
+function parseAuthHeader(authHeader) {
+  const parts = authHeader.split(',').map(part => part.trim());
+  const parsed = {};
+
+  parts.forEach(part => {
+    const match = part.match(/(\w+)="([^"]+)"/);
+    if (match) {
+      parsed[match[1]] = match[2];
+    }
+  });
+
+  return parsed;
 }
 
 /**

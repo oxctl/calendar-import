@@ -1,5 +1,5 @@
 import {isValidUrl, hasValidVariables, isMagicUrl, validVariables} from "./calendar_url";
-import {describe, expect, test} from '@jest/globals';
+import {describe, expect, test} from 'vitest'
 
 
 describe('check URLs', () => {
