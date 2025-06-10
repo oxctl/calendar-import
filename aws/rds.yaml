@@ -42,7 +42,7 @@ Parameters:
   dbEngineMinorVer:
     Description:  "Minor version of mysql engine ... look up the latest"
     Type: String
-    Default: "8.0.36"
+    Default: "8.0"
   charSet:
     Description:  "What character set to use? Default to utf8"
     Type: String
