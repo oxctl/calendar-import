@@ -39,10 +39,6 @@ Parameters:
     Description: "The mysql major version.  WARNING: only change during planned major version upgrades"
     Type: String
     Default: "8.0"
-  dbEngineMinorVer:
-    Description:  "Minor version of mysql engine ... lookup the latest"
-    Type: String
-    Default: "8.0.36"
   charSet:
     Description:  "What character set to use? Default to utf8"
     Type: String
