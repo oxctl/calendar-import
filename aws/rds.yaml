@@ -1,4 +1,4 @@
----
+sp ---
 AWSTemplateFormatVersion: "2010-09-09"
 Metadata: {}
 Description: "Creates an RDS DB instance, along with it's option and parameter groups"
@@ -37,6 +37,10 @@ Parameters:
       - "test"
   dbEngineMajorVer:
     Description: "The mysql major version.  WARNING: only change during planned major version upgrades"
+    Type: String
+    Default: "8.0"
+  dbEngineMinorVer:
+    Description:  "Minor version of mysql engine ... the latest will be automatically used"
     Type: String
     Default: "8.0"
   charSet:
