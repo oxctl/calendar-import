@@ -40,7 +40,7 @@ Parameters:
     Type: String
     Default: "8.0"
   dbEngineMinorVer:
-    Description:  "Minor version of mysql engine ... the latest will be automatically used"
+    Description:  "Minor version of mysql engine ... look up the latest"
     Type: String
     Default: "8.0.36"
   charSet:
