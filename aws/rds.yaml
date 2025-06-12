@@ -40,9 +40,9 @@ Parameters:
     Type: String
     Default: "8.0"
   dbEngineMinorVer:
-    Description:  "Minor version of mysql engine ... lookup the latest"
+    Description:  "Minor version of mysql engine - latest version will be used"
     Type: String
-    Default: "8.0.36"
+    Default: "8.0"
   charSet:
     Description:  "What character set to use? Default to utf8"
     Type: String
@@ -199,7 +199,7 @@ Resources:
             !Sub "${orgName}-${accountType}-db-subnet-group-private"
       PreferredMaintenanceWindow: !FindInMap [EnvironmentMappings, !Ref envType, maintenanceWindow]
       MultiAZ: false
-      EngineVersion: !Ref dbEngineMinorVer # "8.0.20"
+      EngineVersion: !Ref dbEngineMinorVer 
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
       LicenseModel: "general-public-license"
