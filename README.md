@@ -136,3 +136,6 @@ Application errors are reported using https://sentry.io for this application. Th
 
 
 The frontend and backend have different sentry projects.
+
+## Change Log
+On Friday 13 June 2025, this repository was relicensed from Apache 2 to MIT.
