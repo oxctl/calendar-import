@@ -2,6 +2,7 @@ package uk.ac.ox.it.calendarimporter.jobs;
 
 import com.nimbusds.jose.JOSEException;
 import edu.ksu.canvas.CanvasApiFactory;
+import edu.ksu.canvas.exception.CanvasException;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.exception.UnauthorizedException;
 import edu.ksu.canvas.oauth.OauthToken;
@@ -179,7 +180,9 @@ public abstract class CanvasCalendarJob extends LoggingJob implements Interrupta
             log.debug("User is not authorized to perform this action");
             canvasCalendarService.retryOrDeleteJob(context);
             throw e;
-        }
+        } catch (CanvasException e) {
+            throw new JobExecutionException("Canvas API error: "+ e.getRequestUrl()+ " message: " + e.getCanvasErrorMessage(), e);
+        } 
     }
 
 
