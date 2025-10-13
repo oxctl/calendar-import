@@ -30,7 +30,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <java.version>17</java.version>
+    <java.version>21</java.version>
     <!-- Set defaults so jib works without any additional settings -->
     <git.commit.id>unknown</git.commit.id>
     <jib.tag>unknown</jib.tag>
@@ -287,8 +287,23 @@
         <!-- This allows simple building of a dockerfile without complexity -->
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>3.4.3</version>
+        <version>3.4.6</version>
+        <dependencies>
+            <!-- This isn't strictly needed but makes sense to include -->
+            <dependency>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-spring-boot-extension-maven</artifactId>
+                <version>0.1.0</version>
+            </dependency>
+        </dependencies>
         <configuration>
+          <pluginExtensions>
+              <pluginExtension>
+                  <implementation>
+                      com.google.cloud.tools.jib.maven.extension.springboot.JibSpringBootExtension
+                  </implementation>
+              </pluginExtension>
+          </pluginExtensions>
           <to>
             <tags>
               <tag>${project.version}</tag>
@@ -298,7 +313,7 @@
           </to>
           <from>
             <!-- The alpine images are small but don't support arm64 so use ubuntu instead -->
-            <image>eclipse-temurin:17.0.8.1_1-jre-jammy</image>
+            <image>gcr.io/distroless/java21-debian12</image>
             <platforms>
               <platform>
                 <architecture>arm64</architecture>
@@ -312,7 +327,7 @@
           </from>
           <container>
             <!-- As we're in docker we really don't want to be running as root -->
-            <user>nobody:nogroup</user>
+              <user>nonroot:nonroot</user>
             <jvmFlags>
               <!-- The ZGC collector allows memory to be released back to the OS by default. -->
               <jvmFlag>-XX:+UseZGC</jvmFlag>
