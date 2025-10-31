@@ -4,10 +4,13 @@
   "scripts": {
     "install-browsers": "npx playwright install",
     "test": "npx playwright test",
-    "test:ci": "CI=true npm run test"
+    "test:ci": "CI=true npx playwright test",
+    "test:ui": "npx playwright test --ui"
   },
+  "type": "module",
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
+    "@oxctl/deployment-test-utils": "1.0.1",
+    "@playwright/test": "^1.55.1",
     "dotenv": "^16.3.1"
   }
 }
