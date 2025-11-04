@@ -4,8 +4,8 @@ import { dismissBetaBanner, getLtiIFrame, waitForNoSpinners } from '@oxctl/deplo
 const host = process.env.CANVAS_HOST
 const url = process.env.URL
 
-test.describe('Test deployment', async () => {
-  await test('The tool should load and either import or no imports should be shown', async ({context, page}) => {
+test.describe('Test deployment', () => {
+  test('The tool should load and either import or no imports should be shown', async ({context, page}) => {
     await page.goto(`${host}/${url}`)
     await dismissBetaBanner(page)
     const ltiIFrame = getLtiIFrame(page)
