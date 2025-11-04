@@ -14,7 +14,7 @@ This repository is organised as follows:
 
 - [aws](aws) The AWS Cloudformation templates that are used to deploy development and production. See [README.md](aws/README.md).
 - [backend](backend) The Java REST backend that handles the application requests. See [README.md](backend/README.md).
-- [deployment](deployment) Automatic tests of the deployed tool.  See [README.md](deployment/README.md).
+- [deployment](deployment) Automatic tests of the deployed tool.
 - [frontend](frontend) The Instructure UI/React static frontend. See [README.md](frontend/README.md).
 - [tool-config](tool-config) Configuration files for `lti-auto-configuration` to deploy to Canvas/Tool Support.
 
