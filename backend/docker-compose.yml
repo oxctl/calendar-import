@@ -16,7 +16,7 @@ services:
       # config from the config folder relative to the current directory
       - ./docker-config:/config
   db:
-    image: mysql:8.0.31
+    image: mysql:8.4.5
     ports:
       - 3306
     environment:

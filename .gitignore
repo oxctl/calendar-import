@@ -2,3 +2,7 @@ node_modules
 localhost.pem
 localhost-key.pem
 tool-config/local.json
+
+.idea/
+/config/keystore.p12
+/package-lock.json
