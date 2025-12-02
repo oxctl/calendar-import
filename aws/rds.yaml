@@ -38,7 +38,7 @@ Parameters:
   dbEngineMajorVer:
     Description: "The mysql major version.  WARNING: only change during planned major version upgrades"
     Type: String
-    Default: "8.0"
+    Default: "8.4"
   charSet:
     Description:  "What character set to use? Default to utf8"
     Type: String
@@ -77,7 +77,7 @@ Parameters:
   pythonRuntime:
     Type: "String"
     Description: "Which python runtime to use for lambda functions"
-    Default: "python3.9"
+    Default: "python3.14"
   rouserSchedule:
     Type: "String"
     Description: "Schedule the lambda function to execute 5-10 minutes from now: format: at(yyyy-mm-ddThh:mm); eg: at(2024-06-18T12:30).  Timezone is Europe/London (not UTC)"
@@ -127,12 +127,6 @@ Resources:
   dbParamGroup:
     Type: "AWS::RDS::DBParameterGroup"
     Properties:
-      DBParameterGroupName:
-        Fn::Sub:
-          - "mysql${ver}-${app}-${env}"
-          - ver: !Select [0, !Split [".", !Ref dbEngineMajorVer]]
-            app: !Ref appName
-            env: !Ref envType
       Description: !Sub "DB Parameter group for ${appName}-${envType}"
       Family: !Sub "mysql${dbEngineMajorVer}"
       Parameters:
@@ -196,7 +190,7 @@ Resources:
       PreferredMaintenanceWindow: !FindInMap [EnvironmentMappings, !Ref envType, maintenanceWindow]
       MultiAZ: false
       EngineVersion: !Ref dbEngineMajorVer 
-      AllowMajorVersionUpgrade: false
+      AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: true
       LicenseModel: "general-public-license"
       PubliclyAccessible: false
