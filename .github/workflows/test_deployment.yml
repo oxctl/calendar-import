@@ -32,7 +32,7 @@ jobs:
     env:
       CANVAS_HOST: ${{ vars.CANVAS_HOST }}
       OAUTH_TOKEN: ${{ secrets.DEPLOYMENT_TESTS_OAUTH_TOKEN }}
-      URL: ${{ vars.URL }}
+      TEST_PATH: ${{ vars.DEPLOYMENT_TEST_PATH }}
       BACKEND_URL: ${{ vars.BACKEND_URL }}
     defaults:
       run:
