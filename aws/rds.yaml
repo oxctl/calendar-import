@@ -190,7 +190,7 @@ Resources:
       PreferredMaintenanceWindow: !FindInMap [EnvironmentMappings, !Ref envType, maintenanceWindow]
       MultiAZ: false
       EngineVersion: !Ref dbEngineMajorVer 
-      AllowMajorVersionUpgrade: true
+      AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
       LicenseModel: "general-public-license"
       PubliclyAccessible: false
