@@ -82,10 +82,6 @@ Parameters:
     Type: "String"
     Description: "Schedule the lambda function to execute 5-10 minutes from now: format: at(yyyy-mm-ddThh:mm); eg: at(2024-06-18T12:30).  Timezone is Europe/London (not UTC)"
     Default: "at(2024-08-05T21:25)"
-  ecrTagVersion:
-    Type: "String"
-    Description: "The version of the dbdump/dbload code in ECR to run"
-    Default: "2"
   snsArn:
     Description: "ARN for the SNS topic to send admin notifications to"
     Type: String
@@ -190,7 +186,7 @@ Resources:
       PreferredMaintenanceWindow: !FindInMap [EnvironmentMappings, !Ref envType, maintenanceWindow]
       MultiAZ: false
       EngineVersion: !Ref dbEngineMajorVer 
-      AllowMajorVersionUpgrade: true
+      AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: true
       LicenseModel: "general-public-license"
       PubliclyAccessible: false
