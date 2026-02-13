@@ -1,0 +1,85 @@
+name: Update tool configuration in Canvas and Tool Support
+on:
+  workflow_call:
+    inputs:
+      account_type:
+        description: 'Prod or nonprod AWS account'
+        type: string
+      app_name:
+        description: 'The name of the app'
+        type: string
+      aws_account_id:
+        description: 'The AWS account id'
+        type: string
+      aws_region:
+        description: 'The AWS region'
+        type: string
+      env_type:
+        description: 'The environment type, e.g. test, beta, prod'
+        type: string
+      github_env:
+        description: 'The GitHub environment'
+        type: string
+  workflow_dispatch:
+    inputs:
+      env_type:
+        type: choice
+        description: "Environment"
+        required: true
+        default: 'beta'
+        options:
+        - beta
+        - prod        
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.github_env }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
+          aws-region: ${{ inputs.aws_region }}
+      - run: echo AWS_STACK_PREFIX="${{ inputs.app_name }}-${{ inputs.env_type }}-${{ inputs.account_type }}" | tee -a $GITHUB_ENV
+      - run: echo FRONTEND_DOMAIN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.AWS_STACK_PREFIX }}-bootstrap-frontend-domain'].Value" --output text) | tee -a $GITHUB_ENV
+      - run: echo BACKEND_DOMAIN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.AWS_STACK_PREFIX }}-bootstrap-backend-domain'].Value" --output text) | tee -a $GITHUB_ENV
+        # This means we correctly escape JSON, but also keep secrets secret
+      - run: jq '.frontend_url="https://" + $ENV.FRONTEND_DOMAIN | .backend_url="https://" + $ENV.BACKEND_DOMAIN | .secret=$ENV.SECRET' tool-config/${{ inputs.env_type }}-template.json > tool-config/default.json
+        env: 
+          SECRET: ${{ secrets.SECRET }}
+      # This sets up the configuration for the tool config update
+      - run: |
+          mkdir -p ~/.tool-config
+          jq -n '{"setup": {"canvas_url": $ENV.CANVAS_HOST, "tool_support_url": $ENV.TOOL_SUPPORT_URL }, "secrets": { "canvas_token": $ENV.CANVAS_TOKEN, "tool_support_username": $ENV.TOOL_SUPPORT_USERNAME, "tool_support_password": $ENV.TOOL_SUPPORT_PASSWORD } }' > ~/.tool-config/default.json
+        env:
+          CANVAS_HOST: ${{ vars.CANVAS_HOST }}
+          TOOL_SUPPORT_URL: ${{ vars.TOOL_SUPPORT_URL }}
+          CANVAS_TOKEN: ${{ secrets.CANVAS_TOKEN }}
+          TOOL_SUPPORT_USERNAME: ${{ secrets.TOOL_SUPPORT_USERNAME }}
+          TOOL_SUPPORT_PASSWORD: ${{ secrets.TOOL_SUPPORT_PASSWORD }}
+      - name: Update or create tool configuration
+        run: |
+          npm install -g @oxctl/lti-auto-configuration
+          if npx @oxctl/lti-auto-configuration validate; then
+            npx @oxctl/lti-auto-configuration update
+          else
+            npx @oxctl/lti-auto-configuration create
+          fi
+      - run: echo CLIENT_ID="$(npx @oxctl/lti-auto-configuration export | jq -r .toolReg.lti.clientId)" | tee -a $GITHUB_ENV
+      - name: Update stack with new client ID
+        # There isn't a nice way to just override one existing parameter in the stack, the `deploy` command needs a template
+        # and the `update-stack` requires all the parameters to be specified.
+        run: |
+          parameters="$(aws cloudformation describe-stacks --stack-name ${{ env.AWS_STACK_PREFIX }}-backend --query "Stacks[].Parameters[].ParameterKey" --output text |\
+            tr '\t' '\n' |\
+            sed -n '/jwtAudience/! s/\(.*\)/ParameterKey=\1,UsePreviousValue=true/p' |\
+            tr '\n' ' '
+          ) ParameterKey=jwtAudience,ParameterValue=$CLIENT_ID"
+          aws cloudformation update-stack --stack-name ${{ env.AWS_STACK_PREFIX }}-backend  --use-previous-template --capabilities CAPABILITY_NAMED_IAM --parameters $parameters
+      - run: aws cloudformation wait stack-update-complete --stack-name ${{ env.AWS_STACK_PREFIX }}-backend
