@@ -126,7 +126,7 @@
       }
     }, 
     "origins": [
-      "$TOOL_URL"
+      "$FRONTEND_URL"
     ],
     "secret": null,
     "issuer": "$CALENDAR_SERVER_URL",
