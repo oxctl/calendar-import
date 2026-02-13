@@ -129,7 +129,7 @@
       "$FRONTEND_URL"
     ],
     "secret": null,
-    "issuer": "$CALENDAR_SERVER_URL",
+    "issuer": "$BACKEND_URL",
     "nrpsAllowedRoles": []
   }
 }
