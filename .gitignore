@@ -1,7 +1,7 @@
 node_modules
 localhost.pem
 localhost-key.pem
-tool-config/local-*.json
+tool-config/local*.json
 .DS_Store
 *.code-workspace
 .env*.local
