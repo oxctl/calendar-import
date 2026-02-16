@@ -3,5 +3,5 @@
   "frontend_url": "set at runtime",
   "backend_url": "set at runtime",
   "lti_registration_id": "universityofoxford-ci-dev",
-  "user_only_delete": false
+  "user_only_delete": "false"
 }

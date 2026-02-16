@@ -42,6 +42,9 @@
           }
         ],
         "custom_fields": {
+          "proxy_server": "$TOOL_SUPPORT_URL",
+          "calendar_server": "$BACKEND_URL",
+          "lti_server": "$TOOL_SUPPORT_URL",
           "canvas_user_id": "$Canvas.user.id",
           "canvas_course_id": "$Canvas.course.id",
           "user_only_delete": "$USER_ONLY_DELETE",
@@ -52,8 +55,7 @@
           "resource_link_title": "$ResourceLink.title",
           "person_address_timezone": "$Person.address.timezone",
           "canvas_user_prefers_high_contrast": "$Canvas.user.prefersHighContrast",
-          "com_instructure_brand_config_json_url": "$com.instructure.brandConfigJSON.url",
-          "backend": "$BACKEND_URL"
+          "com_instructure_brand_config_json_url": "$com.instructure.brandConfigJSON.url"
         }
       }
     },
