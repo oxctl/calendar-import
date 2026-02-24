@@ -45,6 +45,7 @@
           "proxy_server": "$TOOL_SUPPORT_URL",
           "calendar_server": "$BACKEND_URL",
           "lti_server": "$TOOL_SUPPORT_URL",
+          "backend": "$BACKEND_URL",
           "canvas_user_id": "$Canvas.user.id",
           "canvas_course_id": "$Canvas.course.id",
           "user_only_delete": "$USER_ONLY_DELETE",
