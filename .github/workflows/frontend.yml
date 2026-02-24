@@ -59,7 +59,7 @@ jobs:
     secrets: inherit
 
   call-deployment-tests:
-    needs: [ aws-params, call-build-and-deploy ]
+    needs: [ aws-params, call-build-and-deploy, call-update-config ]
     uses: ./.github/workflows/test_deployment.yml
     with:
       execution-environment: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
