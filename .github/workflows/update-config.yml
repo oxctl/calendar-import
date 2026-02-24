@@ -20,16 +20,7 @@ on:
       github_env:
         description: 'The GitHub environment'
         type: string
-  workflow_dispatch:
-    inputs:
-      env_type:
-        type: choice
-        description: "Environment"
-        required: true
-        default: 'beta'
-        options:
-        - beta
-        - prod        
+        
 jobs:
   update:
     runs-on: ubuntu-latest
