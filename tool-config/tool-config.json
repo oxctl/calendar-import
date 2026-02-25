@@ -132,7 +132,7 @@
     "origins": [
       "$FRONTEND_URL"
     ],
-    "secret": null,
+    "secret": "$SECRET",
     "issuer": "$BACKEND_URL",
     "nrpsAllowedRoles": []
   }
