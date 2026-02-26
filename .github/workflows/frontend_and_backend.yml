@@ -53,7 +53,6 @@ jobs:
     uses: ./.github/workflows/backend_build_and_deploy.yml
     needs: [ aws-params ]
     with:
-      execution-environment: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
       account_type: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
       app_name: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
       aws_account_id: ${{ fromJSON(needs.aws-params.outputs.json).awsAccountId }}
