@@ -1,4 +1,4 @@
-name: Frontend
+name: Frontend and Backend build
 run-name: "Deploy ${{ github.ref }}"
 
 on:
@@ -8,7 +8,10 @@ on:
     paths:
       - 'aws/**'
       - 'frontend/**'
+      - 'backend/**'
       - '.github/workflows/frontend*'
+      - '.github/workflows/backend*'
+      - '.github/workflows/test_deployment*'
       - '.github/workflows/update-config*'
       - 'tool-config/**'
       - '!**/README.md'
@@ -29,7 +32,7 @@ jobs:
           PARAMS=$(jq 'map(split("=")|  { (.[0]|tostring): .[1]} ) | add'  < ./aws/${{ (startsWith(github.ref_name, 'dr-')) && 'dr' || github.ref_name }}.json)
           echo json=${PARAMS} | tee -a $GITHUB_OUTPUT
 
-  call-build-and-deploy:
+  call-frontend-build-and-deploy:
     uses: ./.github/workflows/frontend_build_and_deploy.yml
     needs: [ aws-params ]
     with:
@@ -46,9 +49,26 @@ jobs:
       execution-environment: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
     secrets: inherit
 
+  call-backend-build-and-deploy:
+    uses: ./.github/workflows/backend_build_and_deploy.yml
+    needs: [ aws-params ]
+    with:
+      execution-environment: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
+      account_type: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
+      app_name: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
+      aws_account_id: ${{ fromJSON(needs.aws-params.outputs.json).awsAccountId }}
+      aws_parameters: ${{ (startsWith(github.ref_name, 'dr-')) && 'dr' || github.ref_name }}
+      aws_region: ${{ fromJSON(needs.aws-params.outputs.json).awsRegion }}
+      do_deploy: ${{ (fromJSON(needs.aws-params.outputs.json).envType == 'prod') && true || github.ref_name == github.event.repository.default_branch }}
+      env_type: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
+      github_env: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+    secrets: inherit
+
   call-update-config:
     uses: ./.github/workflows/update-config.yml
-    needs: [ aws-params, call-build-and-deploy ]
+    needs: [ aws-params, call-frontend-build-and-deploy, call-backend-build-and-deploy ]
     with:
       account_type: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
       app_name: ${{ fromJSON(needs.aws-params.outputs.json).appName }}
@@ -59,7 +79,7 @@ jobs:
     secrets: inherit
 
   call-deployment-tests:
-    needs: [ aws-params, call-build-and-deploy, call-update-config ]
+    needs: [ aws-params, call-frontend-build-and-deploy, call-backend-build-and-deploy, call-update-config ]
     uses: ./.github/workflows/test_deployment.yml
     with:
       execution-environment: ${{ fromJSON(needs.aws-params.outputs.json).envType }}
