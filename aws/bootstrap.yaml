@@ -172,3 +172,26 @@ Outputs:
     Value: !GetAtt ecrRepo.RepositoryUri
     Export:
       Name: !Sub "${AWS::StackName}-ecr-repo-uri"
+  # These are used by the autoconfiguration  to extract out the domain names
+  frontendDomain:
+    Description: "DNS name for serving the frontend (static tool content)"
+    Value:
+      Fn::Sub:
+        - "static-${app}.${dom}"
+        - app: !Ref appName
+          dom:
+            Fn::ImportValue:
+              !Sub "${orgName}-${accountType}-route53-domainname"
+    Export:
+      Name: !Sub "${AWS::StackName}-frontend-domain"
+  backendDomain:
+    Description: "DNS name for service the backend (dynamic API)"
+    Value:
+      Fn::Sub:
+        - "${app}.${dom}"
+        - app: !Ref appName
+          dom:
+            Fn::ImportValue:
+              !Sub "${orgName}-${accountType}-route53-domainname"
+    Export:
+      Name: !Sub "${AWS::StackName}-backend-domain"

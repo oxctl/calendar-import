@@ -1,10 +1,5 @@
 {
   "config": {
-    "title_suffix": " demo",
-    "lti_registration_id": "calendar-import",
-    "lti_account_id": "self",
-    "lti_tool_url": "https://localhost:3000",
-    "user_only_delete": "true"
   },
   "ltiKey": {
     "tool_configuration": {
@@ -12,16 +7,14 @@
         "public_jwk": {},
         "title": "Calendar Import$TITLE_SUFFIX",
         "description": " Allows the import of events into the Canvas calendar.",
-        "target_link_uri": "$LTI_TOOL_URL",
-        "oidc_initiation_url": "$LTI_SERVER_URL/lti/login_initiation/",
-        "public_jwk_url": "$LTI_SERVER_URL/.well-known/jwks.json",
+        "target_link_uri": "$FRONTEND_URL",
+        "oidc_initiation_url": "$TOOL_SUPPORT_URL/lti/login_initiation/",
+        "public_jwk_url": "$TOOL_SUPPORT_URL/.well-known/jwks.json",
         "scopes": [],
         "extensions": [
           {
-            "domain": "localhost",
             "platform": "canvas.instructure.com",
             "settings": {
-              "platform": "canvas.instructure.com",
               "placements": [
                 {
                   "text": "Calendar Import$TITLE_SUFFIX",
@@ -49,6 +42,10 @@
           }
         ],
         "custom_fields": {
+          "proxy_server": "$TOOL_SUPPORT_URL",
+          "calendar_server": "$BACKEND_URL",
+          "lti_server": "$TOOL_SUPPORT_URL",
+          "backend": "$BACKEND_URL",
           "canvas_user_id": "$Canvas.user.id",
           "canvas_course_id": "$Canvas.course.id",
           "user_only_delete": "$USER_ONLY_DELETE",
@@ -59,16 +56,14 @@
           "resource_link_title": "$ResourceLink.title",
           "person_address_timezone": "$Person.address.timezone",
           "canvas_user_prefers_high_contrast": "$Canvas.user.prefersHighContrast",
-          "com_instructure_brand_config_json_url": "$com.instructure.brandConfigJSON.url",
-          "proxy_server": "$PROXY_SERVER_URL",
-          "calendar_server": "$CALENDAR_SERVER_URL",
-          "lti_server": "$LTI_SERVER_URL"
+          "com_instructure_brand_config_json_url": "$com.instructure.brandConfigJSON.url"
         }
       }
     },
     "developer_key": {
       "name": "Calendar Import$TITLE_SUFFIX",
-      "redirect_uris": "$LTI_SERVER_URL/lti/login",
+      "redirect_uris": "$TOOL_SUPPORT_URL/lti/login",
+      "notes": "Auto-Config: $CURRENT_DATETIME",
       "scopes": [
       ]
     }
@@ -78,7 +73,8 @@
       "allow_includes": true,
       "name": "Calendar Import$TITLE_SUFFIX",
       "require_scopes": true,
-      "redirect_uris": "$PROXY_SERVER_URL/login/oauth2/code/$LTI_REGISTRATION_ID",
+      "redirect_uris": "$TOOL_SUPPORT_URL/login/oauth2/code/$LTI_REGISTRATION_ID",
+      "notes": "Auto-Config: $CURRENT_DATETIME",
       "scopes": [
         "url:GET|/api/v1/calendar_events",
         "url:POST|/api/v1/calendar_events",
@@ -134,11 +130,10 @@
       }
     }, 
     "origins": [
-      "$LTI_TOOL_URL"
+      "$FRONTEND_URL"
     ],
-    "sign": true,
-    "secret": "$PROXY_SECRET",
-    "issuer": "$CALENDAR_SERVER_URL",
+    "secret": "$SECRET",
+    "issuer": "$BACKEND_URL",
     "nrpsAllowedRoles": []
   }
 }

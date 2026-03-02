@@ -17,9 +17,9 @@ on:
         type: choice
         description: "Environment"
         required: true
-        default: 'DEV'
+        default: 'BETA'
         options:
-        - DEV
+        - BETA
         - PROD
 
 jobs:
