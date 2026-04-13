@@ -313,7 +313,7 @@
             </tags>
           </to>
           <from>
-            <!-- The alpine images are small but don't support arm64 so use ubuntu instead -->
+            <!-- Use a small distroless Debian 13 Java 21 base image with support for arm64 and amd64 -->
             <image>gcr.io/distroless/java21-debian13</image>
             <platforms>
               <platform>
