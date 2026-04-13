@@ -288,7 +288,7 @@
         <!-- This allows simple building of a dockerfile without complexity -->
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
-        <version>3.4.6</version>
+        <version>3.5.1</version>
         <dependencies>
             <!-- This isn't strictly needed but makes sense to include -->
             <dependency>
@@ -314,7 +314,7 @@
           </to>
           <from>
             <!-- The alpine images are small but don't support arm64 so use ubuntu instead -->
-            <image>gcr.io/distroless/java21-debian12</image>
+            <image>gcr.io/distroless/java21-debian13</image>
             <platforms>
               <platform>
                 <architecture>arm64</architecture>

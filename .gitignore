@@ -5,3 +5,4 @@ tool-config/local*.json
 .DS_Store
 *.code-workspace
 .env*.local
+/.idea/
