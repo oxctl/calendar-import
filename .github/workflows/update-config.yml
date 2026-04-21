@@ -55,7 +55,9 @@ jobs:
             "$TOOL_SUPPORT_USERNAME" \
             "$TOOL_SUPPORT_PASSWORD"
           do
-            echo "::add-mask::$value"
+            if [ -n "$value" ] && [ "$value" != "null" ]; then
+              echo "::add-mask::$value"
+            fi
           done
 
           {
