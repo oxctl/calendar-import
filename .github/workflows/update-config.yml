@@ -39,22 +39,44 @@ jobs:
           role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
       - run: echo AWS_STACK_PREFIX="${{ inputs.app_name }}-${{ inputs.env_type }}-${{ inputs.account_type }}" | tee -a $GITHUB_ENV
+      - name: Load update-config secrets from AWS Secrets Manager
+        run: |
+          secret_id="${{ inputs.account_type }}/lti-config"
+          secret_json="$(aws secretsmanager get-secret-value --secret-id "$secret_id" --query SecretString --output text)"
+
+          CANVAS_HOST="$(jq -r '.canvas_host' <<<"$secret_json")"
+          TOOL_SUPPORT_URL="$(jq -r '.tool_support_url' <<<"$secret_json")"
+          CANVAS_TOKEN="$(jq -r '.canvas_token' <<<"$secret_json")"
+          TOOL_SUPPORT_USERNAME="$(jq -r '.tool_support_username' <<<"$secret_json")"
+          TOOL_SUPPORT_PASSWORD="$(jq -r '.tool_support_password' <<<"$secret_json")"
+
+          for value in \
+            "$CANVAS_TOKEN" \
+            "$TOOL_SUPPORT_USERNAME" \
+            "$TOOL_SUPPORT_PASSWORD"
+          do
+            if [ -n "$value" ] && [ "$value" != "null" ]; then
+              echo "::add-mask::$value"
+            fi
+          done
+
+          {
+            printf 'CANVAS_HOST=%s\n' "$CANVAS_HOST"
+            printf 'TOOL_SUPPORT_URL=%s\n' "$TOOL_SUPPORT_URL"
+            printf 'CANVAS_TOKEN=%s\n' "$CANVAS_TOKEN"
+            printf 'TOOL_SUPPORT_USERNAME=%s\n' "$TOOL_SUPPORT_USERNAME"
+            printf 'TOOL_SUPPORT_PASSWORD=%s\n' "$TOOL_SUPPORT_PASSWORD"
+          } >> "$GITHUB_ENV"
       - run: echo FRONTEND_DOMAIN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.AWS_STACK_PREFIX }}-bootstrap-frontend-domain'].Value" --output text) | tee -a $GITHUB_ENV
       - run: echo BACKEND_DOMAIN=$(aws cloudformation list-exports --query "Exports[?Name=='${{ env.AWS_STACK_PREFIX }}-bootstrap-backend-domain'].Value" --output text) | tee -a $GITHUB_ENV
         # This means we correctly escape JSON, but also keep secrets secret
       - run: jq '.frontend_url="https://" + $ENV.FRONTEND_DOMAIN | .backend_url="https://" + $ENV.BACKEND_DOMAIN | .secret=$ENV.SECRET' tool-config/${{ inputs.env_type }}-template.json > tool-config/default.json
-        env: 
+        env:
           SECRET: ${{ secrets.SECRET }}
       # This sets up the configuration for the tool config update
       - run: |
           mkdir -p ~/.tool-config
           jq -n '{"setup": {"canvas_url": $ENV.CANVAS_HOST, "tool_support_url": $ENV.TOOL_SUPPORT_URL }, "secrets": { "canvas_token": $ENV.CANVAS_TOKEN, "tool_support_username": $ENV.TOOL_SUPPORT_USERNAME, "tool_support_password": $ENV.TOOL_SUPPORT_PASSWORD } }' > ~/.tool-config/default.json
-        env:
-          CANVAS_HOST: ${{ vars.CANVAS_HOST }}
-          TOOL_SUPPORT_URL: ${{ vars.TOOL_SUPPORT_URL }}
-          CANVAS_TOKEN: ${{ secrets.CANVAS_TOKEN }}
-          TOOL_SUPPORT_USERNAME: ${{ secrets.TOOL_SUPPORT_USERNAME }}
-          TOOL_SUPPORT_PASSWORD: ${{ secrets.TOOL_SUPPORT_PASSWORD }}
       - name: Update or create tool configuration
         run: |
           npm install -g @oxctl/lti-auto-configuration
