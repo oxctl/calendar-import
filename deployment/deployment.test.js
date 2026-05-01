@@ -5,6 +5,7 @@ test.describe('Test deployment', () => {
   test('The tool should load and either import or no imports should be shown', async ({context, page}) => {
     await page.goto(TEST_URL)
     await dismissBetaBanner(page)
+    await grantAccessIfNeeded(page, context, TEST_URL)
     const ltiIFrame = getLtiIFrame(page)
     await waitForNoSpinners(ltiIFrame)
 
