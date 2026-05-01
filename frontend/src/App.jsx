@@ -25,7 +25,7 @@
 import React from 'react'
 
 import jwtDecode from 'jwt-decode'
-import {View} from '@instructure/ui-view'
+import {View} from '@instructure/ui'
 import {Loading} from './Loading'
 import Error from './Error'
 import {LaunchOAuth, LtiApplyTheme, LtiHeightLimit, LtiTokenRetriever} from "@oxctl/ui-lti"

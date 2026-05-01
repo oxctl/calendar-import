@@ -1,13 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
-import {Button} from "@instructure/ui-buttons";
-import {FileDrop} from "@instructure/ui-file-drop";
-import {View} from "@instructure/ui-view";
-import {IconUploadSolid} from "@instructure/ui-icons";
-import {Text} from "@instructure/ui-text";
+import {Button, FileDrop, View, IconUploadSolid, Text, Flex, Spinner} from "@instructure/ui";
 import Sections from "./Sections";
-import {Flex} from "@instructure/ui-flex";
-import {Spinner} from "@instructure/ui-spinner";
 import {connect} from "react-redux";
 import {load} from "./actions/imports";
 
