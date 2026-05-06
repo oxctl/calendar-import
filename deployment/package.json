@@ -3,14 +3,16 @@
   "version": "1.0.0",
   "scripts": {
     "install-browsers": "npx playwright install",
-    "test": "npx playwright test",
-    "test:ci": "CI=true npx playwright test",
-    "test:ui": "npx playwright test --ui"
+    "pretest": "deployment-generate-auth",
+    "test": "playwright test",
+    "test:ci": "CI=true npm test",
+    "test:ui": "npm test -- --ui",
+    "test:report": "npx playwright show-report"
   },
   "type": "module",
   "devDependencies": {
-    "@oxctl/deployment-test-utils": "1.1.3",
-    "@playwright/test": "^1.55.1",
+    "@oxctl/deployment-test-utils": "^1.2.1",
+    "@playwright/test": "^1.57.0",
     "dotenv": "^16.3.1"
   }
 }
