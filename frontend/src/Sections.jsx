@@ -1,9 +1,7 @@
 import React from 'react'
-import { SimpleSelect } from '@instructure/ui-simple-select'
+import { SimpleSelect, View, Spinner } from '@instructure/ui'
 import PropTypes from 'prop-types'
-import { View } from '@instructure/ui-view'
 import { handleErrors, LoginError } from './utils/fetch'
-import { Spinner } from '@instructure/ui-spinner'
 
 /**
  * Displays a list of sections in the course and allows the user to select the whole course
