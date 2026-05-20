@@ -1,8 +1,6 @@
 import React from 'react'
-import { Alert } from '@instructure/ui-alerts'
-import { Flex } from '@instructure/ui-flex'
+import { Alert, Flex, View } from '@instructure/ui'
 import PropTypes from 'prop-types'
-import { View } from '@instructure/ui-view'
 import {connect} from "react-redux";
 import {deleteMessage} from "./actions/messages";
 

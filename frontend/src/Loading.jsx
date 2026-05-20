@@ -23,7 +23,7 @@
  */
 
 import React from 'react'
-import { Spinner } from '@instructure/ui-spinner'
+import { Spinner } from '@instructure/ui'
 
 export function Loading({loading, children}) {
   return loading ?

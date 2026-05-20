@@ -1,23 +1,24 @@
-import React from "react"
-import {Flex} from "@instructure/ui-flex";
-import {Button, IconButton} from "@instructure/ui-buttons";
-import {View} from "@instructure/ui-view";
-import {Heading} from "@instructure/ui-heading";
-import {Text} from "@instructure/ui-text";
+import React from 'react'
 import {
+    Button,
+    Flex,
+    Heading,
+    IconButton,
     IconCalendarMonthLine,
     IconImportLine,
     IconMsExcelLine,
     IconQuestionLine,
     IconResetLine,
-    IconTrashLine
-} from "@instructure/ui-icons";
-import {getRelativeTime} from "./relativeTime";
-import {Link} from "@instructure/ui-link";
-import {Spinner} from "@instructure/ui-spinner";
-import {load, setPage} from "./actions/imports";
-import {connect} from "react-redux";
-import {Pagination} from "@instructure/ui-pagination";
+    IconTrashLine,
+    Link,
+    Pagination,
+    Spinner,
+    Text,
+    View
+} from '@instructure/ui'
+import { getRelativeTime } from './relativeTime'
+import { load, setPage } from './actions/imports'
+import { connect } from 'react-redux'
 
 class ImportView extends React.Component {
 

@@ -24,8 +24,7 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Billboard } from '@instructure/ui-billboard'
-import { IconWarningLine } from '@instructure/ui-icons'
+import { Billboard, IconWarningLine } from '@instructure/ui'
 
 // Displays a message across the screen.
 class Error extends React.Component {

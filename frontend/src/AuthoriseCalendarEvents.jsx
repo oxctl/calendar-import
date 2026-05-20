@@ -2,16 +2,19 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as PropTypes from 'prop-types'
 
-import { Button, IconButton } from '@instructure/ui-buttons'
-import { Checkbox } from '@instructure/ui-checkbox'
-import { Flex } from '@instructure/ui-flex'
-import { Heading } from '@instructure/ui-heading'
-import { Link } from '@instructure/ui-link'
-import { Spinner } from '@instructure/ui-spinner'
-import { Text } from '@instructure/ui-text'
-import { View } from '@instructure/ui-view'
-import { IconRefreshLine } from '@instructure/ui-icons'
-import { IconImportLine } from '@instructure/ui-icons'
+import {
+  Button,
+  Checkbox,
+  Flex,
+  Heading,
+  IconButton,
+  IconImportLine,
+  IconRefreshLine,
+  Link,
+  Spinner,
+  Text,
+  View
+} from '@instructure/ui'
 
 import Messages from './Messages'
 import { addMessage } from './actions/messages'

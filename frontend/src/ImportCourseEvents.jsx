@@ -1,18 +1,11 @@
 import React from 'react'
 import Messages from './Messages'
-import { Heading } from '@instructure/ui-heading'
-import {Text} from '@instructure/ui-text'
+import { Button, Flex, Heading, Link, Spinner, Text, TextInput, View } from '@instructure/ui'
 import * as PropTypes from 'prop-types'
 import { addMessage } from './actions/messages'
 import { connect } from 'react-redux'
-import { TextInput } from '@instructure/ui-text-input'
-import { View } from '@instructure/ui-view'
-import { Flex } from '@instructure/ui-flex'
-import { Button } from '@instructure/ui-buttons'
-import { Spinner } from '@instructure/ui-spinner'
-import { Link } from '@instructure/ui-link'
 
-import {isValidUrl, hasValidVariables, isMagicUrl, validVariables} from "./utils/calendar_url";
+import { hasValidVariables, isMagicUrl, isValidUrl, validVariables } from './utils/calendar_url'
 
 class ImportCourseEvents extends React.Component {
 

@@ -1,8 +1,6 @@
 import React, {Fragment} from "react";
 import Messages from "./Messages";
-import {Heading} from "@instructure/ui-heading";
-import {Text} from "@instructure/ui-text";
-import {Link} from "@instructure/ui-link";
+import {Heading, Text, Link} from "@instructure/ui";
 import UploadJob from "./UploadJob";
 import ImportView from "./ImportView";
 import * as PropTypes from "prop-types";
