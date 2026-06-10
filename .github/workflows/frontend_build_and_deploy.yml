@@ -18,9 +18,6 @@ on:
       aws_region:
         description: 'The AWS region'
         type: string
-      do_deploy:
-        description: 'Flag for whether to deploy or not'
-        type: boolean
       env_type:
         description: 'The environment type, e.g. test, beta, prod'
         type: string
@@ -48,8 +45,8 @@ jobs:
     outputs:
       s3_artifact_bucket: ${{ steps.query.outputs.s3_artifact_bucket }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: actions/checkout@v6
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
@@ -93,10 +90,10 @@ jobs:
     outputs:
       artifact: ${{ steps.upload.outputs.artifact }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.COMMIT_SHA }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: 'frontend/.nvmrc'
           cache: 'npm'
@@ -113,7 +110,7 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/pull/') }}
         run: echo "ARCHIVE=pull-${GITHUB_HEAD_REF}.${GITHUB_RUN_NUMBER}.tgz" | tee -a $GITHUB_ENV
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
@@ -126,7 +123,7 @@ jobs:
           aws s3 cp $ARCHIVE s3://${S3_ARTIFACT_BUCKET}/
           echo artifact="$ARCHIVE" | tee -a $GITHUB_OUTPUT
       - name: Upload AWS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aws-frontend
           path: aws
@@ -141,24 +138,16 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      deployments: write
     env:
       ARCHIVE: ${{ needs.build.outputs.artifact }}
       S3_ARTIFACT_BUCKET: ${{ needs.bootstrap.outputs.s3_artifact_bucket }}
     steps:
       - name: Download AWS artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: aws-frontend
-      - name: Start deployment
-        uses: bobheadxi/deployments@v1.5.0
-        if: inputs.do_deploy
-        id: deployment
-        with:
-          step: start
-          env: frontend-${{ inputs.github_env }}
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         id: aws-credentials
         with:
           role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
@@ -187,14 +176,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ steps.aws-credentials.outputs.aws-secret-access-key }}
           AWS_SESSION_TOKEN: ${{ steps.aws-credentials.outputs.aws-session-token }}
           SOURCE_DIR: files
-      - name: Update deployment status
-        uses: bobheadxi/deployments@v1.5.0
-        if: always() && inputs.do_deploy
-        with:
-          step: finish
-          env: frontend-${{ inputs.github_env }}
-          status: ${{ job.status }}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
 
   cleanup-artifacts:
     runs-on: ubuntu-22.04
@@ -204,7 +185,7 @@ jobs:
       contents: read
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/cad-github-actions-role
           aws-region: ${{ inputs.aws_region }}
