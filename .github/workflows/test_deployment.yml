@@ -38,10 +38,10 @@ jobs:
       run:
         working-directory: deployment
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Wait the backend to startup up and serve the index
         run: curl -I --show-error --silent --retry 10 --retry-connrefused --retry-delay 10 ${{ env.BACKEND_URL }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: 'deployment/.nvmrc'
           cache: 'npm'
@@ -50,7 +50,7 @@ jobs:
       - run: npm run install-browsers
       - run: npm test
       - name: Upload test-results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ${{ github.event.repository.name }}-test-results-${{ github.run_number }}-${{ github.run_attempt }}
