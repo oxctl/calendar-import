@@ -26,6 +26,11 @@ Parameters:
     Default: ""
   solutionStack:
     Type: String
+  availabilityZone:
+    Type: String
+    Description: The availability zone to use for RDS and Elastic Beanstalk.
+    Default: "b"
+    AllowedPattern: "^[a-b]$"
 
 Resources:
   AppRegion:
@@ -45,6 +50,7 @@ Resources:
         envType: !Ref envType
         accountType: !Ref accountType
         snapshotToUse: !Ref snapshotToUse
+        availabilityZone: !Ref availabilityZone
         snsArn:
           Fn::ImportValue:
             !Sub "${accountType}-admin-notifications"
@@ -62,6 +68,7 @@ Resources:
         cfSSLCertARN: !Ref cfSSLCertARN
         wafARN: !Ref wafARN
         solutionStack: !Ref solutionStack
+        availabilityZone: !Ref availabilityZone
         snsArn:
           Fn::ImportValue:
             !Sub "${accountType}-admin-notifications"
