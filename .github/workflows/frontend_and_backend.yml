@@ -16,6 +16,8 @@ on:
       - 'tool-config/**'
       - '!**/README.md'
   workflow_dispatch:
+  repository_dispatch:
+    types: [sns_event]
 
 jobs:
   aws-params:
