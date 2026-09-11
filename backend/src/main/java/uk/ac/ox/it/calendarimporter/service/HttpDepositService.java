@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Map;
 
@@ -34,7 +34,13 @@ public class HttpDepositService implements DepositService {
         }
         StringSubstitutor substitutor = new StringSubstitutor(parameters);
         String updatedUrl = substitutor.replace(deposit);
-        URLConnection urlConnection = new URL(updatedUrl).openConnection();
+        URLConnection urlConnection = null;
+        try {
+            urlConnection = new URI(updatedUrl).toURL().openConnection();
+        } catch (URISyntaxException e) {
+            // This should never happen because we have already checked that the URL is valid.
+            throw new RuntimeException(e);
+        }
         urlConnection.setConnectTimeout(10000);
         return urlConnection.getInputStream();
     }

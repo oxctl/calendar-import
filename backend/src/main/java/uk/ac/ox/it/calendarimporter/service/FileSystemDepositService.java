@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
@@ -59,7 +60,13 @@ public class FileSystemDepositService implements DepositService {
 
     @Override
     public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException {
-        URL url = new URL(deposit);
+        URL url = null;
+        try {
+            url = new URI(deposit).toURL();
+        } catch (URISyntaxException e) {
+            // This should never happen because we only deposit files that are valid URIs.
+            throw new RuntimeException(e);
+        }
         if (!url.getPath().startsWith(location.toUri().getPath())) {
             throw new AccessDeniedException("File not within: "+ location.toUri());
         }

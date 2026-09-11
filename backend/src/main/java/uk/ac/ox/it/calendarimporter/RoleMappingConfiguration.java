@@ -10,9 +10,13 @@ import java.util.Map;
 public class RoleMappingConfiguration {
 
     /**
-     * The role mappings from the Canvas role name to the External User Management role.
+     * The role mappings from the Canvas role name to the Application role name.
      */
     private final Map<String, GrantedAuthority> mapping;
+
+    public RoleMappingConfiguration() {
+        this.mapping = Collections.emptyMap();
+    }
 
     public RoleMappingConfiguration(Map<String, GrantedAuthority> mapping) {
         this.mapping = mapping;
@@ -20,6 +24,6 @@ public class RoleMappingConfiguration {
 
     public Map<String, GrantedAuthority> getMapping() {
         if (mapping != null) return mapping;
-        return Collections.EMPTY_MAP;
+        return Collections.emptyMap();
     }
 }

@@ -16,7 +16,7 @@ import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.Location;
 import net.fortuna.ical4j.model.property.Summary;
 import net.fortuna.ical4j.validate.ValidationException;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,9 +176,8 @@ public class IcalImportJob extends CanvasCalendarJob {
      */
     private Instant toInstant(Date date) {
         Instant instant;
-        if (date instanceof DateTime) {
+        if (date instanceof DateTime dateTime) {
             // Need to convert to UTC, don't want to adjust the existing value.
-            DateTime dateTime = (DateTime) date;
             TimeZone timeZone = dateTime.getTimeZone();
             if (timeZone != null) {
                 int offset = timeZone.getOffset(dateTime.getTime());

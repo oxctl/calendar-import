@@ -41,7 +41,7 @@ public class CalendarIDLookupFile implements CalendarIDLookup {
                 if (value != null) {
                     try {
                         String[] split = value.split(",");
-                        Set<Integer> ids = Arrays.stream(split).map(Integer::new).collect(Collectors.toSet());
+                        Set<Integer> ids = Arrays.stream(split).map(Integer::valueOf).collect(Collectors.toSet());
                         set(uuid, ids);
                     } catch (NumberFormatException nfe) {
                         throw new IOException("Failed to parse number for " + uuid + " of " + value);
