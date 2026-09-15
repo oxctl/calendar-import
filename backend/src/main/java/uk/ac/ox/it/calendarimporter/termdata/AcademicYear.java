@@ -1,8 +1,8 @@
 package uk.ac.ox.it.calendarimporter.termdata;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 import java.time.LocalDate;
 
