@@ -1,9 +1,6 @@
 name: Delete Stack
-run-name: "Delete ${{ inputs.stack-prefix }} stacks on ${{ inputs.region }} ${{ fromJson(vars.AWS_ACCOUNT_IDS_MAP)[inputs.account-id] }}"
+run-name: "Delete ${{ inputs['stack-prefix'] }} stacks on ${{ inputs.region }} ${{ fromJson(vars.AWS_ACCOUNT_IDS_MAP)[inputs['account-id']] }}"
 
-env:
-  AWS_GITHUB_ROLE: 'cad-github-actions-role'
-    
 on:
   workflow_dispatch:
     inputs:
@@ -23,58 +20,17 @@ on:
 
 
 jobs:
-  frontend:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 15
+  delete-stack:
+    uses: oxctl/shared-workflows/.github/workflows/delete_stack.yml@master
     permissions:
       id-token: write
       contents: read
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}
-          aws-region: ${{ inputs.region}}
-        # There's no sensible way to have cloudformation empty a bucket
-      - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-frontend-app-bucket-name'].Value" --output text) | tee -a $GITHUB_ENV
-      - run: aws s3 rm s3://${{env.S3_BUCKET}} --recursive
-      - run: aws cloudformation delete-stack --stack-name ${{inputs.stack-prefix}}-frontend
-      - run: aws cloudformation wait stack-delete-complete --stack-name ${{inputs.stack-prefix}}-frontend
-
-  backend:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 15
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      AWS_STACK_PREFIX: ${{needs.aws-params.outputs.stack-prefix}}
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}
-          aws-region: ${{ inputs.region}}
-      # The calendar import stores files in a S3 bucket which also needs to be deleted.
-      - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-backend-app-bucket-upload'].Value" --output text) | tee -a $GITHUB_ENV
-      - run: aws cloudformation delete-stack --stack-name ${{inputs.stack-prefix}}-backend
-      - run: aws cloudformation wait stack-delete-complete --stack-name ${{inputs.stack-prefix}}-backend
-
-  bootstrap:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 15
-    # Only once the frontend and backend have been deleted can we remove the bootstrap stack
-    needs: [ frontend, backend ]
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      AWS_STACK_PREFIX: ${{needs.aws-params.outputs.stack-prefix}}
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::${{inputs.account-id }}:role/${{ env.AWS_GITHUB_ROLE }}
-          aws-region: ${{ inputs.region}}
-        # There's no sensible way to have cloudformation empty a bucket
-      - run: echo S3_BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='${{inputs.stack-prefix}}-bootstrap-dist-bucket-name'].Value" --output text) | tee -a $GITHUB_ENV
-      - run: aws s3 rm s3://${{env.S3_BUCKET}} --recursive
-      - run: aws cloudformation delete-stack --stack-name ${{inputs.stack-prefix}}-bootstrap
-      - run: aws cloudformation wait stack-delete-complete --stack-name ${{inputs.stack-prefix}}-bootstrap
+    with:
+      stack_prefix: ${{ inputs['stack-prefix'] }}
+      aws_account_id: ${{ inputs['account-id'] }}
+      region: ${{ inputs.region }}
+      aws_role_name: cad-github-actions-role
+      frontend_export_suffix: frontend-app-bucket-name
+      backend_export_suffix: backend-app-bucket-upload
+      bootstrap_export_suffix: bootstrap-dist-bucket-name
+      allow_prod: true

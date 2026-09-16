@@ -8,12 +8,11 @@ on:
       
 jobs:
   create-pr:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v6
-      - name: create pull request
-        # https://cli.github.com/manual/gh_pr_create
-        run: gh pr create -B release -H master --label 'release' --title 'Release Request' --body 'Created by Github action'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: oxctl/shared-workflows/.github/workflows/release.yml@master
+    with:
+      base_branch: release
+      head_branch: master
+      label: release
+      title: Release Request
+      body: Created by Github action
+      draft: false

@@ -6,21 +6,21 @@ on:
       - closed
     branches:
     - master
-    - main
 
 jobs:
   post-comment:
-    # Only runs when the PR has been merged into main or master.
-    if: github.event.pull_request.merged == true
+    uses: oxctl/shared-workflows/.github/workflows/ado_comment.yml@master
+    with:
+      ado_organization: oxforduniversity
+      ado_project: Canvas
+    secrets:
+      ado_username: ${{ secrets.ADO_USERNAME }}
+      ado_personal_token: ${{ secrets.ADO_PERSONAL_TOKEN }}
+
+  log-api-response:
     runs-on: ubuntu-latest
+    needs: [post-comment]
+    if: ${{ needs.post-comment.result == 'success' }}
     steps:
-      - name: Post comment to the ADO work item
-        id: post-ado-comment
-        uses: oxctl/post-ado-comment-action@v1
-        with:
-          ado-organization: 'oxforduniversity'
-          ado-project: 'Canvas'
-          ado-username: ${{ secrets.ADO_USERNAME }}
-          ado-personal-token: ${{ secrets.ADO_PERSONAL_TOKEN }}
       - name: Get the API response output
-        run: echo "${{ steps.post-ado-comment.outputs.api-response }}"
+        run: echo "${{ needs.post-comment.outputs.api-response }}"
