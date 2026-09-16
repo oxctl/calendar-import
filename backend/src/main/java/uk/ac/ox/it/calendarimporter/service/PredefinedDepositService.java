@@ -17,7 +17,7 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -51,7 +51,7 @@ public class PredefinedDepositService implements DepositService {
     }
 
     @Override
-    public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException {
+    public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException { 
         if (!canHandle(deposit)) {
             // Put the double check in here so that this doesn't ever become the vector to allowing file://
             // URLs to be accessed.
@@ -65,7 +65,12 @@ public class PredefinedDepositService implements DepositService {
         String url = config.getUrl();
         StringSubstitutor substitutor = new StringSubstitutor(parameters);
         String updatedUrl = substitutor.replace(url);
-        URLConnection urlConnection = new URL(updatedUrl).openConnection();
+        URLConnection urlConnection = null;
+        try {
+            urlConnection = new URI(updatedUrl).toURL().openConnection();
+        } catch (URISyntaxException e) {
+            throw new IOException("Invalid predefined deposit URI", e);
+        }
         if (urlConnection instanceof HttpURLConnection httpURLConnection) {
             if (
                     config.username != null && !config.username.isEmpty() &&

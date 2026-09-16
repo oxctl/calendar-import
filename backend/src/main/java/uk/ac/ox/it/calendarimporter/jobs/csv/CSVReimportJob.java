@@ -79,7 +79,7 @@ public class CSVReimportJob extends CanvasCalendarJob {
             failure("Failed to read file: " + he.getLocalizedMessage());
             return;
         } catch(IOException e){
-            failure("Failed to download data: " + e.getMessage());
+            failure("Failed to download data: " + e.getLocalizedMessage());
             return;
         }
         log.trace("Parsed {} rows.", importingEvents.size());

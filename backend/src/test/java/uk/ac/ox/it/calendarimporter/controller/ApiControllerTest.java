@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -14,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.ac.ox.it.calendarimporter.ApiWebSecurityConfig;
@@ -52,10 +52,10 @@ class ApiControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private ImportService importService;
 
-    @MockBean
+    @MockitoBean
     private TenantRepository tenantRepository;
 
     private Tenant tenant;
@@ -66,19 +66,19 @@ class ApiControllerTest {
 
     private CalendarImport calendarImport;
 
-    @MockBean
+    @MockitoBean
     private DepositService depositService;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
-    @MockBean
+    @MockitoBean
     private ContextJobRepository contextJobRepository;
 
-    @MockBean
+    @MockitoBean
     private CalendarImportRepository calendarImportRepository;
 
-    @MockBean
+    @MockitoBean
     private UserRepository userRepository;
 
     @BeforeEach

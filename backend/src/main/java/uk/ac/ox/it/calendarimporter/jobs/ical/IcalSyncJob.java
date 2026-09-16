@@ -18,7 +18,7 @@ import net.fortuna.ical4j.model.property.Location;
 import net.fortuna.ical4j.model.property.Summary;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.validate.ValidationException;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,11 +1,10 @@
 package uk.ac.ox.it.calendarimporter.termdata;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper;
+import org.springframework.boot.security.oauth2.client.autoconfigure.ConditionalOnOAuth2ClientRegistrationProperties;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientPropertiesMapper;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
@@ -29,7 +28,7 @@ public class WebClientConfiguration {
 	private String registrationId;
 	
 	@Bean
-	@Conditional(ClientsConfiguredCondition.class)
+	@ConditionalOnOAuth2ClientRegistrationProperties
 	public WebClient webClient(ReactiveClientRegistrationRepository clientRegistrations) {
 		return WebClient.builder()
 				.filter(createOAuthFilter(clientRegistrations))

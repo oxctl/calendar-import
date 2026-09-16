@@ -1,7 +1,9 @@
 package uk.ac.ox.it.calendarimporter.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +23,7 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("test")
 @Transactional
 @DirtiesContext
+@ExtendWith(MockitoExtension.class)
 public class CanvasCalendarServiceTest {
 
     @Autowired
