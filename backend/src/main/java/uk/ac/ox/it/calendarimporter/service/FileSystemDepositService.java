@@ -64,8 +64,7 @@ public class FileSystemDepositService implements DepositService {
         try {
             url = new URI(deposit).toURL();
         } catch (URISyntaxException e) {
-            // This should never happen because we only deposit files that are valid URIs.
-            throw new RuntimeException(e);
+            throw new IOException("Invalid file deposit URI", e);
         }
         if (!url.getPath().startsWith(location.toUri().getPath())) {
             throw new AccessDeniedException("File not within: "+ location.toUri());

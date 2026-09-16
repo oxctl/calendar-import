@@ -69,8 +69,7 @@ public class PredefinedDepositService implements DepositService {
         try {
             urlConnection = new URI(updatedUrl).toURL().openConnection();
         } catch (URISyntaxException e) {
-            // This should never happen because we only deposit files that are valid URIs.
-            throw new RuntimeException(e);
+            throw new IOException("Invalid predefined deposit URI", e);
         }
         if (urlConnection instanceof HttpURLConnection httpURLConnection) {
             if (

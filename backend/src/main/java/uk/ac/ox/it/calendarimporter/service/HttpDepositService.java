@@ -34,12 +34,11 @@ public class HttpDepositService implements DepositService {
         }
         StringSubstitutor substitutor = new StringSubstitutor(parameters);
         String updatedUrl = substitutor.replace(deposit);
-        URLConnection urlConnection = null;
+        URLConnection urlConnection;
         try {
-            urlConnection = new URI(updatedUrl).toURL().openConnection();
-        } catch (URISyntaxException e) {
-            // This should never happen because we have already checked that the URL is valid.
-            throw new RuntimeException(e);
+            urlConnection = new URI(updatedUrl.trim()).toURL().openConnection();
+        } catch (URISyntaxException | IllegalArgumentException e) {
+            throw new IOException("Invalid HTTP deposit URI", e);
         }
         urlConnection.setConnectTimeout(10000);
         return urlConnection.getInputStream();
