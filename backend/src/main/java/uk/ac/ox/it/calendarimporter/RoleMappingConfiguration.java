@@ -14,12 +14,8 @@ public class RoleMappingConfiguration {
      */
     private final Map<String, GrantedAuthority> mapping;
 
-    public RoleMappingConfiguration() {
-        this.mapping = Collections.emptyMap();
-    }
-
     public RoleMappingConfiguration(Map<String, GrantedAuthority> mapping) {
-        this.mapping = mapping;
+        this.mapping = mapping != null ? mapping : Collections.emptyMap();
     }
 
     public Map<String, GrantedAuthority> getMapping() {
