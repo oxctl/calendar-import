@@ -1,13 +1,12 @@
 package uk.ac.ox.it.calendarimporter;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.htmlunit.LocalHostWebClient;
-import org.springframework.core.env.Environment;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
+import org.htmlunit.WebClient;
 
 import java.io.IOException;
 
@@ -17,20 +16,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestPropertySource(locations = {"classpath:application.properties", "classpath:application-test.properties"})
 public class HomepageTest {
 
-    private LocalHostWebClient localHostWebClient;
+    private WebClient webClient;
 
-    @Autowired
-    private Environment environment;
+    @LocalServerPort
+    private int port;
 
     @BeforeEach
     public void setUp() {
-        localHostWebClient = new LocalHostWebClient(environment);
+        webClient = new WebClient();
     }
 
     @Test
     void frontPageWorks() throws IOException {
         // Check that everything starts up and we respond to a request for the homepage (doesn't need authentication)
-        HtmlPage page = localHostWebClient.getPage("/");
+        HtmlPage page = webClient.getPage("http://localhost:" + port + "/");
         assertEquals("Calendar Import", page.getTitleText());
     }
 

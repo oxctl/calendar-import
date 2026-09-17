@@ -3,9 +3,9 @@ package uk.ac.ox.it.calendarimporter.controller;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.ac.ox.it.calendarimporter.ApiWebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.WebSecurityConfig;
@@ -28,10 +28,10 @@ public class PredefinedControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 	
-	@MockBean
+	@MockitoBean
 	private PredefinedService predefinedService;
 
-	@MockBean
+	@MockitoBean
 	private TenantRepository tenantRepository;
 	
 	@Test

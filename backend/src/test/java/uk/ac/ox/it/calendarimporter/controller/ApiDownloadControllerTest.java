@@ -3,19 +3,22 @@ package uk.ac.ox.it.calendarimporter.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 import uk.ac.ox.it.calendarimporter.ApiWebSecurityConfig;
 import uk.ac.ox.it.calendarimporter.WebSecurityConfig;
-import uk.ac.ox.it.calendarimporter.persistence.model.*;
+import uk.ac.ox.it.calendarimporter.persistence.model.CalendarImport;
+import uk.ac.ox.it.calendarimporter.persistence.model.ContextJob;
+import uk.ac.ox.it.calendarimporter.persistence.model.JobProgress;
+import uk.ac.ox.it.calendarimporter.persistence.model.Tenant;
+import uk.ac.ox.it.calendarimporter.persistence.model.User;
 import uk.ac.ox.it.calendarimporter.persistence.repo.CalendarImportRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.ContextJobRepository;
 import uk.ac.ox.it.calendarimporter.persistence.repo.TenantRepository;
@@ -41,20 +44,20 @@ public class ApiDownloadControllerTest {
     @Autowired
     private ResourceLoader resourceLoader;
 
-    @MockBean
+    @MockitoBean
     private ContextJobRepository contextJobRepository;
     
-    @MockBean
+    @MockitoBean
     private TenantRepository tenantRepository;
     private Tenant tenant;
 
-    @MockBean
+    @MockitoBean
     private CalendarImportRepository calendarImportRepository;
 
-    @MockBean
+    @MockitoBean
     private UserRepository userRepository;
 
-    @MockBean
+    @MockitoBean
     private DepositService depositService;
 
     @BeforeEach

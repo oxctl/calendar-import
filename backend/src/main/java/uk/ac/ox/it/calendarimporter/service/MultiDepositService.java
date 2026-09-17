@@ -45,7 +45,7 @@ public class MultiDepositService implements DepositService {
     }
 
     @Override
-    public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException {
+    public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException{
         DepositService depositService = getDepositService(deposit);
         return depositService.getInputStream(deposit, parameters);
     }

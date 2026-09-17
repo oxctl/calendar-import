@@ -30,7 +30,7 @@ public interface DepositService {
      * @throws IOException If there's a problem getting the contents of the deposit.
      * @throw FileNotFoundException If the file doesn't exist.
      */
-    public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException, FileNotFoundException ; 
+    public InputStream getInputStream(String deposit, Map<String, String> parameters) throws IOException; 
     
     /**
      * Remove a deposited file.
