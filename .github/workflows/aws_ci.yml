@@ -13,4 +13,4 @@ jobs:
       aws_region: eu-west-1
       aws_account_id: '730335587339' # Development AWS account (cad-non-production)
       aws_role_name: cad-github-actions-role
-§      timeout_minutes: 5
+      timeout_minutes: 5
