@@ -12,8 +12,4 @@ jobs:
   backend-ci:
     uses: oxctl/shared-workflows/.github/workflows/backend_ci.yml@master
     with:
-      working_directory: backend
-      java_version_file: backend/.java-version
-      java_distribution: temurin
-      build_command: mvn -ntp -B package --file pom.xml
       timeout_minutes: 10

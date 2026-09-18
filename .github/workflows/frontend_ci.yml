@@ -12,10 +12,4 @@ jobs:
   frontend-ci:
     uses: oxctl/shared-workflows/.github/workflows/frontend_ci.yml@master
     with:
-      working_directory: frontend
-      node_version_file: frontend/.nvmrc
-      cache_dependency_path: '**/package-lock.json'
-      install_command: npm ci
-      build_command: npm run build --if-present
-      test_command: npm test
       timeout_minutes: 15

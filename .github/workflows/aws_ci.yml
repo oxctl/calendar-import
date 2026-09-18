@@ -13,8 +13,4 @@ jobs:
       aws_region: eu-west-1
       aws_account_id: '730335587339' # Development AWS account (cad-non-production)
       aws_role_name: cad-github-actions-role
-      template_paths: |
-        aws/stack.yaml
-        aws/bootstrap.yaml
-        aws/s3-and-cloudfront.yaml
-      timeout_minutes: 5
+§      timeout_minutes: 5
