@@ -148,6 +148,12 @@ export const downloadWithToken = async (url, token, filename = null) => {
  * @returns {Promise<void>}
  */
 export const displayFileInBrowser = async (url, token) => {
+  // Open synchronously to avoid popup blockers
+  const newWindow = window.open('', '_blank', 'noopener,noreferrer')
+  if (!newWindow) {
+    throw new Error('Popup was blocked')
+  }
+
   try {
     const response = await fetch(url, {
       method: 'GET',
@@ -160,13 +166,19 @@ export const displayFileInBrowser = async (url, token) => {
       throw new Error(`Failed to fetch file with status ${response.status}`)
     }
 
-    // Convert response to blob and open in new window
     const blob = await response.blob()
     const displayUrl = window.URL.createObjectURL(blob)
-    window.open(displayUrl, '_blank')
-    // Note: We don't revoke the URL immediately as the new window needs it
-    // The browser will clean it up when the tab/window is closed
+    newWindow.location.href = displayUrl
+
+    // Revoke when the window is closed (best-effort)
+    const timer = window.setInterval(() => {
+      if (newWindow.closed) {
+        window.clearInterval(timer)
+        window.URL.revokeObjectURL(displayUrl)
+      }
+    }, 1000)
   } catch (error) {
+    newWindow.close()
     console.error('Display error:', error)
     throw error
   }
