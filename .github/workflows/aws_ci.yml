@@ -1,28 +1,16 @@
-
 name: PR validation of CloudFormation
 on:
   pull_request:
     branches: [ 'master' ]
 
-env:
-  AWS_REGION: 'eu-west-1'
-  AWS_ACCOUNT_ID: '730335587339'  # Development AWS Account (cad-non-production)
-  
 jobs:
   validate:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    # This is needed for AWS assume role
+    uses: oxctl/shared-workflows/.github/workflows/aws_ci.yml@master
     permissions:
       id-token: write
       contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/cad-github-actions-role
-          aws-region: ${{ env.AWS_REGION }}
-      # Check that the templates are at least valid.
-      - run: aws cloudformation validate-template --template-body file://aws/stack.yaml
-      - run: aws cloudformation validate-template --template-body file://aws/bootstrap.yaml
-      - run: aws cloudformation validate-template --template-body file://aws/s3-and-cloudfront.yaml
+    with:
+      aws_region: eu-west-1
+      aws_account_id: '730335587339' # Development AWS account (cad-non-production)
+      aws_role_name: cad-github-actions-role
+      timeout_minutes: 5
