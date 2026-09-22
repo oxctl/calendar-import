@@ -1,5 +1,6 @@
 name: Frontend and Backend build
 run-name: "Deploy ${{ github.ref }}"
+# Trigger-only change to force a fresh push run after CI workflow updates.
 
 on:
   push:
