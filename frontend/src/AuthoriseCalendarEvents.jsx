@@ -21,6 +21,7 @@ import { addMessage } from './actions/messages'
 import { Loading } from './Loading'
 import { getRelativeTime } from './relativeTime'
 import { CalendarError } from './CalendarError'
+import { displayFileInBrowser } from './utils/fetch'
 
 class AuthoriseCalendarEvents extends React.Component {
 
@@ -130,6 +131,14 @@ class AuthoriseCalendarEvents extends React.Component {
     })
   }
 
+  handleDownloadLog = async (id, type) => {
+    try {
+      await displayFileInBrowser(`${this.props.calendarServer}/api/log/${id}/${type}ByCalendarImportId`, this.props.token)
+    } catch (error) {
+      this.props.onMessage({type: 'error', text: `Failed to display log: ${error.message}`})
+    }
+  }
+
   renderLoadInfo = (type) => {
     if(this.state.statusLoading) return <Spinner renderTitle="Loading status"/>
     return <View as='div' background='primary' margin='small small small large' borderWidth='small' padding='small'>
@@ -148,7 +157,7 @@ class AuthoriseCalendarEvents extends React.Component {
             }
             <Text weight='bold'>Message:</Text> {this.state.lastCalendarImport[type].lastMessage}
             <br/>
-            <Text weight='bold'>Logfile:</Text> <Link target='_blank' href={`${this.props.calendarServer}/api/log/${this.state.lastCalendarImport.id}/${type}ByCalendarImportId?access_token=${this.props.token}`}>logfile</Link>
+            <Text weight='bold'>Logfile:</Text> <Link as='button' onClick={() => this.handleDownloadLog(this.state.lastCalendarImport.id, type)}>logfile</Link>
           </View>
         </Flex.Item>
         <Flex.Item>

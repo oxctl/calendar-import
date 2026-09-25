@@ -89,3 +89,97 @@ export class UnauthorizedError extends Error {
     this.name = 'Unauthorized Error';
   }
 }
+
+/**
+ * Download a file from the server using a Bearer token in the Authorization header.
+ * 
+ * @param {string} url - The API URL to fetch from
+ * @param {string} token - The Bearer token for authentication
+ * @param {string} filename - The filename to save as (optional, will use response header if not provided)
+ * @returns {Promise<void>}
+ */
+export const downloadWithToken = async (url, token, filename = null) => {
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Download failed with status ${response.status}`)
+    }
+
+    // Get filename from Content-Disposition header if not provided
+    let downloadFilename = filename
+    if (!downloadFilename) {
+      const contentDisposition = response.headers.get('content-disposition')
+      if (contentDisposition) {
+        const matches = contentDisposition.match(/filename="?([^"]+)"?/)
+        if (matches) {
+          downloadFilename = matches[1]
+        }
+      }
+    }
+
+    // Convert response to blob and trigger download
+    const blob = await response.blob()
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = downloadFilename || 'download'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (error) {
+    console.error('Download error:', error)
+    throw error
+  }
+}
+
+/**
+ * Display a file from the server in the browser (new tab/window) using a Bearer token in the Authorization header.
+ * This is useful for displaying log files and other text content.
+ * 
+ * @param {string} url - The API URL to fetch from
+ * @param {string} token - The Bearer token for authentication
+ * @returns {Promise<void>}
+ */
+export const displayFileInBrowser = async (url, token) => {
+  // Open synchronously to avoid popup blockers
+  const newWindow = window.open('', '_blank', 'noopener,noreferrer')
+  if (!newWindow) {
+    throw new Error('Popup was blocked')
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file with status ${response.status}`)
+    }
+
+    const blob = await response.blob()
+    const displayUrl = window.URL.createObjectURL(blob)
+    newWindow.location.href = displayUrl
+
+    // Revoke when the window is closed (best-effort)
+    const timer = window.setInterval(() => {
+      if (newWindow.closed) {
+        window.clearInterval(timer)
+        window.URL.revokeObjectURL(displayUrl)
+      }
+    }, 1000)
+  } catch (error) {
+    newWindow.close()
+    console.error('Display error:', error)
+    throw error
+  }
+}
