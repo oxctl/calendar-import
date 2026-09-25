@@ -91,10 +91,10 @@ export class UnauthorizedError extends Error {
 }
 
 /**
- * Download a file from the server using a Bearer token in the Authorization header.
- * 
+ * Download a file from the server using a token in the Authorization header.
+ *
  * @param {string} url - The API URL to fetch from
- * @param {string} token - The Bearer token for authentication
+ * @param {string} token - The token for authentication
  * @param {string} filename - The filename to save as (optional, will use response header if not provided)
  * @returns {Promise<void>}
  */
@@ -140,46 +140,25 @@ export const downloadWithToken = async (url, token, filename = null) => {
 }
 
 /**
- * Display a file from the server in the browser (new tab/window) using a Bearer token in the Authorization header.
- * This is useful for displaying log files and other text content.
- * 
+ * Fetch a text log file from the server using a token in the Authorization header.
+ *
  * @param {string} url - The API URL to fetch from
- * @param {string} token - The Bearer token for authentication
- * @returns {Promise<void>}
+ * @param {string} token - The token for authentication
+ * @param {AbortSignal} [signal] - Cancels the request when the viewer closes
+ * @returns {Promise<string>}
  */
-export const displayFileInBrowser = async (url, token) => {
-  // Open synchronously to avoid popup blockers
-  const newWindow = window.open('', '_blank', 'noopener,noreferrer')
-  if (!newWindow) {
-    throw new Error('Popup was blocked')
-  }
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file with status ${response.status}`)
+export const fetchTextFileWithToken = async (url, token, signal) => {
+  const response = await fetch(url, {
+    signal,
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
     }
+  })
 
-    const blob = await response.blob()
-    const displayUrl = window.URL.createObjectURL(blob)
-    newWindow.location.href = displayUrl
-
-    // Revoke when the window is closed (best-effort)
-    const timer = window.setInterval(() => {
-      if (newWindow.closed) {
-        window.clearInterval(timer)
-        window.URL.revokeObjectURL(displayUrl)
-      }
-    }, 1000)
-  } catch (error) {
-    newWindow.close()
-    console.error('Display error:', error)
-    throw error
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file with status ${response.status}`)
   }
+
+  return response.text()
 }
