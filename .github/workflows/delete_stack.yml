@@ -21,7 +21,7 @@ on:
 
 jobs:
   delete-stack:
-    uses: oxctl/shared-workflows/.github/workflows/delete_stack.yml@master
+    uses: oxctl/shared-workflows/.github/workflows/delete_stack.yml@v1
     permissions:
       id-token: write
       contents: read

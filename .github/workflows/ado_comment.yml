@@ -9,7 +9,7 @@ on:
 
 jobs:
   post-comment:
-    uses: oxctl/shared-workflows/.github/workflows/ado_comment.yml@master
+    uses: oxctl/shared-workflows/.github/workflows/ado_comment.yml@v1
     with:
       ado_organization: oxforduniversity
       ado_project: Canvas

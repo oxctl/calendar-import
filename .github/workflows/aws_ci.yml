@@ -5,7 +5,7 @@ on:
 
 jobs:
   validate:
-    uses: oxctl/shared-workflows/.github/workflows/aws_ci.yml@master
+    uses: oxctl/shared-workflows/.github/workflows/aws_ci.yml@v1
     permissions:
       id-token: write
       contents: read
