@@ -21,7 +21,7 @@ import { addMessage } from './actions/messages'
 import { Loading } from './Loading'
 import { getRelativeTime } from './relativeTime'
 import { CalendarError } from './CalendarError'
-import { displayFileInBrowser } from './utils/fetch'
+import LogModal from './LogModal'
 
 class AuthoriseCalendarEvents extends React.Component {
 
@@ -36,7 +36,8 @@ class AuthoriseCalendarEvents extends React.Component {
     statusLoading: false,
     // Are we currently saving data to the server?
     saving: false,
-    lastCalendarImport: {}
+    lastCalendarImport: {},
+    logModal: null
   }
 
   handleSubscribeChanged = () => {
@@ -131,12 +132,17 @@ class AuthoriseCalendarEvents extends React.Component {
     })
   }
 
-  handleDownloadLog = async (id, type) => {
-    try {
-      await displayFileInBrowser(`${this.props.calendarServer}/api/log/${id}/${type}ByCalendarImportId`, this.props.token)
-    } catch (error) {
-      this.props.onMessage({type: 'error', text: `Failed to display log: ${error.message}`})
-    }
+  handleViewLog = (id, type) => {
+    this.setState({
+      logModal: {
+        title: `${type.charAt(0).toUpperCase() + type.slice(1)} logfile`,
+        url: `${this.props.calendarServer}/api/log/${id}/${type}ByCalendarImportId`
+      }
+    })
+  }
+
+  closeLogModal = () => {
+    this.setState({logModal: null})
   }
 
   renderLoadInfo = (type) => {
@@ -157,7 +163,7 @@ class AuthoriseCalendarEvents extends React.Component {
             }
             <Text weight='bold'>Message:</Text> {this.state.lastCalendarImport[type].lastMessage}
             <br/>
-            <Text weight='bold'>Logfile:</Text> <Link as='button' onClick={() => this.handleDownloadLog(this.state.lastCalendarImport.id, type)}>logfile</Link>
+            <Text weight='bold'>Logfile:</Text> <Link as='button' onClick={() => this.handleViewLog(this.state.lastCalendarImport.id, type)}>logfile</Link>
           </View>
         </Flex.Item>
         <Flex.Item>
@@ -191,6 +197,7 @@ class AuthoriseCalendarEvents extends React.Component {
         </Flex.Item>
       </Flex>
       {this.state.lastCalendarImport.load && this.renderLoadInfo("load")}
+      {this.state.logModal && <LogModal {...this.state.logModal} token={this.props.token} onDismiss={this.closeLogModal}/>}
     </Loading>
   }
 }
