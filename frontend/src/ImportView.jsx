@@ -19,8 +19,13 @@ import {
 import { getRelativeTime } from './relativeTime'
 import { load, setPage } from './actions/imports'
 import { connect } from 'react-redux'
+import { downloadWithToken } from './utils/fetch'
+import LogModal from './LogModal'
 
 class ImportView extends React.Component {
+    state = {
+        logModal: null
+    }
 
     componentDidMount() {
         this.props.load()
@@ -44,6 +49,27 @@ class ImportView extends React.Component {
                 this.props.load()
             }
         }
+    }
+
+    handleDownloadFile = async (id, filename) => {
+        try {
+            await downloadWithToken(`${this.props.server}/api/download/${id}`, this.props.token, filename)
+        } catch (error) {
+            this.props.onMessage({type: 'error', text: `Failed to download file: ${error.message}`})
+        }
+    }
+
+    handleViewLog = (id, type) => {
+        this.setState({
+            logModal: {
+                title: `${type.charAt(0).toUpperCase() + type.slice(1)} logfile`,
+                url: `${this.props.server}/api/log/${id}/${type}`
+            }
+        })
+    }
+
+    closeLogModal = () => {
+        this.setState({logModal: null})
     }
 
     renderIcon = (type) => {
@@ -93,8 +119,7 @@ class ImportView extends React.Component {
                         {this.renderIcon(calendarImport.type)}
                         <View as='div' display='inline-block' margin='none small'>
                             <Text as='div' weight='bold'>
-                                {calendarImport.user.name} imported <Link
-                                href={`${this.props.server}/api/download/${id}?access_token=${this.props.token}`}>
+                                {calendarImport.user.name} imported <Link as='button' onClick={() => this.handleDownloadFile(id, calendarImport.filename)}>
                                 {calendarImport.filename}</Link> into {calendarImport.destinationName ? 'the section: ' + calendarImport.destinationName : 'the calendar'}
                             </Text>
                             <Text as='div'>Created: {this.renderAgo(calendarImport.created)}</Text>
@@ -113,8 +138,7 @@ class ImportView extends React.Component {
                                     <Text weight='bold'>Last message:</Text> {calendarImport.load.lastMessage}
                                 </View>
                                 <View as='div' margin='0 0 0 small'>
-                                    <Text weight='bold'>Logfile:</Text> <Link target='_blank'
-                                                                              href={`${this.props.server}/api/log/${id}/load?access_token=${this.props.token}`}>logfile</Link>
+                                    <Text weight='bold'>Logfile:</Text> <Link as='button' onClick={() => this.handleViewLog(id, 'load')}>logfile</Link>
                                 </View>
                             </Flex.Item>
                             <Flex.Item as='div' margin='none small'>
@@ -138,8 +162,7 @@ class ImportView extends React.Component {
                                     <Text weight='bold'>Last message:</Text> {calendarImport.delete.lastMessage}
                                 </View>
                                 <View as='div' margin='0 0 0 small'>
-                                    <Text weight='bold'>Logfile:</Text> <Link target='_blank'
-                                                                              href={`${this.props.server}/api/log/${id}/delete?access_token=${this.props.token}`}>logfile</Link>
+                                    <Text weight='bold'>Logfile:</Text> <Link as='button' onClick={() => this.handleViewLog(id, 'delete')}>logfile</Link>
                                 </View>
                             </Flex.Item>
                         </Flex>
@@ -189,6 +212,7 @@ class ImportView extends React.Component {
                 </Flex.Item>
             </Flex>
             {this.props.loading ? this.renderSpinner() : <>{this.renderItems()}{this.renderPagination()}</>}
+            {this.state.logModal && <LogModal {...this.state.logModal} token={this.props.token} onDismiss={this.closeLogModal}/>}
         </View>
     }
 }

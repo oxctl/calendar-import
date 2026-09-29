@@ -86,10 +86,7 @@ public class ApiWebSecurityConfig {
 
     @Bean
     public BearerTokenResolver bearerTokenResolver() {
-        DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
-        // This is so that we can allow downloads to work.
-        resolver.setAllowUriQueryParameter(true);
-        return resolver;
+        return new DefaultBearerTokenResolver();
     }
 
     @Bean

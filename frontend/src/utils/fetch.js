@@ -89,3 +89,76 @@ export class UnauthorizedError extends Error {
     this.name = 'Unauthorized Error';
   }
 }
+
+/**
+ * Download a file from the server using a token in the Authorization header.
+ *
+ * @param {string} url - The API URL to fetch from
+ * @param {string} token - The token for authentication
+ * @param {string} filename - The filename to save as (optional, will use response header if not provided)
+ * @returns {Promise<void>}
+ */
+export const downloadWithToken = async (url, token, filename = null) => {
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Download failed with status ${response.status}`)
+    }
+
+    // Get filename from Content-Disposition header if not provided
+    let downloadFilename = filename
+    if (!downloadFilename) {
+      const contentDisposition = response.headers.get('content-disposition')
+      if (contentDisposition) {
+        const matches = contentDisposition.match(/filename="?([^"]+)"?/)
+        if (matches) {
+          downloadFilename = matches[1]
+        }
+      }
+    }
+
+    // Convert response to blob and trigger download
+    const blob = await response.blob()
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = downloadFilename || 'download'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (error) {
+    console.error('Download error:', error)
+    throw error
+  }
+}
+
+/**
+ * Fetch a text log file from the server using a token in the Authorization header.
+ *
+ * @param {string} url - The API URL to fetch from
+ * @param {string} token - The token for authentication
+ * @param {AbortSignal} [signal] - Cancels the request when the viewer closes
+ * @returns {Promise<string>}
+ */
+export const fetchTextFileWithToken = async (url, token, signal) => {
+  const response = await fetch(url, {
+    signal,
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file with status ${response.status}`)
+  }
+
+  return response.text()
+}
