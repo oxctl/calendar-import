@@ -34,7 +34,7 @@ jobs:
           echo json=${PARAMS} | tee -a $GITHUB_OUTPUT
 
   call-frontend-build-and-deploy:
-    uses: oxctl/shared-workflows/.github/workflows/frontend_build_and_deploy.yml@master
+    uses: oxctl/shared-workflows/.github/workflows/frontend_build_and_deploy.yml@v1
     needs: [ aws-params ]
     with:
       account_type: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
@@ -50,7 +50,7 @@ jobs:
     secrets: inherit
 
   call-backend-build-and-deploy:
-    uses: oxctl/shared-workflows/.github/workflows/backend_build_and_deploy.yml@master
+    uses: oxctl/shared-workflows/.github/workflows/backend_build_and_deploy.yml@v1
     needs: [ aws-params ]
     with:
       account_type: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}
@@ -65,7 +65,7 @@ jobs:
     secrets: inherit
 
   call-update-config:
-    uses: oxctl/shared-workflows/.github/workflows/update-config-be.yml@master
+    uses: oxctl/shared-workflows/.github/workflows/update-config-be.yml@v1
     needs: [ aws-params, call-frontend-build-and-deploy, call-backend-build-and-deploy ]
     with:
       account_type: ${{ fromJSON(needs.aws-params.outputs.json).accountType }}

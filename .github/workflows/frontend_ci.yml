@@ -10,6 +10,6 @@ on:
 
 jobs:
   frontend-ci:
-    uses: oxctl/shared-workflows/.github/workflows/frontend_ci.yml@master
+    uses: oxctl/shared-workflows/.github/workflows/frontend_ci.yml@v1
     with:
       timeout_minutes: 15
