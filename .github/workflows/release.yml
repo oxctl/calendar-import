@@ -8,7 +8,7 @@ on:
       
 jobs:
   create-pr:
-    uses: oxctl/shared-workflows/.github/workflows/release.yml@v1
+    uses: oxctl/shared-workflows/.github/workflows/release.yml@v2
     with:
       base_branch: release
       head_branch: master

@@ -21,7 +21,7 @@ on:
 
 jobs:
   test-deployment:
-    uses: oxctl/shared-workflows/.github/workflows/test_deployment.yml@v1
+    uses: oxctl/shared-workflows/.github/workflows/test_deployment.yml@v2
     with:
       execution-environment: ${{ inputs.execution-environment }}
     secrets: inherit
