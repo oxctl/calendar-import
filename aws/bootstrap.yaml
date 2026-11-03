@@ -98,30 +98,29 @@ Resources:
             "rules": [
               {
                 "rulePriority": 2,
-                "description": "Keep 50 previous versions of tagged images",
+                "description": "Keep 2 previous versions of tagged images and archive the rest",
                 "selection": {
                   "tagStatus": "tagged",
                   "tagPatternList": [
                     "*"
                   ],
                   "countType": "imageCountMoreThan",
-                  "countNumber": 50
+                  "countNumber": 2
                 },
                 "action": {
-                  "type": "expire"
+                  "type": "archive"
                 }
               },
               {
                 "rulePriority": 3,
-                "description": "Expire untagged images after 30 days",
+                "description": "Keep 4 previous versions of untagged images and archive the rest",
                 "selection": {
                   "tagStatus": "untagged",
-                  "countType": "sinceImagePushed",
-                  "countUnit": "days",
-                  "countNumber": 30
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 4
                 },
                 "action": {
-                  "type": "expire"
+                  "type": "archive"
                 }
               }
             ]
