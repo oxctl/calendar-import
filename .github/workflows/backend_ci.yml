@@ -10,6 +10,6 @@ on:
 
 jobs:
   backend-ci:
-    uses: oxctl/shared-workflows/.github/workflows/backend_ci.yml@v1
+    uses: oxctl/shared-workflows/.github/workflows/backend_ci.yml@v2
     with:
       timeout_minutes: 10
