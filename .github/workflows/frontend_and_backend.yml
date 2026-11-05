@@ -20,10 +20,11 @@ on:
 
 jobs:
   deploy:
-    uses: oxctl/shared-workflows/.github/workflows/deploy.yml@v2
+    uses: oxctl/shared-workflows/.github/workflows/deploy.yml@master
     permissions:
       id-token: write
       contents: read
     with:
       env_type: ${{ startsWith(github.ref_name, 'dr-') && 'dr' || github.ref_name }}
+      skip_update_and_tests: ${{ startsWith(github.ref_name, 'dr-') }}
     secrets: inherit
