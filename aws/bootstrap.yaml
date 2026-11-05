@@ -126,12 +126,13 @@ Resources:
               },
               {
                 "rulePriority": 4,
-                "description": "Keep only 20 archived images, expire the rest",
+                "description": "Expire archived images after 90 days in archive storage",
                 "selection": {
                   "tagStatus": "any",
                   "storageClass": "archive",
-                  "countType": "imageCountMoreThan",
-                  "countNumber": 20
+                  "countType": "sinceImageTransitioned",
+                  "countUnit": "days",
+                  "countNumber": 90
                 },
                 "action": {
                   "type": "expire"
