@@ -26,4 +26,5 @@ jobs:
       contents: read
     with:
       env_type: ${{ startsWith(github.ref_name, 'dr-') && 'dr' || github.ref_name }}
+      skip_update_and_tests: ${{ startsWith(github.ref_name, 'dr-') }}
     secrets: inherit
