@@ -122,7 +122,20 @@ Resources:
                 "action": {
                   "type": "archive"
                 }
-              }
+              },
+              {
+                "rulePriority": 4,
+                "description": "Keep only 20 archived images, expire the rest",
+                "selection": {
+                  "tagStatus": "any",
+                  "storageClass": "archive",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 20
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }          
             ]
           }
         RegistryId: !Ref AWS::AccountId
