@@ -108,7 +108,8 @@ Resources:
                   "countNumber": 2
                 },
                 "action": {
-                  "type": "archive"
+                  "type": "transition",
+                  "targetStorageClass": "archive"
                 }
               },
               {
