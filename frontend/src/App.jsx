@@ -28,7 +28,7 @@ import jwtDecode from 'jwt-decode'
 import {View} from '@instructure/ui'
 import {Loading} from './Loading'
 import Error from './Error'
-import {LaunchOAuth, LtiApplyTheme, LtiHeightLimit, LtiTokenRetriever} from "@oxctl/ui-lti"
+import { LaunchOAuth, LtiHeightLimit, LtiPageSettings, LtiTokenRetriever } from "@oxctl/ui-lti"
 import {setServer, setToken} from "./actions/lti";
 import {connect} from "react-redux";
 import {addMessage} from "./actions/messages";
@@ -41,7 +41,6 @@ import RefreshProxyToken from "./RefreshProxyToken";
 class App extends React.Component {
     state = {
         tryLoading: true,
-        comInstructureBrandConfigJsonUrl: null,
         accountId: null,
         accountName: null,
         canvasUrl: null,
@@ -53,7 +52,7 @@ class App extends React.Component {
         // The timezone of the current user.
         timezone: null,
         // The URL of the proxy server to use for API requests
-        proxyServer: null,
+        toolSupportServer: null,
         // The URL of the calendar import server
         calendarServer: null
     }
@@ -65,12 +64,10 @@ class App extends React.Component {
     jwt = null
     token = null
 
-    updateToken = (token) => {
+    updateToken = (token, toolSupportServer) => {
         this.token = token
         this.jwt = jwtDecode(token)
         this.setState({
-            comInstructureBrandConfigJsonUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].com_instructure_brand_config_json_url,
-            canvasUserPrefersHighContrast: (this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_user_prefers_high_contrast === 'true'),
             courseId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_id),
             accountId: parseInt(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_account_id),
             courseName: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].canvas_course_name,
@@ -86,9 +83,8 @@ class App extends React.Component {
             calendarUrl: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].url,
             timezone: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].person_address_timezone,
             disableCalendarImport: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].user_only_delete === 'true',
-            proxyServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].proxy_server,
-            calendarServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].calendar_server,
-            ltiServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].lti_server
+            toolSupportServer: toolSupportServer,
+            calendarServer: this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].calendar_server
         })
         this.props.setToken(token)
         this.props.setServer(this.jwt['https://purl.imsglobal.org/spec/lti/claim/custom'].calendar_server)
@@ -111,20 +107,20 @@ class App extends React.Component {
                 token={this.state.token}
                 deepLinkReturnUrl={this.state.deepLinkReturnUrl}
                 courseName={courseName}
-                ltiServer={this.state.ltiServer}
+                ltiServer={this.state.toolSupportServer}
                 targetLinkUri={this.state.targetLinkUri}
                 timezone={this.state.timezone}
             />
         }
 
         if(calendarUrl){
-            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.proxyServer}
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.toolSupportServer}
                                       onMissingToken={this.proxyTokenGet}>
                 <AuthoriseCalendarEvents
                     calendarServer={this.state.calendarServer}
                     onMissingToken={this.proxyTokenGet}
                     personalCalendarLink={this.state.canvasBaseUrl + '/calendar?include_contexts=user_' + this.state.userId}
-                    proxyServer={this.state.proxyServer}
+                    proxyServer={this.state.toolSupportServer}
                     returnUrl={this.state.returnUrl}
                     token={this.state.token}
                 />
@@ -132,13 +128,13 @@ class App extends React.Component {
         }
 
         if (placement === "account_navigation") {
-            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.proxyServer}
+            return <RefreshProxyToken token={this.state.token} proxyServer={this.state.toolSupportServer}
                                       onMissingToken={this.proxyTokenGet}>
                 <ContextCalendars
                     canvasBaseUrl={canvasBaseUrl}
                     contextType='account'
                     accountId={accountId}
-                    proxyServer={this.state.proxyServer}
+                    proxyServer={this.state.toolSupportServer}
                     calendarServer={this.state.calendarServer}
                     token={this.token}
                     handleProxyRefresh={this.proxyTokenGet}
@@ -151,7 +147,7 @@ class App extends React.Component {
             contextType='course'
             courseId={courseId}
             courseName={courseName}
-            proxyServer={this.state.proxyServer}
+            proxyServer={this.state.toolSupportServer}
             calendarServer={this.state.calendarServer}
             token={this.token}
             handleProxyRefresh={this.proxyTokenGet}
@@ -160,14 +156,14 @@ class App extends React.Component {
 
     
     render() {
-        const {error,  comInstructureBrandConfigJsonUrl, canvasUserPrefersHighContrast} = this.state
+        const {error} = this.state
 
         return (
             <LtiTokenRetriever handleJwt={this.updateToken}>
-                <LtiApplyTheme url={comInstructureBrandConfigJsonUrl} highContrast={canvasUserPrefersHighContrast}>
+                <LtiPageSettings>
                     <LtiHeightLimit>
                         <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyTokenOk}
-                                     promptLogin={this.state.prompt} server={{proxyServer: this.state.proxyServer}}>
+                                     promptLogin={this.state.prompt} server={{toolSupportServer: this.state.toolSupportServer}}>
                             <View padding="small" as="div">
                             <Error message={error}>
                             <Loading loading={this.state.loading}> 
@@ -177,7 +173,7 @@ class App extends React.Component {
                             </View>
                         </LaunchOAuth>
                     </LtiHeightLimit>
-                </LtiApplyTheme>
+                </LtiPageSettings>
             </LtiTokenRetriever>
         )
     }
