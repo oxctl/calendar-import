@@ -121,7 +121,8 @@ Resources:
                   "countNumber": 4
                 },
                 "action": {
-                  "type": "archive"
+                  "type": "transition",
+                  "targetStorageClass": "archive"
                 }
               },
               {
