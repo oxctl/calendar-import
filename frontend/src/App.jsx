@@ -163,7 +163,7 @@ class App extends React.Component {
                 <LtiPageSettings>
                     <LtiHeightLimit>
                         <LaunchOAuth accessToken={this.token} promptUserLogin={this.proxyTokenOk}
-                                     promptLogin={this.state.prompt} server={{toolSupportServer: this.state.toolSupportServer}}>
+                                     promptLogin={this.state.prompt} server={{proxyServer: this.state.toolSupportServer}}>
                             <View padding="small" as="div">
                             <Error message={error}>
                             <Loading loading={this.state.loading}> 
