@@ -396,6 +396,8 @@
             <jvmFlags>
               <!-- The ZGC collector allows memory to be released back to the OS by default. -->
               <jvmFlag>-XX:+UseZGC</jvmFlag>
+              <!-- Disable the base 64 optimisations because of Java4Shell -->
+              <jvmFlag>-XX:-UseBASE64Intrinsics</jvmFlag>
             </jvmFlags>
             <labels>
               <!-- This is just metadata about the repository that contains the source -->
